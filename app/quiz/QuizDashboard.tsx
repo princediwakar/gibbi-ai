@@ -8,37 +8,28 @@ import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export default function QuizDashboard() {
-	const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-	const [isLoading, setIsLoading] =
-		useState<boolean>(true);
+	const [quizzes, setQuizzes] = useState<Quiz[] | null>(
+		null
+	);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		// Update the fetchQuizzes function
 		const fetchQuizzes = async () => {
+			if (quizzes !== null) return; // Prevent refetch if quizzes already exist
+
 			setIsLoading(true);
 			try {
-				toast.promise(
-					(async () => {
-						const { data, error } =
-							await supabase
-								.from("quizzes")
-								.select(
-									"quiz_id, title, description, topic, subject, difficulty, num_questions, created_at, updated_at, is_public, creator_id"
-								)
-								.order("created_at", {
-									ascending: false,
-								});
+				const { data, error } = await supabase
+					.from("quizzes")
+					.select("*")
+					.order("created_at", {
+						ascending: false,
+					});
 
-						if (error) throw error;
-						setQuizzes((data as Quiz[]) || []);
-					})(),
-					{
-						loading: "Loading quizzes...",
-						success:
-							"Quizzes loaded successfully!",
-						error: (error) =>
-							`Failed to load quizzes: ${error.message}`,
-					}
+				if (error) throw error;
+				setQuizzes(data as Quiz[]);
+				toast.success(
+					"Quizzes loaded successfully!"
 				);
 			} catch (error: unknown) {
 				console.error(
@@ -56,10 +47,12 @@ export default function QuizDashboard() {
 		};
 
 		fetchQuizzes();
-	}, []);
+	}, [quizzes]);
 
 	const handleQuizCreated = (quiz: Quiz) => {
-		setQuizzes([quiz, ...quizzes]);
+		setQuizzes((prev) =>
+			prev ? [quiz, ...prev] : [quiz]
+		);
 		toast.success(
 			`Quiz "${quiz.title}" created successfully!`
 		);

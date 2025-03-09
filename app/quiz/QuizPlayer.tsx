@@ -6,11 +6,19 @@ import { QuizResults } from "./QuizResults";
 import Link from "next/link";
 import { QuizDetails } from "./QuizDetails";
 
+interface QuizPlayerProps {
+	quiz: Quiz;
+	embedMode?: boolean;
+}
+
 interface Option {
 	key: string;
 	value: string;
 }
-export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
+export const QuizPlayer = ({
+	quiz,
+	embedMode = false,
+}: QuizPlayerProps) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [score, setScore] = useState(0);
 	const [completed, setCompleted] = useState(false);
@@ -19,6 +27,10 @@ export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 	const [userAnswers, setUserAnswers] = useState<{
 		[key: number]: string;
 	}>({});
+  	
+	const containerClass = embedMode
+		? "bg-white"
+		: "bg-gray-50";
 
 	// useEffect(() => {
 	// 	if (quiz.questions && quiz.questions.length > 0) {
@@ -70,25 +82,28 @@ export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 		);
 	};
 
-const parseOptions = (
-	options: string | Record<string, string>
-): Option[] => {
-	try {
-		const parsed =
-			typeof options === "string"
-				? JSON.parse(options)
-				: options;
-		return Object.entries(parsed).map(
-			([key, value]) => ({
-				key,
-				value: String(value), // Ensure value is always a string
-			})
-		);
-	} catch (error) {
-		console.error("Failed to parse options:", error);
-		return [];
-	}
-};
+	const parseOptions = (
+		options: string | Record<string, string>
+	): Option[] => {
+		try {
+			const parsed =
+				typeof options === "string"
+					? JSON.parse(options)
+					: options;
+			return Object.entries(parsed).map(
+				([key, value]) => ({
+					key,
+					value: String(value), // Ensure value is always a string
+				})
+			);
+		} catch (error) {
+			console.error(
+				"Failed to parse options:",
+				error
+			);
+			return [];
+		}
+	};
 
 	const handleAnswer = (option: string) => {
 		if (!quiz.questions) return;
@@ -153,57 +168,63 @@ const parseOptions = (
 	const options = parseOptions(currentQuestion.options);
 
 	return (
-		<div className="max-w-xl mx-auto mt-10">
-			{!completed && (
-				<>
-					{/* Progress Bar */}
-					<div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-						<div
-							className="bg-primary h-2.5 rounded-full"
-							style={{
-								width: `${getProgressPercentage()}%`,
-							}}
-						></div>
-					</div>
+		<div className={`${containerClass} p-4 rounded-lg`}>
+			<div className="max-w-xl mx-auto mt-10">
+				{!completed && (
+					<>
+						{/* Progress Bar */}
+						<div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+							<div
+								className="bg-primary h-2.5 rounded-full"
+								style={{
+									width: `${getProgressPercentage()}%`,
+								}}
+							></div>
+						</div>
 
-					{/* Question Counter */}
-					<div className="text-sm text-gray-600 mb-6">
-						Question {currentIndex + 1} of{" "}
-						{quiz.questions.length}
-					</div>
-				</>
-			)}
+						{/* Question Counter */}
+						<div className="text-sm text-gray-600 mb-6">
+							Question {currentIndex + 1} of{" "}
+							{quiz.questions.length}
+						</div>
+					</>
+				)}
 
-			{completed ? (
-				<QuizResults
-					quiz={quiz}
-					userAnswers={userAnswers}
-					score={score}
-					// onShare={handleShareResults}
-				/>
-			) : (
-				<div className="space-y-6">
-					<div className="text-lg font-medium">
-						{currentQuestion.question_text}
+				{completed ? (
+					<QuizResults
+						quiz={quiz}
+						userAnswers={userAnswers}
+						score={score}
+						// onShare={handleShareResults}
+					/>
+				) : (
+					<div className="space-y-6">
+						<div className="text-lg font-medium">
+							{currentQuestion.question_text}
+						</div>
+						<div className="space-y-3">
+							{options.map(
+								({ key, value }) => (
+									<Button
+										key={key}
+										variant="outline"
+										className="w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left"
+										onClick={() =>
+											handleAnswer(
+												key
+											)
+										}
+									>
+										<span className="w-full break-words">
+											{value}
+										</span>
+									</Button>
+								)
+							)}
+						</div>
 					</div>
-					<div className="space-y-3">
-						{options.map(({ key, value }) => (
-							<Button
-								key={key}
-								variant="outline"
-								className="w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left"
-								onClick={() =>
-									handleAnswer(key)
-								}
-							>
-								<span className="w-full break-words">
-									{value}
-								</span>
-							</Button>
-						))}
-					</div>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	);
 };

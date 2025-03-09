@@ -17,17 +17,18 @@ interface QuizOverflowMenuProps {
 export function QuizOverflowMenu({
 	quizId,
 }: QuizOverflowMenuProps) {
-	const handleCopyEmbedCode = () => {
-		navigator.clipboard.writeText(
-			`<iframe 
-        src="${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}/embed"
-        width="100%" 
-        height="600px"
-        style="border:none;"
-      ></iframe>`
-		);
-		toast.success("Embed code copied to clipboard!");
-	};
+const handleCopyEmbedCode = () => {
+	navigator.clipboard.writeText(
+		`<iframe 
+      src="${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}/embed"
+      width="100%" 
+      height="600px"
+      style="border:none;"
+      allow="autoplay; fullscreen"
+    ></iframe>`
+	);
+	toast.success("Embed code copied to clipboard!");
+};
 
 	return (
 		<DropdownMenu>

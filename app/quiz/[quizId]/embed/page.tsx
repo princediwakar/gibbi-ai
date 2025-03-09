@@ -22,7 +22,10 @@
 
 		return (
 			<div className="min-h-[600px]">
-				<QuizPlayer quiz={quizWithQuestions} />
+				<QuizPlayer
+					quiz={quizWithQuestions}
+					embedMode
+				/>
 			</div>
 		);
  }

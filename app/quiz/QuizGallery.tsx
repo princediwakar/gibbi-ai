@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Quiz } from "@/types/quiz";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
-import { QuizCard } from "./QuizCard"; // Direct import instead of dynamic import
+import { QuizCard } from "./QuizCard";
 
 interface QuizGalleryProps {
 	savedQuizzes: Quiz[] | null;
@@ -66,7 +66,7 @@ export const QuizGallery = ({
 	}
 
 	// Empty state
-	if (!savedQuizzes || savedQuizzes.length === 0) {
+	if (!savedQuizzes) {
 		return (
 			<div className="text-center text-muted-foreground py-6">
 				No quizzes available. Create one to get
