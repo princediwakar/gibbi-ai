@@ -5,13 +5,13 @@ import { Metadata } from "next";
 import { getQuizMetadata } from "@/lib/getQuizMetadata";
 
 interface PageProps {
-	params: Promise<{ quizId: string }>;
+	params: { quizId: string };
 }
 
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
-	const { quizId } = await params;
+	const { quizId } = params;
 	const quiz = await getQuizMetadata(quizId);
 
 	if (!quiz) {
@@ -30,10 +30,10 @@ export async function generateMetadata({
 			quiz.description || ""
 		}`,
 		keywords: [
-			quiz.title ?? '',
-			quiz.topic ?? '',
-			quiz.subject ?? '',
-			quiz.difficulty ?? '',
+			quiz.title ?? "",
+			quiz.topic ?? "",
+			quiz.subject ?? "",
+			quiz.difficulty ?? "",
 			"quiz",
 			"test",
 			"knowledge",
@@ -41,12 +41,15 @@ export async function generateMetadata({
 		openGraph: {
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
 			images: [
 				{
-					url: `/api/og?title=${encodeURIComponent(
-						quiz.title ?? ''
+					url: `${
+						process.env.NEXT_PUBLIC_BASE_URL
+					}/api/og?type=quiz&title=${encodeURIComponent(
+						quiz.title ?? ""
 					)}&topic=${encodeURIComponent(
-						quiz.topic ?? ''
+						quiz.topic ?? ""
 					)}`,
 					width: 1200,
 					height: 630,
@@ -58,14 +61,17 @@ export async function generateMetadata({
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 			images: [
-				`/api/og?title=${encodeURIComponent(
-					quiz.title
-				)}&topic=${encodeURIComponent(quiz.topic ?? '')}`,
+				`${
+					process.env.NEXT_PUBLIC_BASE_URL
+				}/api/og?type=quiz&title=${encodeURIComponent(
+					quiz.title ?? ""
+				)}&topic=${encodeURIComponent(
+					quiz.topic ?? ""
+				)}`,
 			],
 		},
 	};
 }
-
 
 export default async function QuizPage({
 	params,

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 		siteName: "QuizMaster",
 		images: [
 			{
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/og-image.png`,
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 				width: 1200,
 				height: 630,
 			},
@@ -34,13 +34,8 @@ export const metadata: Metadata = {
 		description:
 			"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
 		images: [
-			`${process.env.NEXT_PUBLIC_BASE_URL}/og-image.png`,
+			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 		],
-	},
-	other: {
-		"application-name": "QuizMasterAI",
-		"msapplication-TileColor": "#ffffff",
-		"theme-color": "#ffffff",
 	},
 };
 
