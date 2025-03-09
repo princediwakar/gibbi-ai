@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import {
-	Share2,
 	Twitter,
 	Facebook,
 	MessageSquare,

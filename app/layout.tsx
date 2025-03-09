@@ -4,32 +4,32 @@ import { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-	metadataBase: new URL(
-		"https://quizmasterai.vercel.app"
-	),
+	// metadataBase: new URL(
+	// 	"https://localhost:3000"
+	// ),
 
-	title: "Quiz App",
-	description:
-		"Interactive quizzes you can embed anywhere",
-	openGraph: {
-		title: "Quiz App",
-		description: "Take this interactive quiz!",
-		images: [
-			{
-				url: "/og-image.png", // Now relative to metadataBase
-				width: 1200,
-				height: 630,
-			},
-		],
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "Quiz App",
-		description: "Take this interactive quiz!",
-		images: [
-			"/og-image.png", // Now relative to metadataBase
-		],
-	},
+	// title: "Quiz App",
+	// description:
+	// 	"Interactive quizzes you can embed anywhere",
+	// openGraph: {
+	// 	title: "Quiz App",
+	// 	description: "Take this interactive quiz!",
+	// 	images: [
+	// 		{
+	// 			url: "/og-image.png", // Now relative to metadataBase
+	// 			width: 1200,
+	// 			height: 630,
+	// 		},
+	// 	],
+	// },
+	// twitter: {
+	// 	card: "summary_large_image",
+	// 	title: "Quiz App",
+	// 	description: "Take this interactive quiz!",
+	// 	images: [
+	// 		"/og-image.png", // Now relative to metadataBase
+	// 	],
+	// },
 
 	icons: {
 		icon: "/favicon.ico",
