@@ -131,8 +131,8 @@ export const QuizPlayer = ({
 	return (
 			<div
 				className={`${
-					embedMode ? "w-full" : "max-w-xl"
-				} mx-auto mt-10`}
+					embedMode ? "w-full p-4" : "max-w-xl mt-10"
+				} mx-auto`}
 			>
 				{!completed && (
 					<>

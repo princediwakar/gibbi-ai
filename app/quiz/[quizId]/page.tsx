@@ -5,13 +5,13 @@ import { Metadata } from "next";
 import { getQuizMetadata } from "@/lib/getQuizMetadata";
 
 interface PageProps {
-	params: { quizId: string };
+	params: Promise<{ quizId: string }>;
 }
 
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
-	const { quizId } = params;
+	const { quizId } = await params;
 	const quiz = await getQuizMetadata(quizId);
 
 	if (!quiz) {
