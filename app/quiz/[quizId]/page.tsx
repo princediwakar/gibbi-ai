@@ -1,7 +1,8 @@
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
-import { getQuizData } from "@/lib/getQuizData";
+import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
 import { Metadata } from "next";
+import { getQuizMetadata } from "@/lib/getQuizMetadata";
 
 interface PageProps {
 	params: Promise<{ quizId: string }>;
@@ -11,35 +12,41 @@ export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
 	const { quizId } = await params;
-	const data = await getQuizData(quizId);
+	const quiz = await getQuizMetadata(quizId);
 
-	if (!data) notFound();
+	if (!quiz) {
+		return {
+			title: "Quiz Not Found",
+			description:
+				"The requested quiz could not be found",
+		};
+	}
 
 	return {
-		title: `${data.quiz.title} - QuizMaster`,
-		description: `Take the ${data.quiz.title} quiz on ${
-			data.quiz.topic
-		}. Created by ${data.creatorName}. ${
-			data.quiz.description || ""
+		title: `${quiz.title} - QuizMaster`,
+		description: `Take the ${quiz.title} quiz on ${
+			quiz.topic
+		}. Created by ${quiz.creatorName}. ${
+			quiz.description || ""
 		}`,
 		keywords: [
-			data.quiz.title,
-			data.quiz.topic,
-			data.quiz.subject,
-			data.quiz.difficulty,
+			quiz.title ?? '',
+			quiz.topic ?? '',
+			quiz.subject ?? '',
+			quiz.difficulty ?? '',
 			"quiz",
 			"test",
 			"knowledge",
 		],
 		openGraph: {
-			title: `${data.quiz.title} - QuizMaster`,
-			description: `Take the ${data.quiz.title} quiz on ${data.quiz.topic}. Created by ${data.creatorName}.`,
+			title: `${quiz.title} - QuizMaster`,
+			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 			images: [
 				{
 					url: `/api/og?title=${encodeURIComponent(
-						data.quiz.title
+						quiz.title ?? ''
 					)}&topic=${encodeURIComponent(
-						data.quiz.topic
+						quiz.topic ?? ''
 					)}`,
 					width: 1200,
 					height: 630,
@@ -48,32 +55,31 @@ export async function generateMetadata({
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: `${data.quiz.title} - QuizMaster`,
-			description: `Take the ${data.quiz.title} quiz on ${data.quiz.topic}. Created by ${data.creatorName}.`,
+			title: `${quiz.title} - QuizMaster`,
+			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			images: [
+				`/api/og?title=${encodeURIComponent(
+					quiz.title
+				)}&topic=${encodeURIComponent(quiz.topic ?? '')}`,
+			],
 		},
 	};
 }
+
 
 export default async function QuizPage({
 	params,
 }: PageProps) {
 	const { quizId } = await params;
-	const data = await getQuizData(quizId);
+	const quiz = await getQuizWithQuestions(quizId);
 
-	if (!data) {
+	if (!quiz) {
 		notFound();
 	}
 
-	const quizWithQuestions = {
-		...data.quiz,
-		creatorName: data.creatorName,
-		questions: data.questions,
-	};
-
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">
-		
-			<QuizPlayer quiz={quizWithQuestions} />
+			<QuizPlayer quiz={quiz} />
 		</div>
 	);
 }

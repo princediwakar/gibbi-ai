@@ -1,6 +1,6 @@
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
-import { getQuizData } from "@/lib/getQuizData";
+import { getQuizData } from "@/lib/getQuizWithQuestions";
 
 export default async function EmbedPage({
 	params,

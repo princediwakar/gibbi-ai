@@ -30,9 +30,9 @@ export function QuizDashboard() {
 				if (error) throw error;
 
 				setQuizzes(data as Quiz[]);
-				toast.success(
-					"Quizzes loaded successfully!"
-				);
+				// toast.success(
+				// 	"Quizzes loaded successfully!"
+				// );
 			} catch (error: unknown) {
 				console.error(
 					"Error fetching quizzes:",

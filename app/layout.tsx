@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toast";
 import Header from "@/components/Header";
-import "./globals.css";
 import { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
 	metadataBase: new URL(

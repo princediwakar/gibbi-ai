@@ -1,23 +1,25 @@
 import { supabase } from "./supabase/client";
 
-export async function getUserDetails(userId: string) {
+export async function getUserName(
+	userId: string
+): Promise<string> {
 	try {
-		// Use auth.admin.getUser() for server-side requests
 		const {
 			data: { user },
 			error,
 		} = await supabase.auth.admin.getUserById(userId);
 
-		if (error) throw error;
+		if (error) {
+			console.error("Supabase auth error:", error);
+			return "Anonymous";
+		}
 
-		// Get display name from user metadata
-		const displayName =
+		return (
 			user?.user_metadata?.display_name ||
 			user?.user_metadata?.full_name ||
 			user?.email?.split("@")[0] ||
-			"Anonymous";
-
-		return displayName;
+			"Anonymous"
+		);
 	} catch (error) {
 		console.error(
 			"Error fetching user details:",

@@ -169,7 +169,7 @@ export const QuizCreator = ({
 					<Input
 						type="text"
 						placeholder={currentPlaceholder}
-						className={`transition-opacity duration-300 ${
+						className={`transition-opacity h-12 pl-10 duration-300 ${
 							isAnimating
 								? "opacity-0"
 								: "opacity-100"
