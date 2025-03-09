@@ -69,6 +69,7 @@
 					</div>
 					<div className="w-full sm:w-auto">
 						<Link
+							// prefetch={false}
 							href={`/quiz/${quiz.quiz_id}`}
 							className="w-full sm:w-auto"
 						>

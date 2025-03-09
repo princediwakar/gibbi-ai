@@ -69,7 +69,7 @@ export function QuizDetails({
 				<Link href="/">
 					<Button
 						className="w-full"
-						variant="secondary"
+						variant="outline"
 						onClick={() => router.push("/")}
 					>
 						Back to Home

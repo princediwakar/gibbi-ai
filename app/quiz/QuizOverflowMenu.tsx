@@ -20,7 +20,7 @@ export function QuizOverflowMenu({
 const handleCopyEmbedCode = () => {
 	navigator.clipboard.writeText(
 		`<iframe 
-      src="${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}/embed"
+      src="${window.location.origin}/quiz/${quizId}/embed"
       width="100%" 
       height="600px"
       style="border:none;"

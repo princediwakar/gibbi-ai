@@ -66,6 +66,8 @@ export const ShareableResultsCard = ({
 		}
 	};
 
+	
+
 	return (
 		<div className="bg-gradient-to-br from-indigo-600 to-pink-500 rounded-xl p-6 text-white">
 			<div className="text-center space-y-4">

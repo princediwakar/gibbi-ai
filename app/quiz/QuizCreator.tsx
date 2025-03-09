@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
@@ -15,12 +15,35 @@ interface QuizCreatorProps {
 	onQuizCreated: (quiz: Quiz) => void;
 }
 
+
+const PLACEHOLDERS = [
+	"Enter a quiz topic...",
+	"e.g. Indian History, Beginner Level, 10 questions",
+	"e.g. Movie Trivia",
+	"e.g. SQL, Intermediate",
+	"e.g. Data Science, Advanced",
+	"e.g. Sociology for UPSC Exam",
+	"e.g. Cricket",
+];
+
 export const QuizCreator = ({
 	onQuizCreated,
 }: QuizCreatorProps) => {
 	const user = useUser();
 	const [prompt, setPrompt] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+    const [placeholderIndex, setPlaceholderIndex] =
+		useState(0);
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setPlaceholderIndex(
+				(prev) => (prev + 1) % PLACEHOLDERS.length
+			);
+		}, 3000); // Change every 3 seconds
+
+		return () => clearInterval(interval);
+	}, []);
 
 	const handleGenerateQuiz = async () => {
 		if (!prompt.trim()) {
@@ -128,14 +151,23 @@ export const QuizCreator = ({
 				<div className="relative">
 					<Lightbulb className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 					<Input
+						type="text"
+						placeholder={
+							PLACEHOLDERS[placeholderIndex]
+						}
+						className="transition-all transition-discrete h-12 pl-10"
 						value={prompt}
 						onChange={(e) =>
 							setPrompt(e.target.value)
 						}
-						placeholder="Enter a quiz topic..."
-						className="h-12 text-lg pl-10"
 					/>
 				</div>
+				{prompt && (
+					<span className="text-xs text-gray-500">
+						(You can also specify difficulty
+						level & no. of questions)
+					</span>
+				)}
 
 				<Button
 					onClick={handleGenerateQuiz}

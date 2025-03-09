@@ -2,7 +2,6 @@ import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
 import { getQuizData } from "@/lib/getQuizData";
 import { Metadata } from "next";
-import { QuizOverflowMenu } from "@/app/quiz/QuizOverflowMenu";
 
 interface PageProps {
 	params: Promise<{ quizId: string }>;
@@ -73,12 +72,7 @@ export default async function QuizPage({
 
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">
-			{/* Header with overflow menu */}
-			<div className="flex justify-end">
-				<QuizOverflowMenu quizId={quizId} />
-			</div>
-
-			{/* Quiz Player */}
+		
 			<QuizPlayer quiz={quizWithQuestions} />
 		</div>
 	);

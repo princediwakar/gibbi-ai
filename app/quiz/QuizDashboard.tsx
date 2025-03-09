@@ -27,6 +27,7 @@ export default function QuizDashboard() {
 					});
 
 				if (error) throw error;
+				
 				setQuizzes(data as Quiz[]);
 				toast.success(
 					"Quizzes loaded successfully!"

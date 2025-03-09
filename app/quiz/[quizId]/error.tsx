@@ -32,7 +32,7 @@ export default function Error({
 						className="w-full"
 						variant="outline"
 					>
-						Back to Home 5
+						Back to Home
 					</Button>
 				</Link>
 			</div>

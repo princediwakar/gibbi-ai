@@ -22,21 +22,11 @@ export const QuizPlayer = ({
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [score, setScore] = useState(0);
 	const [completed, setCompleted] = useState(false);
-	// const [isLoading, setIsLoading] = useState(true);
 	const [hasStarted, setHasStarted] = useState(false);
 	const [userAnswers, setUserAnswers] = useState<{
 		[key: number]: string;
 	}>({});
   	
-	const containerClass = embedMode
-		? "bg-white"
-		: "bg-gray-50";
-
-	// useEffect(() => {
-	// 	if (quiz.questions && quiz.questions.length > 0) {
-	// 		setIsLoading(false);
-	// 	}
-	// }, [quiz]);
 
 	if (!quiz) {
 		return (
@@ -47,23 +37,13 @@ export const QuizPlayer = ({
 						className="w-full"
 						variant="outline"
 					>
-						Back to Home 1
+						Back to Home
 					</Button>
 				</Link>
 			</div>
 		);
 	}
 
-	// if (isLoading) {
-	// 	return (
-	// 		<div className="text-center">
-	// 			<Loader2 className="w-6 h-6 animate-spin mx-auto" />
-	// 			<p className="text-sm text-muted-foreground mt-2">
-	// 				Loading quiz...
-	// 			</p>
-	// 		</div>
-	// 	);
-	// }
 
 	if (!hasStarted) {
 		return (
@@ -127,26 +107,7 @@ export const QuizPlayer = ({
 		}
 	};
 
-	// const handleShareResults = () => {
-	// 	// Implement sharing functionality
-	// 	console.log("Sharing results...");
-	// 	// This could include:
-	// 	// - Generating a shareable link
-	// 	// - Creating a shareable image
-	// 	// - Copying results to clipboard
-	// 	// - Opening native share dialog
-	// };
 
-	// if (isLoading) {
-	// 	return (
-	// 		<div className="text-center">
-	// 			<Loader2 className="w-6 h-6 animate-spin mx-auto" />
-	// 			<p className="text-sm text-muted-foreground mt-2">
-	// 				Loading questions...
-	// 			</p>
-	// 		</div>
-	// 	);
-	// }
 
 	if (!quiz.questions || quiz.questions.length === 0) {
 		return (
@@ -155,9 +116,9 @@ export const QuizPlayer = ({
 				<Link href="/">
 					<Button
 						className="w-full"
-						variant="secondary"
+						variant="outline"
 					>
-						Back to Home 2
+						Back to Home
 					</Button>
 				</Link>
 			</div>
@@ -168,8 +129,11 @@ export const QuizPlayer = ({
 	const options = parseOptions(currentQuestion.options);
 
 	return (
-		<div className={`${containerClass} p-4 rounded-lg`}>
-			<div className="max-w-xl mx-auto mt-10">
+			<div
+				className={`${
+					embedMode ? "w-full" : "max-w-xl"
+				} mx-auto mt-10`}
+			>
 				{!completed && (
 					<>
 						{/* Progress Bar */}
@@ -225,6 +189,5 @@ export const QuizPlayer = ({
 					</div>
 				)}
 			</div>
-		</div>
 	);
 };

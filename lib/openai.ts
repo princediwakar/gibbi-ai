@@ -36,7 +36,7 @@ export async function createQuizWithAI(prompt: string) {
 				messages: [
 					{
 						role: "system",
-						content: `You are an AI that generates quizzes. Extract metadata and generate questions based on user input. By default, generate 2 questions and Intermediate difficulty. Return a valid JSON object with the following structure:
+						content: `You are an AI that generates quizzes. Extract metadata and generate questions based on user input. By default, generate 5 questions and Intermediate difficulty. Return a valid JSON object with the following structure:
                     {
                         "title": string,
                         "description": string,
