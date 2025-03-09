@@ -1,65 +1,85 @@
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
-import { supabase } from "@/lib/supabase/client";
 import { notFound } from "next/navigation";
-import { getUserDetails } from "@/lib/getUserDetails";
-
-
+import { getQuizData } from "@/lib/getQuizData";
+import { Metadata } from "next";
+import { QuizOverflowMenu } from "@/app/quiz/QuizOverflowMenu";
 
 interface PageProps {
 	params: Promise<{ quizId: string }>;
 }
 
+export async function generateMetadata({
+	params,
+}: PageProps): Promise<Metadata> {
+	const { quizId } = await params;
+	const data = await getQuizData(quizId);
+
+	if (!data) notFound();
+
+	return {
+		title: `${data.quiz.title} - QuizMaster`,
+		description: `Take the ${data.quiz.title} quiz on ${
+			data.quiz.topic
+		}. Created by ${data.creatorName}. ${
+			data.quiz.description || ""
+		}`,
+		keywords: [
+			data.quiz.title,
+			data.quiz.topic,
+			data.quiz.subject,
+			data.quiz.difficulty,
+			"quiz",
+			"test",
+			"knowledge",
+		],
+		openGraph: {
+			title: `${data.quiz.title} - QuizMaster`,
+			description: `Take the ${data.quiz.title} quiz on ${data.quiz.topic}. Created by ${data.creatorName}.`,
+			images: [
+				{
+					url: `/api/og?title=${encodeURIComponent(
+						data.quiz.title
+					)}&topic=${encodeURIComponent(
+						data.quiz.topic
+					)}`,
+					width: 1200,
+					height: 630,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `${data.quiz.title} - QuizMaster`,
+			description: `Take the ${data.quiz.title} quiz on ${data.quiz.topic}. Created by ${data.creatorName}.`,
+		},
+	};
+}
+
 export default async function QuizPage({
 	params,
 }: PageProps) {
-	const { quizId } =  await params;
+	const { quizId } = await params;
+	const data = await getQuizData(quizId);
 
-	try {
-		// Fetch quiz data
-		const { data: quiz, error: quizError } =
-			await supabase
-				.from("quizzes")
-				.select("*")
-				.eq("quiz_id", quizId)
-				.single();
-
-		if (quizError || !quiz) {
-			return notFound();
-		}
-
-		// Fetch creator name
-		const creatorName = await getUserDetails(
-			quiz.creator_id
-		);
-
-		// Fetch questions
-		const { data: questions, error: questionsError } =
-			await supabase
-				.from("questions")
-				.select("*")
-				.eq("quiz_id", quizId);
-
-		if (questionsError) {
-			console.error(
-				"Error fetching questions:",
-				questionsError
-			);
-			return notFound();
-		}
-
-		const quizWithQuestions = {
-			...quiz,
-			creatorName,
-			questions: questions || [],
-		};
-
-		return (
-			<div className="max-w-4xl mx-auto p-4">
-				<QuizPlayer quiz={quizWithQuestions} />
-			</div>
-		);
-	} catch (error) {
-		console.error("Error in QuizPage:", error);
-		return notFound();
+	if (!data) {
+		notFound();
 	}
+
+	const quizWithQuestions = {
+		...data.quiz,
+		creatorName: data.creatorName,
+		questions: data.questions,
+	};
+
+	return (
+		<div className="max-w-4xl mx-auto p-4 space-y-6">
+			{/* Header with overflow menu */}
+			<div className="flex justify-end">
+				<QuizOverflowMenu quizId={quizId} />
+			</div>
+
+			{/* Quiz Player */}
+			<QuizPlayer quiz={quizWithQuestions} />
+		</div>
+	);
 }

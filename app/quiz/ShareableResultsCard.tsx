@@ -87,24 +87,6 @@ export const ShareableResultsCard = ({
 					scored {percentage}%
 				</div>
 
-				<div className="grid grid-cols-2 gap-4 mt-4">
-					<div className="bg-white/10 p-3 rounded-lg">
-						<div className="text-2xl font-bold text-green-300">
-							{score}
-						</div>
-						<div className="text-sm">
-							Correct
-						</div>
-					</div>
-					<div className="bg-white/10 p-3 rounded-lg">
-						<div className="text-2xl font-bold text-red-300">
-							{quiz.num_questions - score}
-						</div>
-						<div className="text-sm">
-							Incorrect
-						</div>
-					</div>
-				</div>
 
 				<div className="text-sm space-y-1">
 					<div>Topic: {quiz.topic}</div>

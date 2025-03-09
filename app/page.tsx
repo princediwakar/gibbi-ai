@@ -1,4 +1,51 @@
 import QuizDashboard from './quiz/QuizDashboard';
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "QuizMaster - Test Your Knowledge",
+	description:
+		"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
+	keywords: [
+		"quiz",
+		"trivia",
+		"knowledge test",
+		"education",
+		"learning",
+	],
+	openGraph: {
+		title: "QuizMaster - Test Your Knowledge",
+		description:
+			"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
+		url: process.env.NEXT_PUBLIC_BASE_URL,
+		siteName: "QuizMaster",
+		images: [
+			{
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/og-image.png`,
+				width: 1200,
+				height: 630,
+			},
+		],
+		locale: "en_US",
+		type: "website",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "QuizMaster - Test Your Knowledge",
+		description:
+			"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
+		images: [
+			`${process.env.NEXT_PUBLIC_BASE_URL}/og-image.png`,
+		],
+	},
+	other: {
+		"application-name": "QuizMasterAI",
+		"msapplication-TileColor": "#ffffff",
+		"theme-color": "#ffffff",
+	},
+};
+
+
+
 
 export default function Home() {
   return (
