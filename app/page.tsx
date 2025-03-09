@@ -1,4 +1,4 @@
-import QuizDashboard from './quiz/QuizDashboard';
+import {QuizDashboard} from '@/app/quiz/QuizDashboard';
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

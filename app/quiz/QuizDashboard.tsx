@@ -7,7 +7,7 @@ import { Quiz } from "@/types/quiz";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-export default function QuizDashboard() {
+export function QuizDashboard() {
 	const [quizzes, setQuizzes] = useState<Quiz[] | null>(
 		null
 	);
@@ -24,10 +24,11 @@ export default function QuizDashboard() {
 					.select("*")
 					.order("created_at", {
 						ascending: false,
-					});
+					})
+					;
 
 				if (error) throw error;
-				
+
 				setQuizzes(data as Quiz[]);
 				toast.success(
 					"Quizzes loaded successfully!"

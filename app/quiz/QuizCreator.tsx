@@ -22,6 +22,7 @@ const PLACEHOLDERS = [
 	"e.g. Movie Trivia",
 	"e.g. SQL, Intermediate",
 	"e.g. Data Science, Advanced",
+	"e.g. Cricket Trivia",
 	"e.g. Sociology for UPSC Exam",
 	"e.g. Cricket",
 ];
@@ -32,15 +33,30 @@ export const QuizCreator = ({
 	const user = useUser();
 	const [prompt, setPrompt] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-    const [placeholderIndex, setPlaceholderIndex] =
-		useState(0);
+    const [currentPlaceholder, setCurrentPlaceholder] =
+		useState(PLACEHOLDERS[0]);
+	const [isAnimating, setIsAnimating] = useState(false);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setPlaceholderIndex(
-				(prev) => (prev + 1) % PLACEHOLDERS.length
-			);
-		}, 3000); // Change every 3 seconds
+		let currentIndex = 0;
+
+		const cyclePlaceholders = () => {
+			if (currentIndex < PLACEHOLDERS.length - 1) {
+				setIsAnimating(true);
+				setTimeout(() => {
+					currentIndex++;
+					setCurrentPlaceholder(
+						PLACEHOLDERS[currentIndex]
+					);
+					setIsAnimating(false);
+				}, 300); // Transition duration
+			}
+		};
+
+		const interval = setInterval(
+			cyclePlaceholders,
+			3000
+		);
 
 		return () => clearInterval(interval);
 	}, []);
@@ -152,10 +168,12 @@ export const QuizCreator = ({
 					<Lightbulb className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
 					<Input
 						type="text"
-						placeholder={
-							PLACEHOLDERS[placeholderIndex]
-						}
-						className="transition-all transition-discrete h-12 pl-10"
+						placeholder={currentPlaceholder}
+						className={`transition-opacity duration-300 ${
+							isAnimating
+								? "opacity-0"
+								: "opacity-100"
+						}`}
 						value={prompt}
 						onChange={(e) =>
 							setPrompt(e.target.value)

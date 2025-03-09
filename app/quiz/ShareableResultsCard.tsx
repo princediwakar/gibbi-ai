@@ -1,10 +1,10 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
-import { toast } from "sonner";
-import { useCopyToClipboard } from "usehooks-ts";
+// import { Button } from "@/components/ui/button";
+// import { Share2 } from "lucide-react";
+// import { toast } from "sonner";
+// import { useCopyToClipboard } from "usehooks-ts";
 import { useUser } from "@/hooks/use-user";
 
 interface ShareableResultsCardProps {
@@ -18,53 +18,53 @@ export const ShareableResultsCard = ({
 	score,
 	percentage,
 }: ShareableResultsCardProps) => {
-	const [, copy] = useCopyToClipboard();
 	const user = useUser();
-
+	
+	// const [, copy] = useCopyToClipboard();
 	// Update the handleShare function
-	const handleShare = async () => {
-		try {
-			const shareText = `I scored ${score}/${quiz.num_questions} (${percentage}%) on "${quiz.title}" quiz! 🎉\n\nTry it yourself: ${window.location.href}`;
+	// const handleShare = async () => {
+	// 	try {
+	// 		const shareText = `I scored ${score}/${quiz.num_questions} (${percentage}%) on "${quiz.title}" quiz! 🎉\n\nTry it yourself: ${window.location.href}`;
 
-			// Check if native sharing is supported
-			if (navigator.share) {
-				try {
-					await navigator.share({
-						title: `My Quiz Results: ${quiz.title}`,
-						text: shareText,
-						url: window.location.href,
-					});
-					toast.success(
-						"Results shared successfully!"
-					);
-					return;
-					// Update the error handling
-				} catch (shareError: unknown) {
-					// Handle share cancellation
-					if (
-						shareError instanceof Error &&
-						shareError.name === "AbortError"
-					) {
-						return; // User cancelled, do nothing
-					}
-					console.log(
-						"Native share failed, falling back to clipboard"
-					);
-					console.error(
-						"Sharing Error:",
-						shareError
-					);
-				}
-			}
+	// 		// Check if native sharing is supported
+	// 		if (navigator.share) {
+	// 			try {
+	// 				await navigator.share({
+	// 					title: `My Quiz Results: ${quiz.title}`,
+	// 					text: shareText,
+	// 					url: window.location.href,
+	// 				});
+	// 				toast.success(
+	// 					"Results shared successfully!"
+	// 				);
+	// 				return;
+	// 				// Update the error handling
+	// 			} catch (shareError: unknown) {
+	// 				// Handle share cancellation
+	// 				if (
+	// 					shareError instanceof Error &&
+	// 					shareError.name === "AbortError"
+	// 				) {
+	// 					return; // User cancelled, do nothing
+	// 				}
+	// 				console.log(
+	// 					"Native share failed, falling back to clipboard"
+	// 				);
+	// 				console.error(
+	// 					"Sharing Error:",
+	// 					shareError
+	// 				);
+	// 			}
+	// 		}
 
-			// Fallback to clipboard
-			await copy(shareText);
-			toast.success("Results copied to clipboard!");
-		} catch (error) {
-			toast.error("Failed to share results");
-			console.error("Sharing failed:", error);
-		}
-	};
+	// 		// Fallback to clipboard
+	// 		await copy(shareText);
+	// 		toast.success("Results copied to clipboard!");
+	// 	} catch (error) {
+	// 		toast.error("Failed to share results");
+	// 		console.error("Sharing failed:", error);
+	// 	}
+	// };
 
 	
 
@@ -99,13 +99,13 @@ export const ShareableResultsCard = ({
 					)}
 				</div>
 
-				<Button
+{/* 				<Button
 					onClick={handleShare}
 					className="w-full mt-4 gap-2 bg-white text-indigo-600 hover:bg-gray-100"
 				>
 					<Share2 className="w-5 h-5" />
 					Share Results
-				</Button>
+				</Button> */}
 			</div>
 		</div>
 	);

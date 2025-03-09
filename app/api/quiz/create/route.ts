@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createQuizWithAI } from "@/lib/openai";
+import { createQuizWithAI } from "@/lib/ai";
 import { supabase } from "@/lib/supabase/client";
 
 interface Question {
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 		const { error: questionsError } = await supabase
 			.from("questions")
 			.insert(
-				quizData.questions.map((q: Question) => ({
+				(quizData.questions ?? []).map((q: Question) => ({
 					quiz_id,
 					question_text: q.question_text,
 					options: JSON.stringify(q.options),
@@ -117,7 +117,21 @@ export async function POST(req: NextRequest) {
 			message: "Quiz created successfully!",
 		});
 	} catch (error: unknown) {
-		console.error("API error:", error);
+        console.error("API error details:", {
+			error:
+				error instanceof Error
+					? error.stack
+					: error,
+			timestamp: new Date().toISOString(),
+			request: {
+				method: req.method,
+				url: req.url,
+				headers: Object.fromEntries(
+					req.headers.entries()
+				),
+			},
+		});
+
 		const errorMessage =
 			error instanceof Error
 				? error.message

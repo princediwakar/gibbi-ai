@@ -66,7 +66,7 @@ export const QuizGallery = ({
 	}
 
 	// Empty state
-	if (!savedQuizzes) {
+	if (!savedQuizzes || savedQuizzes.length === 0) {
 		return (
 			<div className="text-center text-muted-foreground py-6">
 				No quizzes available. Create one to get
@@ -126,3 +126,4 @@ export const QuizGallery = ({
 		</div>
 	);
 };
+
