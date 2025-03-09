@@ -14,14 +14,14 @@ export function QuizDetails({
 	quiz,
 	onStart,
 }: QuizDetailsProps) {
-	const router = useRouter()
+	const router = useRouter();
 	return (
 		<div className="space-y-6">
 			<h1 className="text-3xl font-bold">
 				{quiz.title}
 			</h1>
 			<p className="text-gray-600">
-				Created by: {quiz.creatorName}
+				Created by: {quiz.creatorName || "Unknown"}
 			</p>
 
 			{quiz.description && (

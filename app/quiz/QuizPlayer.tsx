@@ -6,6 +6,10 @@ import { QuizResults } from "./QuizResults";
 import Link from "next/link";
 import { QuizDetails } from "./QuizDetails";
 
+interface Option {
+	key: string;
+	value: string;
+}
 export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [score, setScore] = useState(0);
@@ -66,23 +70,25 @@ export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 		);
 	};
 
-	const parseOptions = (options: string) => {
-		try {
-			const parsed = JSON.parse(options);
-			return Object.entries(parsed).map(
-				([key, value]) => ({
-					key,
-					value,
-				})
-			);
-		} catch (error) {
-			console.error(
-				"Failed to parse options:",
-				error
-			);
-			return [];
-		}
-	};
+const parseOptions = (
+	options: string | Record<string, string>
+): Option[] => {
+	try {
+		const parsed =
+			typeof options === "string"
+				? JSON.parse(options)
+				: options;
+		return Object.entries(parsed).map(
+			([key, value]) => ({
+				key,
+				value: String(value), // Ensure value is always a string
+			})
+		);
+	} catch (error) {
+		console.error("Failed to parse options:", error);
+		return [];
+	}
+};
 
 	const handleAnswer = (option: string) => {
 		if (!quiz.questions) return;
@@ -106,15 +112,15 @@ export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 		}
 	};
 
-	const handleShareResults = () => {
-		// Implement sharing functionality
-		console.log("Sharing results...");
-		// This could include:
-		// - Generating a shareable link
-		// - Creating a shareable image
-		// - Copying results to clipboard
-		// - Opening native share dialog
-	};
+	// const handleShareResults = () => {
+	// 	// Implement sharing functionality
+	// 	console.log("Sharing results...");
+	// 	// This could include:
+	// 	// - Generating a shareable link
+	// 	// - Creating a shareable image
+	// 	// - Copying results to clipboard
+	// 	// - Opening native share dialog
+	// };
 
 	// if (isLoading) {
 	// 	return (
@@ -173,7 +179,7 @@ export const QuizPlayer = ({ quiz }: { quiz: Quiz }) => {
 					quiz={quiz}
 					userAnswers={userAnswers}
 					score={score}
-					onShare={handleShareResults}
+					// onShare={handleShareResults}
 				/>
 			) : (
 				<div className="space-y-6">

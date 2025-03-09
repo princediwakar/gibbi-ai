@@ -29,6 +29,13 @@ export const QuizResults = ({
 		100
 	).toFixed(1);
 
+if (!quiz.questions) {
+	return (
+		<div className="text-center text-gray-500 py-6">
+			No questions available for review.
+		</div>
+	);
+}
 	return (
 		<div className="space-y-8 max-w-2xl mx-auto">
 			{/* Shareable Results Section */}
@@ -84,10 +91,13 @@ export const QuizResults = ({
 								userAnswers[index];
 							const correctAnswer =
 								question.correct_option;
-							const optionsMap = JSON.parse(
-								question.options
-							);
-
+							const optionsMap =
+								typeof question.options ===
+								"string"
+									? JSON.parse(
+											question.options
+									  )
+									: question.options;
 							return (
 								<AccordionItem
 									key={index}

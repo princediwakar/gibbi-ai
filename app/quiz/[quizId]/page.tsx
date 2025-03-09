@@ -3,19 +3,16 @@ import { supabase } from "@/lib/supabase/client";
 import { notFound } from "next/navigation";
 import { getUserDetails } from "@/lib/getUserDetails";
 
+
+
 interface PageProps {
-	params: { quizId: string };
+	params: Promise<{ quizId: string }>;
 }
 
 export default async function QuizPage({
 	params,
 }: PageProps) {
-	// Ensure we're working with the params object
-	const {quizId} = await params
-
-	if (!quizId) {
-		return notFound();
-	}
+	const { quizId } =  await params;
 
 	try {
 		// Fetch quiz data

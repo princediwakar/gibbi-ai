@@ -7,9 +7,12 @@ import { supabase } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Quiz } from "@/types/quiz";
+
+
 
 interface QuizCreatorProps {
-	onQuizCreated: (quiz: any) => void;
+	onQuizCreated: (quiz: Quiz) => void;
 }
 
 export const QuizCreator = ({
@@ -103,12 +106,13 @@ export const QuizCreator = ({
 						`Failed to generate quiz: ${error.message}`,
 				}
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error("Quiz generation failed:", error);
-			toast.error(
-				error.message ||
-					"Failed to generate quiz. Please try again."
-			);
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to generate quiz. Please try again.";
+			toast.error(errorMessage);
 		} finally {
 			setIsLoading(false);
 			setPrompt("");
@@ -121,17 +125,17 @@ export const QuizCreator = ({
 				Create Your Quiz
 			</h2>
 			<div className="space-y-6 max-w-2xl mx-auto">
-				<Input
-					value={prompt}
-					onChange={(e) =>
-						setPrompt(e.target.value)
-					}
-					placeholder="Enter a quiz topic...(Optionally, you can also specify difficulty level and no. of questions)"
-					className="h-12 text-lg"
-					icon={
-						<Lightbulb className="w-5 h-5 text-gray-400" />
-					}
-				/>
+				<div className="relative">
+					<Lightbulb className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+					<Input
+						value={prompt}
+						onChange={(e) =>
+							setPrompt(e.target.value)
+						}
+						placeholder="Enter a quiz topic..."
+						className="h-12 text-lg pl-10"
+					/>
+				</div>
 
 				<Button
 					onClick={handleGenerateQuiz}

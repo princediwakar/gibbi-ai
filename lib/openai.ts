@@ -18,6 +18,12 @@ const openai = new OpenAI({
 	maxRetries: 2, // Add retries
 });
 
+
+interface Question {
+	question_text: string;
+	options: Record<string, string>;
+	correct_option: string;
+}
 // Create Quiz with AI
 
 export async function createQuizWithAI(prompt: string) {
@@ -81,7 +87,7 @@ export async function createQuizWithAI(prompt: string) {
 			!quizData.questions ||
 			!Array.isArray(quizData.questions) ||
 			!quizData.questions.every(
-				(q: any) =>
+				(q: Question) =>
 					q.question_text &&
 					q.options &&
 					q.correct_option
@@ -93,10 +99,13 @@ export async function createQuizWithAI(prompt: string) {
 		}
 
 		return quizData;
-	} catch (error) {
+		// Update the error handling
+	} catch (error: unknown) {
 		console.error("Error in createQuizWithAI:", error);
-		throw new Error(
-			`Failed to generate quiz with AI: ${error.message}`
-		);
+		const errorMessage =
+			error instanceof Error
+				? error.message
+				: "Failed to generate quiz with AI";
+		throw new Error(errorMessage);
 	}
 }

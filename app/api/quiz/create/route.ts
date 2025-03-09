@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createQuizWithAI } from "@/lib/openai";
 import { supabase } from "@/lib/supabase/client";
 
+interface Question {
+	question_text: string;
+	options: Record<string, string>;
+	correct_option: string;
+}
+
+
 export async function POST(req: NextRequest) {
 	try {
 		console.log("Received quiz creation request");
@@ -38,13 +45,13 @@ export async function POST(req: NextRequest) {
 					{
 						title: quizData.title,
 						description: quizData.description,
-						subject: quizData. subject,
+						subject: quizData.subject,
 						topic: quizData.topic,
 						difficulty: quizData.difficulty,
 						num_questions:
-						quizData.num_questions,
+							quizData.num_questions,
 						is_public: true,
-						creator_id: creator_id
+						creator_id: creator_id,
 					},
 				])
 				.select("quiz_id")
@@ -70,10 +77,11 @@ export async function POST(req: NextRequest) {
 
 		// Insert questions
 		console.log("Inserting questions...");
+		// Update the map function to use proper typing
 		const { error: questionsError } = await supabase
 			.from("questions")
 			.insert(
-				quizData.questions.map((q: any) => ({
+				quizData.questions.map((q: Question) => ({
 					quiz_id,
 					question_text: q.question_text,
 					options: JSON.stringify(q.options),
@@ -108,14 +116,14 @@ export async function POST(req: NextRequest) {
 			quiz_id,
 			message: "Quiz created successfully!",
 		});
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("API error:", error);
+		const errorMessage =
+			error instanceof Error
+				? error.message
+				: "Internal Server Error";
 		return NextResponse.json(
-			{
-				error:
-					error.message ||
-					"Internal Server Error",
-			},
+			{ error: errorMessage },
 			{ status: 500 }
 		);
 	}

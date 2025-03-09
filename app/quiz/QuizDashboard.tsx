@@ -13,6 +13,7 @@ export default function QuizDashboard() {
 		useState<boolean>(true);
 
 	useEffect(() => {
+		// Update the fetchQuizzes function
 		const fetchQuizzes = async () => {
 			setIsLoading(true);
 			try {
@@ -22,14 +23,14 @@ export default function QuizDashboard() {
 							await supabase
 								.from("quizzes")
 								.select(
-									"quiz_id, title, description, topic, subject, difficulty, num_questions, created_at, creator_id"
+									"quiz_id, title, description, topic, subject, difficulty, num_questions, created_at, updated_at, is_public, creator_id"
 								)
 								.order("created_at", {
 									ascending: false,
 								});
 
 						if (error) throw error;
-						setQuizzes(data || []);
+						setQuizzes((data as Quiz[]) || []);
 					})(),
 					{
 						loading: "Loading quizzes...",
@@ -39,12 +40,16 @@ export default function QuizDashboard() {
 							`Failed to load quizzes: ${error.message}`,
 					}
 				);
-			} catch (error: any) {
+			} catch (error: unknown) {
 				console.error(
 					"Error fetching quizzes:",
 					error
 				);
-				toast.error("Failed to load quizzes");
+				const errorMessage =
+					error instanceof Error
+						? error.message
+						: "Failed to load quizzes";
+				toast.error(errorMessage);
 			} finally {
 				setIsLoading(false);
 			}

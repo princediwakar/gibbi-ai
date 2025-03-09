@@ -1,6 +1,13 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toast";
 import Header from "@/components/Header";
 import "./globals.css";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+	icons: {
+		icon: "/favicon.ico",
+	},
+};
 export default async function RootLayout({
 	children,
 }: {

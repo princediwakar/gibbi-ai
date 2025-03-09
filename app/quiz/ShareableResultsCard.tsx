@@ -18,68 +18,53 @@ export const ShareableResultsCard = ({
 	score,
 	percentage,
 }: ShareableResultsCardProps) => {
-	const [_, copy] = useCopyToClipboard();
+	const [, copy] = useCopyToClipboard();
 	const user = useUser();
-	
 
-const handleShare = async () => {
-	try {
-		const shareText = `I scored ${score}/${quiz.num_questions} (${percentage}%) on "${quiz.title}" quiz! 🎉\n\nTry it yourself: ${window.location.href}`;
-		const shareData = {
-			title: `My Quiz Results: ${quiz.title}`,
-			text: shareText,
-			url: window.location.href,
-		};
+	// Update the handleShare function
+	const handleShare = async () => {
+		try {
+			const shareText = `I scored ${score}/${quiz.num_questions} (${percentage}%) on "${quiz.title}" quiz! 🎉\n\nTry it yourself: ${window.location.href}`;
 
-		// Simplified iOS detection
-		const isIOS = /iPad|iPhone|iPod/.test(
-			navigator.userAgent
-		);
-
-		// Add this before the share logic
-		console.log(
-			"Navigator.share exists:",
-			!!navigator.share
-		);
-		console.log("Is iOS:", isIOS);
-		console.log("User Agent:", navigator.userAgent);
-
-		// Check if native sharing is supported
-		if (navigator.share) {
-			try {
-				// iOS requires URL to be in the text property
-				if (isIOS) {
+			// Check if native sharing is supported
+			if (navigator.share) {
+				try {
 					await navigator.share({
-						title: shareData.title,
-						text: `${shareData.text}\n${shareData.url}`,
+						title: `My Quiz Results: ${quiz.title}`,
+						text: shareText,
+						url: window.location.href,
 					});
-				} else {
-					await navigator.share(shareData);
+					toast.success(
+						"Results shared successfully!"
+					);
+					return;
+					// Update the error handling
+				} catch (shareError: unknown) {
+					// Handle share cancellation
+					if (
+						shareError instanceof Error &&
+						shareError.name === "AbortError"
+					) {
+						return; // User cancelled, do nothing
+					}
+					console.log(
+						"Native share failed, falling back to clipboard"
+					);
+					console.error(
+						"Sharing Error:",
+						shareError
+					);
 				}
-				toast.success(
-					"Results shared successfully!"
-				);
-				return; // Exit after successful share
-			} catch (shareError) {
-				console.log(
-					"Native share failed, falling back to clipboard"
-				);
-						console.error(
-							"Sharing Error:",
-							shareError
-						);
-
 			}
-		}
 
-		// Fallback to clipboard
-		await copy(shareText);
-		toast.success("Results copied to clipboard!");
-	} catch (error) {
-		toast.error("Failed to share results");
-		console.error("Sharing failed:", error);
-	}
-};
+			// Fallback to clipboard
+			await copy(shareText);
+			toast.success("Results copied to clipboard!");
+		} catch (error) {
+			toast.error("Failed to share results");
+			console.error("Sharing failed:", error);
+		}
+	};
 
 	return (
 		<div className="bg-gradient-to-br from-indigo-600 to-pink-500 rounded-xl p-6 text-white">

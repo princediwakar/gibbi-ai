@@ -1,20 +1,21 @@
+interface Question {
+	question_text: string;
+	options: Record<string, string>;
+	correct_option: string;
+}
+
 export interface Quiz {
 	quiz_id: string;
-	creator_id: string | null;
 	title: string;
-	description: string | null;
-	subject: string; // New field
-	topic: string;
-	difficulty: string;
-	num_questions: number; // Make this optional
-	is_public: boolean;
+	description?: string;
+	topic?: string;
+	subject?: string;
+	difficulty?: string;
+	num_questions: number;
 	created_at: string;
 	updated_at: string;
-	creatorName?: string; // Add this
-	questions?: Array<{
-		question_id: string;
-		question_text: string;
-		options: string[];
-		correct_option: string;
-	}>;
+	is_public: boolean;
+	creator_id: string;
+	creatorName?: string;
+	questions?: Question[];
 }
