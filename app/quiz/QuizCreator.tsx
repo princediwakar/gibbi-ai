@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
@@ -9,23 +9,19 @@ import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Quiz } from "@/types/quiz";
 
-
-
 interface QuizCreatorProps {
 	onQuizCreated: (quiz: Quiz) => void;
 }
 
-
-const PLACEHOLDERS = [
-	"Enter a quiz topic...",
-	"e.g. Indian History, Beginner Level, 10 questions",
-	"e.g. Movie Trivia",
-	"e.g. SQL, Intermediate",
-	"e.g. Data Science, Advanced",
-	"e.g. Cricket Trivia",
-	"e.g. Sociology for UPSC Exam",
-	"e.g. Cricket",
-];
+// const PLACEHOLDERS = [
+// 	"Enter a quiz topic...",
+// 	"e.g. Indian History, Beginner Level, 10 questions",
+// 	"e.g. Movie Trivia",
+// 	"e.g. SQL, Intermediate",
+// 	"e.g. Data Science, Advanced",
+// 	"e.g. Sociology for UPSC Exam",
+// 	"e.g. Cricket",
+// ];
 
 export const QuizCreator = ({
 	onQuizCreated,
@@ -33,33 +29,7 @@ export const QuizCreator = ({
 	const user = useUser();
 	const [prompt, setPrompt] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-    const [currentPlaceholder, setCurrentPlaceholder] =
-		useState(PLACEHOLDERS[0]);
-	const [isAnimating, setIsAnimating] = useState(false);
 
-	useEffect(() => {
-		let currentIndex = 0;
-
-		const cyclePlaceholders = () => {
-			if (currentIndex < PLACEHOLDERS.length - 1) {
-				setIsAnimating(true);
-				setTimeout(() => {
-					currentIndex++;
-					setCurrentPlaceholder(
-						PLACEHOLDERS[currentIndex]
-					);
-					setIsAnimating(false);
-				}, 300); // Transition duration
-			}
-		};
-
-		const interval = setInterval(
-			cyclePlaceholders,
-			3000
-		);
-
-		return () => clearInterval(interval);
-	}, []);
 
 	const handleGenerateQuiz = async () => {
 		if (!prompt.trim()) {
@@ -166,26 +136,20 @@ export const QuizCreator = ({
 			<div className="space-y-6 max-w-2xl mx-auto">
 				<div className="relative">
 					<Lightbulb className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-					<Input
-						type="text"
-						placeholder={currentPlaceholder}
-						className={`transition-opacity h-12 pl-10 duration-300 ${
-							isAnimating
-								? "opacity-0"
-								: "opacity-100"
-						}`}
-						value={prompt}
-						onChange={(e) =>
-							setPrompt(e.target.value)
-						}
-					/>
+					<div className="relative">
+						<Input
+							type="text"
+							className="h-12 pl-10"
+							value={prompt}
+							onChange={(e) =>
+								setPrompt(e.target.value)
+							}
+							placeholder="Enter a quiz topic..."
+						/>
+						
+					</div>
 				</div>
-				{prompt && (
-					<span className="text-xs text-gray-500">
-						(You can also specify difficulty
-						level & no. of questions)
-					</span>
-				)}
+				
 
 				<Button
 					onClick={handleGenerateQuiz}
