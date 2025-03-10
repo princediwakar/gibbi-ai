@@ -1,11 +1,11 @@
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
 import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: "Quiz",
+		title: "Embedded Quiz",
 		robots: {
 			index: false,
 			follow: false,
@@ -16,26 +16,6 @@ export async function generateMetadata(): Promise<Metadata> {
 				noimageindex: true,
 			},
 		},
-		openGraph: {
-			type: "website",
-			url: "/",
-			title: "Quiz",
-			description: "Interactive quiz",
-			images: [], // Empty array prevents OG image generation
-		},
-		twitter: {
-			card: "summary",
-			title: "Quiz",
-			description: "Interactive quiz",
-			images: [], // Empty array prevents Twitter card image
-		},
-		other: {
-			"twitter:image:src": "", // Explicitly empty
-			"og:image": "", // Explicitly empty
-			"og:image:width": "",
-			"og:image:height": "",
-			"og:image:alt": "",
-		},
 	};
 }
 
@@ -44,7 +24,7 @@ export default async function EmbedPage({
 }: {
 	params: Promise<{ quizId: string }>;
 }) {
-	const { quizId } = await params;
+	const {quizId} = await params
 	const quiz = await getQuizWithQuestions(quizId);
 
 	if (!quiz) {
