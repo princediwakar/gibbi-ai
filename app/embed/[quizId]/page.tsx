@@ -1,3 +1,5 @@
+// File: app/quiz/embed/[quizId]/page.tsx
+
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
 import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
@@ -7,7 +9,7 @@ export default async function EmbedPage({
 }: {
 	params: Promise<{ quizId: string }>;
 }) {
-	const {quizId} = await params
+	const { quizId } = await params;
 	const quiz = await getQuizWithQuestions(quizId);
 
 	if (!quiz) {

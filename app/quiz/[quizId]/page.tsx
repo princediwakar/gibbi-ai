@@ -1,3 +1,5 @@
+// File: app/quiz/[quizId]/page.tsx
+
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
 import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
@@ -22,6 +24,7 @@ export async function generateMetadata({
 		};
 	}
 
+	// Point to the embed page for the iframe
 	const embedUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/embed/${quizId}`;
 
 	return {
@@ -42,7 +45,7 @@ export async function generateMetadata({
 		],
 		openGraph: {
 			type: "website",
-			url: embedUrl,
+			url: embedUrl, // Embed URL
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 		},
