@@ -10,7 +10,6 @@ interface PageProps {
 	params: Promise<{ quizId: string }>;
 }
 
-
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
@@ -25,7 +24,6 @@ export async function generateMetadata({
 		};
 	}
 
-	const imageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/screenshot?quizId=${quizId}`;
 
 	return {
 		title: `${quiz.title} - QuizMaster`,
@@ -34,6 +32,15 @@ export async function generateMetadata({
 		}. Created by ${quiz.creatorName}. ${
 			quiz.description || ""
 		}`,
+		keywords: [
+			quiz.title ?? "",
+			quiz.topic ?? "",
+			quiz.subject ?? "",
+			quiz.difficulty ?? "",
+			"quiz",
+			"test",
+			"knowledge",
+		],
 		openGraph: {
 			type: "website",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
@@ -41,10 +48,15 @@ export async function generateMetadata({
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 			images: [
 				{
-					url: imageUrl,
+					url: `${
+						process.env.NEXT_PUBLIC_BASE_URL
+					}/api/og?type=quiz&title=${encodeURIComponent(
+						quiz.title ?? ""
+					)}&topic=${encodeURIComponent(
+						quiz.topic ?? ""
+					)}`,
 					width: 1200,
 					height: 630,
-					alt: `${quiz.title} quiz preview`,
 				},
 			],
 		},
@@ -52,7 +64,15 @@ export async function generateMetadata({
 			card: "summary_large_image",
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
-			images: [imageUrl],
+			images: [
+				`${
+					process.env.NEXT_PUBLIC_BASE_URL
+				}/api/og?type=quiz&title=${encodeURIComponent(
+					quiz.title ?? ""
+				)}&topic=${encodeURIComponent(
+					quiz.topic ?? ""
+				)}`,
+			],
 		},
 	};
 }

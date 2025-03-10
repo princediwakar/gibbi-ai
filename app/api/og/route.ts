@@ -3,129 +3,104 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
+type ImageType = "home" | "quiz";
 
-const typeStyles = {
+const typeStyles: Record<
+	ImageType,
+	{
+		backgroundImage: string;
+		titleColor: string;
+		subtitle?: string;
+	}
+> = {
 	home: {
 		backgroundImage:
-			"linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
-		titleColor: "#ffffff",
-		subtitleColor: "#d1d5db",
-		accentColor: "#6366f1",
+			"linear-gradient(to bottom right, #1a1a1a, #2d2d2d)",
+		titleColor:
+			"linear-gradient(90deg, #6366f1, #ec4899)",
+		subtitle:
+			"Test Your Knowledge, Challenge Your Friends",
+	},
+	quiz: {
+		backgroundImage:
+			"linear-gradient(to bottom right, #ffffff, #f3f4f6)",
+		titleColor:
+			"linear-gradient(to right, #2563eb, #4f46e5)",
 	},
 };
 
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
+
+	// Get parameters with fallbacks
+	const title = searchParams.get("title") || "QuizMaster";
+	const topic =
+		searchParams.get("topic") || "General Knowledge";
 	const type =
-		(searchParams.get("type") as "home") || "home";
+		(searchParams.get("type") as ImageType) || "quiz";
+
+	// Base styles
+	const baseStyles = {
+		height: "100%",
+		width: "100%",
+		display: "flex",
+		flexDirection: "column",
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor:
+			type === "home" ? "#1a1a1a" : "#ffffff",
+	};
 
 	return new ImageResponse(
 		React.createElement(
 			"div",
-			{
-				style: {
-					height: "100%",
-					width: "100%",
-					display: "flex",
-					flexDirection: "column",
-					alignItems: "center",
-					justifyContent: "center",
-					background:
-						typeStyles[type].backgroundImage,
-					padding: "64px",
-				},
-			},
+			{ style: baseStyles },
 			React.createElement(
 				"div",
 				{
 					style: {
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center",
-						gap: "24px",
-						width: "100%",
-						maxWidth: "800px",
+						fontSize: 64,
+						fontWeight: 700,
+						background:
+							typeStyles[type].titleColor,
+						backgroundClip: "text",
+						color: "transparent",
+						marginBottom: 24,
 					},
 				},
-				// Logo/Branding
+				title
+			),
+			type === "quiz" &&
 				React.createElement(
 					"div",
 					{
 						style: {
-							display: "flex",
-							alignItems: "center",
-							gap: "12px",
-							marginBottom: "32px",
+							fontSize: 32,
+							color:
+								type === "quiz"
+									? "#374151"
+									: "#ffffff",
+							marginBottom: 12,
 						},
 					},
-					React.createElement(
-						"div",
-						{
-							style: {
-								width: "48px",
-								height: "48px",
-								borderRadius: "12px",
-								background:
-									typeStyles[type]
-										.accentColor,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								color: "#ffffff",
-								fontSize: "24px",
-								fontWeight: "700",
-							},
-						},
-						"Q"
-					),
-					React.createElement(
-						"div",
-						{
-							style: {
-								fontSize: "32px",
-								fontWeight: "700",
-								color: typeStyles[type]
-									.titleColor,
-							},
-						},
-						"QuizMaster"
-					)
+					`Topic: ${topic}`
 				),
-				// Title
-				React.createElement(
-					"div",
-					{
-						style: {
-							fontSize: "56px",
-							fontWeight: "700",
-							color: typeStyles[type]
-								.titleColor,
-							textAlign: "center",
-							lineHeight: "1.2",
-						},
+			React.createElement(
+				"div",
+				{
+					style: {
+						fontSize: 24,
+						color:
+							type === "home"
+								? "#d1d5db"
+								: "#6b7280",
+						maxWidth: "80%",
+						textAlign: "center",
 					},
-					"Test Your Knowledge"
-				),
-				// CTA
-				React.createElement(
-					"div",
-					{
-						style: {
-							fontSize: "28px",
-							color: typeStyles[type]
-								.subtitleColor,
-							textAlign: "center",
-							marginTop: "48px",
-							padding: "16px 32px",
-							background:
-								typeStyles[type]
-									.accentColor,
-							borderRadius: "12px",
-							fontWeight: "600",
-						},
-					},
-					"Start Your Quiz Journey"
-				)
+				},
+				type === "home"
+					? "Test Your Knowledge, Challenge Your Friends"
+					: "Test your knowledge now!"
 			)
 		),
 		{
