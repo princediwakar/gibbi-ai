@@ -13,12 +13,10 @@ export default function ScreenshotPage({
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [quiz, setQuiz] = useState<Quiz | null>(null);
-
+    
 	useEffect(() => {
-		// Fetch quiz data
 		const fetchQuiz = async () => {
-			const { quizId } = await params;
-
+            const {quizId} = await params
 			const quizData = await getQuizWithQuestions(
 				quizId
 			);
@@ -32,36 +30,46 @@ export default function ScreenshotPage({
 		if (!quiz || !containerRef.current) return;
 
 		const captureScreenshot = async () => {
-			const canvas = await html2canvas(
-				containerRef.current!,
-				{
-					useCORS: true,
-					scale: 2,
-					logging: true,
-				}
-			);
+			try {
+				const canvas = await html2canvas(
+					containerRef.current!,
+					{
+						useCORS: true,
+						scale: 2,
+						logging: true,
+						backgroundColor: "#ffffff",
+					}
+				);
 
-			// Convert canvas to data URL
-			const dataUrl = canvas.toDataURL("image/png");
-
-			// Send the screenshot back to the parent window
-			window.parent.postMessage(
-				{ type: "SCREENSHOT_READY", dataUrl },
-				"*"
-			);
+				const dataUrl =
+					canvas.toDataURL("image/png");
+				window.parent.postMessage(
+					{ type: "SCREENSHOT_READY", dataUrl },
+					"*"
+				);
+			} catch (error) {
+				console.error(
+					"Failed to capture screenshot:",
+					error
+				);
+			}
 		};
 
 		captureScreenshot();
 	}, [quiz]);
 
 	if (!quiz) {
-		return <div>Loading...</div>;
+		return (
+			<div className="w-[1200px] h-[630px] flex items-center justify-center bg-white">
+				<div>Loading quiz...</div>
+			</div>
+		);
 	}
 
 	return (
 		<div
 			ref={containerRef}
-			className="w-[1200px] h-[630px]"
+			className="w-[1200px] h-[630px] bg-white p-8"
 		>
 			<QuizPlayer quiz={quiz} />
 		</div>
