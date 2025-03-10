@@ -5,13 +5,6 @@ export const metadata: Metadata = {
 	title: "QuizMaster - Test Your Knowledge",
 	description:
 		"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
-	keywords: [
-		"quiz",
-		"trivia",
-		"knowledge test",
-		"education",
-		"learning",
-	],
 	openGraph: {
 		title: "QuizMaster - Test Your Knowledge",
 		description:
@@ -38,7 +31,6 @@ export const metadata: Metadata = {
 		],
 	},
 };
-
 
 
 

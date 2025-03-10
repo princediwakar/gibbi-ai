@@ -3,17 +3,8 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-type ImageType = "home" | "quiz";
 
-const typeStyles: Record<
-	ImageType,
-	{
-		backgroundImage: string;
-		titleColor: string;
-		subtitleColor: string;
-		accentColor: string;
-	}
-> = {
+const typeStyles = {
 	home: {
 		backgroundImage:
 			"linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
@@ -21,24 +12,12 @@ const typeStyles: Record<
 		subtitleColor: "#d1d5db",
 		accentColor: "#6366f1",
 	},
-	quiz: {
-		backgroundImage:
-			"linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-		titleColor: "#1e293b",
-		subtitleColor: "#475569",
-		accentColor: "#2563eb",
-	},
 };
 
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
-
-	// Get parameters with fallbacks
-	const title = searchParams.get("title") || "QuizMaster";
-	const topic =
-		searchParams.get("topic") || "General Knowledge";
 	const type =
-		(searchParams.get("type") as ImageType) || "quiz";
+		(searchParams.get("type") as "home") || "home";
 
 	return new ImageResponse(
 		React.createElement(
@@ -125,23 +104,8 @@ export async function GET(request: Request) {
 							lineHeight: "1.2",
 						},
 					},
-					title
+					"Test Your Knowledge"
 				),
-				// Topic (for quiz type)
-				type === "quiz" &&
-					React.createElement(
-						"div",
-						{
-							style: {
-								fontSize: "32px",
-								color: typeStyles[type]
-									.subtitleColor,
-								textAlign: "center",
-								marginTop: "16px",
-							},
-						},
-						`Topic: ${topic}`
-					),
 				// CTA
 				React.createElement(
 					"div",
@@ -160,9 +124,7 @@ export async function GET(request: Request) {
 							fontWeight: "600",
 						},
 					},
-					type === "home"
-						? "Start Your Quiz Journey"
-						: "Test Your Knowledge"
+					"Start Your Quiz Journey"
 				)
 			)
 		),
