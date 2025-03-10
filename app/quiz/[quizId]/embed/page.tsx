@@ -42,9 +42,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function EmbedPage({
 	params,
 }: {
-	params: { quizId: string };
+	params: Promise<{ quizId: string }>;
 }) {
-	const { quizId } = params;
+	const { quizId } = await params;
 	const quiz = await getQuizWithQuestions(quizId);
 
 	if (!quiz) {
