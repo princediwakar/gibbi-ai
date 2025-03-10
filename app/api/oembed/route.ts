@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 		?.split("/")
 		.pop(); // Extract quiz ID
 
-	if (!quizId) {
+        if (!quizId) {
 		return NextResponse.json(
 			{ error: "Quiz ID is required" },
 			{ status: 400 }
