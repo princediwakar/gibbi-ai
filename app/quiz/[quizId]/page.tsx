@@ -41,20 +41,39 @@ export async function generateMetadata({
 			"test",
 			"knowledge",
 		],
-			
-
 		openGraph: {
 			type: "website",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			images: [
+				{
+					url: `${
+						process.env.NEXT_PUBLIC_BASE_URL
+					}/api/og?type=quiz&title=${encodeURIComponent(
+						quiz.title ?? ""
+					)}&topic=${encodeURIComponent(
+						quiz.topic ?? ""
+					)}`,
+					width: 1200,
+					height: 630,
+				},
+			],
 		},
 		twitter: {
 			card: "summary_large_image",
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			images: [
+				`${
+					process.env.NEXT_PUBLIC_BASE_URL
+				}/api/og?type=quiz&title=${encodeURIComponent(
+					quiz.title ?? ""
+				)}&topic=${encodeURIComponent(
+					quiz.topic ?? ""
+				)}`,
+			],
 		},
-		
 	};
 }
 
