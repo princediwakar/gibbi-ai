@@ -42,6 +42,13 @@ export default async function RootLayout({
 }) {
 	return (
 		<html lang="en">
+			<head>
+				<link
+					rel="alternate"
+					type="application/json+oembed"
+					href="https://quizmasterai.vercel.app/api/oembed?url={quiz_url}"
+				/>
+			</head>
 			<body>
 				{/* Include Header */}
 				<Header />

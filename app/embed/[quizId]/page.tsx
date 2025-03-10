@@ -1,23 +1,6 @@
 import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
 import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
-import type { Metadata } from "next";
-
-export async function generateMetadata(): Promise<Metadata> {
-	return {
-		title: "Embedded Quiz",
-		robots: {
-			index: false,
-			follow: false,
-			nocache: true,
-			googleBot: {
-				index: false,
-				follow: false,
-				noimageindex: true,
-			},
-		},
-	};
-}
 
 export default async function EmbedPage({
 	params,
