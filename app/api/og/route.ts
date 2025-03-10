@@ -156,7 +156,6 @@ export async function GET(request: Request) {
 							background:
 								typeStyles[type]
 									.accentColor,
-							color: "#ffffff",
 							borderRadius: "12px",
 							fontWeight: "600",
 						},
