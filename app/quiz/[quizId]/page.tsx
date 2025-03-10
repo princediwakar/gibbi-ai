@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
 import { Metadata } from "next";
 import { getQuizMetadata } from "@/lib/getQuizMetadata";
-import Head from "next/head";
 
 interface PageProps {
 	params: Promise<{ quizId: string }>;
@@ -25,8 +24,6 @@ export async function generateMetadata({
 		};
 	}
 
-	// Point to the embed page for the iframe
-	const embedUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/embed/${quizId}`;
 
 	return {
 		title: `${quiz.title} - QuizMaster`,
@@ -44,9 +41,11 @@ export async function generateMetadata({
 			"test",
 			"knowledge",
 		],
+			
+
 		openGraph: {
 			type: "website",
-			url: embedUrl, // Embed URL
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
 			title: `${quiz.title} - QuizMaster`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 		},
@@ -69,23 +68,10 @@ export default async function QuizPage({
 		notFound();
 	}
 
-	  const embedUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/embed/${quizId}`;
 
 
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">
-			<Head>
-				{/* Add the oembed metadata link */}
-				<link
-					rel="alternate"
-					type="application/json+oembed"
-					href={`${
-						process.env.NEXT_PUBLIC_BASE_URL
-					}/api/oembed?url=${encodeURIComponent(
-						embedUrl
-					)}`}
-				/>
-			</Head>
 			<QuizPlayer quiz={quiz} />
 		</div>
 	);
