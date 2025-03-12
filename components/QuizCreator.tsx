@@ -22,18 +22,18 @@ export const QuizCreator = ({
 	const handleGenerateQuiz = useCallback(
 		async (e?: React.FormEvent) => {
 			e?.preventDefault();
-
-			if (!prompt.trim()) {
-				toast.error("Please enter a quiz topic");
-				return;
-			}
-
 			if (!user) {
 				toast.error(
 					"You must be logged in to create quizzes"
 				);
 				return;
 			}
+
+			if (!prompt.trim()) {
+				toast.error("Please enter a quiz topic");
+				return;
+			}
+
 
 			setIsLoading(true);
 			const toastId = toast.loading(
