@@ -23,7 +23,7 @@ const openai = new OpenAI({
 });
 
 // Configuration
-const DEFAULT_QUESTION_COUNT = 10;
+const DEFAULT_QUESTION_COUNT = 2;
 const DEFAULT_DIFFICULTY = "Advanced";
 const MAX_ATTEMPTS = 5;
 
