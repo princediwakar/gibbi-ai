@@ -68,10 +68,10 @@ export function QuizCard({ quiz }: QuizCardProps) {
 					{quiz.title}
 				</h2>
 				<div className="text-sm text-gray-600 mb-4">
-					{/* <p className="line-clamp-3 min-h-[60px]">
+					<p className="line-clamp-3 min-h-[60px]">
 						{quiz.description ||
 							"No description available"}
-					</p> */}
+					</p>
 					<p className="mt-2">
 						{quiz.num_questions} questions •{" "}
 						{quiz.topic}
