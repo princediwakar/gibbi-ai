@@ -24,7 +24,7 @@ const openai = new OpenAI({
 
 // Configuration
 const DEFAULT_QUESTION_COUNT = 10;
-const DEFAULT_DIFFICULTY = "advanced";
+const DEFAULT_DIFFICULTY = "Advanced";
 const MAX_ATTEMPTS = 5;
 
 interface QuizData {
@@ -221,7 +221,7 @@ const cleanResponse = (text: string): string => {
 // }
 
 
-// ... existing code ...
+
 
 export async function createQuizWithAI(prompt: string): Promise<QuizData> {
     try {
@@ -259,9 +259,16 @@ export async function createQuizWithAI(prompt: string): Promise<QuizData> {
                     throw new Error("Received empty response from OpenAI.");
                 }
 
-                // Check if the response is an error message
-                if (content.startsWith("An error") || content.startsWith("Error")) {
-                    throw new Error(content);
+                // Enhanced error message detection
+                if (content.toLowerCase().includes("error") || 
+                    content.toLowerCase().includes("invalid") ||
+                    content.toLowerCase().includes("failed")) {
+                    throw new Error(`API Error: ${content}`);
+                }
+
+                // Check if the response looks like JSON
+                if (!content.trim().startsWith('{') && !content.trim().startsWith('[')) {
+                    throw new Error(`Unexpected response format: ${content.substring(0, 100)}...`);
                 }
 
                 // Accumulate the response text
