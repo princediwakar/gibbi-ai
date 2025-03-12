@@ -1,4 +1,4 @@
-interface Question {
+export interface Question {
 	question_text: string;
 	options: Record<string, string>;
 	correct_option: string;

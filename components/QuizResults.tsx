@@ -10,12 +10,40 @@ import {
 } from "@/components/ui/accordion";
 import { ShareableResultsCard } from "./ShareableResultsCard";
 import { GoBackOrHome } from "./GoBackOrHome";
+import { BlockMath, InlineMath } from "react-katex";
 
 interface QuizResultsProps {
 	quiz: Quiz;
 	userAnswers: { [key: number]: string };
 	score: number;
 }
+
+const renderMathContent = (text: string) => {
+	// Split text into math and non-math parts
+	const parts = text.split(/(\$\$.*?\$\$|\$.*?\$)/g);
+
+	return parts.map((part, index) => {
+		if (part.startsWith("$$") && part.endsWith("$$")) {
+			return (
+				<BlockMath
+					key={index}
+					math={part.slice(2, -2)}
+				/>
+			);
+		} else if (
+			part.startsWith("$") &&
+			part.endsWith("$")
+		) {
+			return (
+				<InlineMath
+					key={index}
+					math={part.slice(1, -1)}
+				/>
+			);
+		}
+		return <span key={index}>{part}</span>;
+	});
+};
 
 export const QuizResults = ({
 	quiz,
@@ -117,9 +145,9 @@ export const QuizResults = ({
 													:{" "}
 												</span>
 												<span className="whitespace-normal break-words text-gray-700">
-													{
+													{renderMathContent(
 														question.question_text
-													}
+													)}
 												</span>
 											</div>
 										</div>
@@ -128,20 +156,22 @@ export const QuizResults = ({
 										<div className="space-y-3 p-4 bg-gray-50 rounded-lg">
 											<div className="text-sm text-gray-700">
 												Your answer:{" "}
-												{optionsMap[
-													userAnswer
-												] ||
+												{renderMathContent(
+													optionsMap[
+														userAnswer
+													]
+												) ||
 													"No answer"}
 											</div>
 											{!isCorrect && (
 												<div className="text-sm text-gray-700">
 													Correct
 													answer:{" "}
-													{
+													{renderMathContent(
 														optionsMap[
 															correctAnswer
 														]
-													}
+													)}
 												</div>
 											)}
 										</div>

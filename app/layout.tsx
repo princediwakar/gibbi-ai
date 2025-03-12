@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toast";
 import Header from "@/components/Header";
 import { Metadata } from "next";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
 	// metadataBase: new URL(

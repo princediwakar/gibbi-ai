@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import {Question} from '@/types/quiz'
+
 const validateEnvVars = () => {
 	if (!process.env.OPENAI_API_KEY) {
 		throw new Error(
@@ -50,13 +50,6 @@ interface QuizData {
 const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include topic, subject, difficulty & number of questions.
 If the user specifies difficulty, map it to one of these levels: Beginner, Intermediate, or Advanced.
 If the user doesn't specify difficulty or number of questions, then by default generate ${DEFAULT_QUESTION_COUNT} questions of ${DEFAULT_DIFFICULTY} difficulty level.
-
-For questions or options involving mathematics or equations, format the mathematical expressions using LaTeX notation inside double dollar signs ($$...$$) for block equations and single dollar signs ($...$) for inline equations.
-For mathematical expressions:
-- Use $...$ for inline math
-- Use $$...$$ for display math
-- Ensure all math expressions are properly escaped
-
 Output must be a valid JSON object strictly matching this format:
 {
   "title": string,
@@ -67,14 +60,13 @@ Output must be a valid JSON object strictly matching this format:
   "num_questions": number,
   "questions": [
     {
-      "question_text": string, // May contain LaTeX math expressions
-      "options": { "a": string, "b": string, "c": string, "d": string }, // May contain LaTeX math expressions
+      "question_text": string,
+      "options": { "a": string, "b": string, "c": string, "d": string },
       "correct_option": string
     }
   ]
 }
 IMPORTANT: Do not wrap your output in markdown formatting or triple backticks. Append the token "END_OF_JSON" (without quotes) at the very end of the output and nothing else.`;
-
 
 // Utility to check if the accumulated response is complete.
 const isCompleteResponse = (text: string): boolean => {
@@ -103,49 +95,15 @@ const cleanResponse = (text: string): string => {
 // Valid escapes are: ", \, /, b, f, n, r, t or a Unicode escape (\uXXXX)
 const parseJSONSafely = (jsonString: string): QuizData => {
 	try {
-		// First, replace escaped backslashes with a temporary marker
 		let cleanedString = jsonString.replace(
-			/\\\\/g,
-			"\\BACKSLASH\\"
-		);
-
-		// Remove invalid control characters
-		cleanedString = cleanedString.replace(
 			/[\x00-\x1F\x7F]/g,
 			""
 		);
-
-		// Restore LaTeX backslashes
 		cleanedString = cleanedString.replace(
-			/\\BACKSLASH\\/g,
-			"\\\\"
+			/\\(?!["\\\/bfnrt]|u[0-9A-Fa-f]{4})/g,
+			""
 		);
-
-		// Parse the JSON
-		const parsedData = JSON.parse(cleanedString);
-
-		// Validate and clean each question
-		const cleanedData: QuizData = {
-			...parsedData,
-			questions: parsedData.questions.map(
-				(question: Question) => ({
-					...question,
-					question_text: cleanLaTeX(
-						question.question_text
-					),
-					options: Object.fromEntries(
-						Object.entries(
-							question.options
-						).map(([key, value]) => [
-							key,
-							cleanLaTeX(value as string),
-						])
-					),
-				})
-			),
-		};
-
-		return cleanedData;
+		return JSON.parse(cleanedString);
 	} catch (err) {
 		console.error("Failed to parse JSON:", jsonString);
 		throw new Error(
@@ -156,17 +114,6 @@ const parseJSONSafely = (jsonString: string): QuizData => {
 			}`
 		);
 	}
-};
-const cleanLaTeX = (text: string): string => {
-    // Replace problematic LaTeX sequences
-    return text
-        .replace(/\\{/g, '{')
-        .replace(/\\}/g, '}')
-        .replace(/\\\[/g, '[')
-        .replace(/\\\]/g, ']')
-        .replace(/\\\(/g, '(')
-        .replace(/\\\)/g, ')')
-        .replace(/\\\$/g, '$');
 };
 
 export async function createQuizWithAI(

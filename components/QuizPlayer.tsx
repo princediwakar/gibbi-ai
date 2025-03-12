@@ -6,6 +6,7 @@ import { QuizResults } from "./QuizResults";
 import Link from "next/link";
 import { QuizDetails } from "./QuizDetails";
 import { GoBackOrHome } from "./GoBackOrHome";
+import {BlockMath, InlineMath} from 'react-katex'
 
 interface QuizPlayerProps {
 	quiz: Quiz;
@@ -16,6 +17,37 @@ interface Option {
 	key: string;
 	value: string;
 }
+
+
+
+const renderMathContent = (text: string) => {
+	// Split text into math and non-math parts
+	const parts = text.split(/(\$\$.*?\$\$|\$.*?\$)/g);
+
+	return parts.map((part, index) => {
+		if (part.startsWith("$$") && part.endsWith("$$")) {
+			return (
+				<BlockMath
+					key={index}
+					math={part.slice(2, -2)}
+				/>
+			);
+		} else if (
+			part.startsWith("$") &&
+			part.endsWith("$")
+		) {
+			return (
+				<InlineMath
+					key={index}
+					math={part.slice(1, -1)}
+				/>
+			);
+		}
+		return <span key={index}>{part}</span>;
+	});
+};
+
+
 export const QuizPlayer = ({
 	quiz,
 	embedMode = false,
@@ -54,6 +86,8 @@ export const QuizPlayer = ({
 			</div>
 		);
 	}
+
+
 
 	const getProgressPercentage = () => {
 		return (
@@ -154,7 +188,9 @@ export const QuizPlayer = ({
 			) : (
 				<div className="space-y-6">
 					<div className="text-lg font-medium">
-						{currentQuestion.question_text}
+						{renderMathContent(
+							currentQuestion.question_text
+						)}
 					</div>
 					<div className="space-y-3">
 						{options.map(({ key, value }) => (
@@ -167,7 +203,9 @@ export const QuizPlayer = ({
 								}
 							>
 								<span className="w-full break-words">
-									{value}
+									{renderMathContent(
+										value
+									)}
 								</span>
 							</Button>
 						))}
@@ -177,3 +215,14 @@ export const QuizPlayer = ({
 		</div>
 	);
 };
+
+
+
+
+
+
+
+
+
+
+
