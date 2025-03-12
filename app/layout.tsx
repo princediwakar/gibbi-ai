@@ -46,7 +46,7 @@ export default async function RootLayout({
 				{/* Include Header */}
 				<Header />
 				{/* Main Content */}
-				<main className="max-w-7xl mx-auto p-6">
+				<main className="max-w-5xl mx-auto p-6">
 					{children}
 					<Toaster
 						position="top-center"

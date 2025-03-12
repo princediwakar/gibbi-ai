@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Quiz } from "@/types/quiz";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
-import { QuizCard } from "./QuizCard";
+import { QuizCard } from "./quiz-card";
 
 interface QuizGalleryProps {
 	savedQuizzes: Quiz[] | null;
@@ -29,9 +29,9 @@ export const QuizGallery = ({
 				quiz.topic
 					?.toLowerCase()
 					.includes(searchLower) ||
-				quiz.difficulty
-					?.toLowerCase()
-					.includes(searchLower) ||
+				// quiz.difficulty
+				// 	?.toLowerCase()
+				// 	.includes(searchLower) ||
 				quiz.description
 					?.toLowerCase()
 					.includes(searchLower) ||
@@ -78,7 +78,7 @@ export const QuizGallery = ({
 	return (
 		<div className="space-y-8 max-w-2xl mx-auto">
 			<h2 className="text-xl font-bold text-gray-800 mb-4">
-				Your Quiz Library
+				My Quiz Library
 			</h2>
 
 			<div className="relative">
@@ -105,7 +105,7 @@ export const QuizGallery = ({
 							<h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
 								{subject}
 							</h3>
-							<div className="space-y-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 								{quizzes.map((quiz) => (
 									<QuizCard
 										key={quiz.quiz_id}

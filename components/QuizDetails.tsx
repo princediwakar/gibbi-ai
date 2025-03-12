@@ -2,8 +2,7 @@
 
 import { Quiz } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { GoBackOrHome } from "./GoBackOrHome";
 
 interface QuizDetailsProps {
 	quiz: Quiz;
@@ -14,7 +13,6 @@ export function QuizDetails({
 	quiz,
 	onStart,
 }: QuizDetailsProps) {
-	const router = useRouter();
 	return (
 		<div className="space-y-6">
 			<h1 className="text-3xl font-bold">
@@ -66,15 +64,7 @@ export function QuizDetails({
 			</div>
 
 			<div className="grid grid-cols-2 gap-4">
-				<Link href="/">
-					<Button
-						className="w-full"
-						variant="outline"
-						onClick={() => router.push("/")}
-					>
-						Back to Home
-					</Button>
-				</Link>
+				<GoBackOrHome />
 				<Button onClick={onStart}>
 					Start Quiz
 				</Button>

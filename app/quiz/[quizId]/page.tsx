@@ -1,9 +1,9 @@
 // File: app/quiz/[quizId]/page.tsx
 
-import { QuizPlayer } from "@/app/quiz/QuizPlayer";
 import { notFound } from "next/navigation";
-import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
 import { Metadata } from "next";
+import { QuizPlayer } from "@/components/QuizPlayer";
+import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
 import { getQuizMetadata } from "@/lib/getQuizMetadata";
 
 interface PageProps {
@@ -23,7 +23,6 @@ export async function generateMetadata({
 				"The requested quiz could not be found",
 		};
 	}
-
 
 	return {
 		title: `${quiz.title} - QuizMaster`,
@@ -86,7 +85,6 @@ export default async function QuizPage({
 	if (!quiz) {
 		notFound();
 	}
-
 
 	return (
 		<div className="max-w-4xl mx-auto p-4 space-y-6">

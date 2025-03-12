@@ -20,53 +20,6 @@ export const ShareableResultsCard = ({
 }: ShareableResultsCardProps) => {
 	const user = useUser();
 	
-	// const [, copy] = useCopyToClipboard();
-	// Update the handleShare function
-	// const handleShare = async () => {
-	// 	try {
-	// 		const shareText = `I scored ${score}/${quiz.num_questions} (${percentage}%) on "${quiz.title}" quiz! 🎉\n\nTry it yourself: ${window.location.href}`;
-
-	// 		// Check if native sharing is supported
-	// 		if (navigator.share) {
-	// 			try {
-	// 				await navigator.share({
-	// 					title: `My Quiz Results: ${quiz.title}`,
-	// 					text: shareText,
-	// 					url: window.location.href,
-	// 				});
-	// 				toast.success(
-	// 					"Results shared successfully!"
-	// 				);
-	// 				return;
-	// 				// Update the error handling
-	// 			} catch (shareError: unknown) {
-	// 				// Handle share cancellation
-	// 				if (
-	// 					shareError instanceof Error &&
-	// 					shareError.name === "AbortError"
-	// 				) {
-	// 					return; // User cancelled, do nothing
-	// 				}
-	// 				console.log(
-	// 					"Native share failed, falling back to clipboard"
-	// 				);
-	// 				console.error(
-	// 					"Sharing Error:",
-	// 					shareError
-	// 				);
-	// 			}
-	// 		}
-
-	// 		// Fallback to clipboard
-	// 		await copy(shareText);
-	// 		toast.success("Results copied to clipboard!");
-	// 	} catch (error) {
-	// 		toast.error("Failed to share results");
-	// 		console.error("Sharing failed:", error);
-	// 	}
-	// };
-
-	
 
 	return (
 		<div className="bg-gradient-to-br from-indigo-600 to-pink-500 rounded-xl p-6 text-white">

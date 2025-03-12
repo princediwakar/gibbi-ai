@@ -5,6 +5,7 @@ import { Quiz } from "@/types/quiz";
 import { QuizResults } from "./QuizResults";
 import Link from "next/link";
 import { QuizDetails } from "./QuizDetails";
+import { GoBackOrHome } from "./GoBackOrHome";
 
 interface QuizPlayerProps {
 	quiz: Quiz;
@@ -26,7 +27,6 @@ export const QuizPlayer = ({
 	const [userAnswers, setUserAnswers] = useState<{
 		[key: number]: string;
 	}>({});
-  	
 
 	if (!quiz) {
 		return (
@@ -43,7 +43,6 @@ export const QuizPlayer = ({
 			</div>
 		);
 	}
-
 
 	if (!hasStarted) {
 		return (
@@ -107,20 +106,11 @@ export const QuizPlayer = ({
 		}
 	};
 
-
-
 	if (!quiz.questions || quiz.questions.length === 0) {
 		return (
 			<div className="text-center">
 				<p>No questions available for this quiz.</p>
-				<Link href="/">
-					<Button
-						className="w-full"
-						variant="outline"
-					>
-						Back to Home
-					</Button>
-				</Link>
+				<GoBackOrHome />
 			</div>
 		);
 	}
@@ -129,65 +119,61 @@ export const QuizPlayer = ({
 	const options = parseOptions(currentQuestion.options);
 
 	return (
-			<div
-				className={`${
-					embedMode ? "w-full p-4" : "max-w-xl mt-10"
-				} mx-auto`}
-			>
-				{!completed && (
-					<>
-						{/* Progress Bar */}
-						<div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-							<div
-								className="bg-primary h-2.5 rounded-full"
-								style={{
-									width: `${getProgressPercentage()}%`,
-								}}
-							></div>
-						</div>
-
-						{/* Question Counter */}
-						<div className="text-sm text-gray-600 mb-6">
-							Question {currentIndex + 1} of{" "}
-							{quiz.questions.length}
-						</div>
-					</>
-				)}
-
-				{completed ? (
-					<QuizResults
-						quiz={quiz}
-						userAnswers={userAnswers}
-						score={score}
-						// onShare={handleShareResults}
-					/>
-				) : (
-					<div className="space-y-6">
-						<div className="text-lg font-medium">
-							{currentQuestion.question_text}
-						</div>
-						<div className="space-y-3">
-							{options.map(
-								({ key, value }) => (
-									<Button
-										key={key}
-										variant="outline"
-										className="w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left"
-										onClick={() =>
-											handleAnswer(
-												key
-											)
-										}
-									>
-										<span className="w-full break-words">
-											{value}
-										</span>
-									</Button>
-								)
-							)}
-						</div>
+		<div
+			className={`${
+				embedMode ? "w-full p-4" : "max-w-xl mt-10"
+			} mx-auto`}
+		>
+			{!completed && (
+				<>
+					{/* Progress Bar */}
+					<div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+						<div
+							className="bg-primary h-2.5 rounded-full"
+							style={{
+								width: `${getProgressPercentage()}%`,
+							}}
+						></div>
 					</div>
-				)}
-			</div>
+
+					{/* Question Counter */}
+					<div className="text-sm text-gray-600 mb-6">
+						Question {currentIndex + 1} of{" "}
+						{quiz.questions.length}
+					</div>
+				</>
+			)}
+
+			{completed ? (
+				<QuizResults
+					quiz={quiz}
+					userAnswers={userAnswers}
+					score={score}
+					// onShare={handleShareResults}
+				/>
+			) : (
+				<div className="space-y-6">
+					<div className="text-lg font-medium">
+						{currentQuestion.question_text}
+					</div>
+					<div className="space-y-3">
+						{options.map(({ key, value }) => (
+							<Button
+								key={key}
+								variant="outline"
+								className="w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left"
+								onClick={() =>
+									handleAnswer(key)
+								}
+							>
+								<span className="w-full break-words">
+									{value}
+								</span>
+							</Button>
+						))}
+					</div>
+				</div>
+			)}
+		</div>
 	);
 };

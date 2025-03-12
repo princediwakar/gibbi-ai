@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GoBackOrHome } from "@/components/GoBackOrHome";
 
 export default function Error({
 	error,
@@ -27,14 +27,7 @@ export default function Error({
 				<Button onClick={() => reset()}>
 					Try again
 				</Button>
-				<Link href="/">
-					<Button
-						className="w-full"
-						variant="outline"
-					>
-						Back to Home
-					</Button>
-				</Link>
+				<GoBackOrHome />
 			</div>
 		</div>
 	);

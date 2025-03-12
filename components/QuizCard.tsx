@@ -9,25 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-import { getUserName } from "@/lib/getUserName";
-import { useEffect, useState } from "react";
+import { FileText, Sheet } from "lucide-react";
+import { downloadQuiz } from "@/lib/downloadQuiz";
 
 export const QuizCard = ({ quiz }: { quiz: Quiz }) => {
-	const [creatorName, setCreatorName] =
-		useState("Loading...");
+	const handleDownload = (format: "pdf" | "excel") => {
+		downloadQuiz(quiz, format);
+	};
 
-	useEffect(() => {
-		const fetchCreator = async () => {
-			if (quiz.creator_id) {
-				const name = await getUserName(
-					quiz.creator_id
-				);
-				setCreatorName(name);
-			}
-		};
-		fetchCreator();
-	}, [quiz.creator_id]);
 	return (
 		<Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-white to-gray-50">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center p-6 gap-6">
@@ -38,9 +27,6 @@ export const QuizCard = ({ quiz }: { quiz: Quiz }) => {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="p-0 space-y-2">
-						<div className="text-sm text-gray-500">
-							Created by: {creatorName}
-						</div>
 						<div className="flex flex-wrap gap-3">
 							<div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-sm text-gray-600">
 								<span>
@@ -66,19 +52,43 @@ export const QuizCard = ({ quiz }: { quiz: Quiz }) => {
 						</div>
 					</CardContent>
 				</div>
-				<div className="w-full sm:w-auto">
+				<div className="w-full sm:w-auto flex flex-col gap-2">
 					<Link
-						// prefetch={false}
+						prefetch={false}
 						href={`/quiz/${quiz.quiz_id}`}
 						className="w-full sm:w-auto"
 					>
 						<Button
-							variant="outline"
+							variant="default"
 							className="w-full sm:w-32 h-11"
 						>
-							Start Quiz
+							View Quiz
 						</Button>
 					</Link>
+					<div className="flex ">
+						<Button
+							variant="ghost"
+							size="sm"
+							// className="gap-2"
+							onClick={() =>
+								handleDownload("excel")
+							}
+						>
+							<Sheet className="h-4 w-4" />
+							Excel
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
+							// className="gap-2"
+							onClick={() =>
+								handleDownload("pdf")
+							}
+						>
+							<FileText className="h-4 w-4" />
+							PDF
+						</Button>
+					</div>
 				</div>
 			</div>
 		</Card>

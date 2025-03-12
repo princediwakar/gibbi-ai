@@ -32,15 +32,18 @@ const Header = () => {
 	};
 
 	return (
-		<header className="flex justify-between items-center p-4 lg:w-3/5 text-gray-900 mx-auto">
-			<Link
-				href="/"
-				className="hover:opacity-80 transition-opacity"
-			>
-				<h1 className="text-xl font-bold">
-					Gibbi AI
-				</h1>
-			</Link>{" "}
+		<header className="flex justify-between items-center p-4 max-w-5xl text-gray-900 mx-auto">
+			<div className="flex items-center space-x-8">
+				<Link
+					href="/"
+					className="hover:opacity-80 transition-opacity"
+				>
+					<h1 className="text-xl font-bold">
+						Gibbi AI
+					</h1>
+				</Link>{" "}
+				<Link href="/quizzes">Explore</Link>
+			</div>
 			<div className="flex items-center space-x-4">
 				{user ? (
 					<>

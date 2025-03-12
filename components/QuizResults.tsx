@@ -1,7 +1,6 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import {
 	Accordion,
@@ -9,8 +8,8 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useRouter } from "next/navigation";
 import { ShareableResultsCard } from "./ShareableResultsCard";
+import { GoBackOrHome } from "./GoBackOrHome";
 
 interface QuizResultsProps {
 	quiz: Quiz;
@@ -23,20 +22,18 @@ export const QuizResults = ({
 	userAnswers,
 	score,
 }: QuizResultsProps) => {
-	const router = useRouter();
 	const percentage = (
 		(score / quiz.num_questions) *
 		100
 	).toFixed(1);
 
-if (!quiz.questions) {
-	return (
-		<div className="text-center text-gray-500 py-6">
-			No questions available for review.
-		</div>
-	);
-}
-
+	if (!quiz.questions) {
+		return (
+			<div className="text-center text-gray-500 py-6">
+				No questions available for review.
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-8 max-w-2xl mx-auto">
@@ -158,12 +155,7 @@ if (!quiz.questions) {
 
 			{/* Navigation */}
 			<div className="flex gap-4">
-				<Button
-					onClick={() => router.push("/")}
-					className="w-full"
-				>
-					Back to Home
-				</Button>
+				<GoBackOrHome />
 			</div>
 		</div>
 	);
