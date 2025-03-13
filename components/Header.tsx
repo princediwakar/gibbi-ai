@@ -10,25 +10,24 @@ import {
 } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { memo } from "react";
 
-
-const Header = () => {
+const Header = memo(() => {
 	const user = useUser();
-	const router = useRouter()
+	const router = useRouter();
 
 	const handleSignIn = async () => {
 		const { error } =
 			await supabase.auth.signInWithOAuth({
 				provider: "google",
 			});
-		if (error) {
+		if (error)
 			console.error("Sign-in error:", error.message);
-		}
 	};
 
 	const handleSignOut = async () => {
 		await supabase.auth.signOut();
-		router.push('/')
+		router.push("/");
 	};
 
 	return (
@@ -41,7 +40,7 @@ const Header = () => {
 					<h1 className="text-xl font-bold">
 						Gibbi AI
 					</h1>
-				</Link>{" "}
+				</Link>
 				<Link href="/quizzes">Explore</Link>
 			</div>
 			<div className="flex items-center space-x-4">
@@ -71,6 +70,7 @@ const Header = () => {
 			</div>
 		</header>
 	);
-};
+});
 
+Header.displayName = "Header";
 export default Header;

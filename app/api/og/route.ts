@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
 
 	// Get parameters with fallbacks
-	const title = searchParams.get("title") || "QuizMaster";
+	const title = searchParams.get("title") || "QuizMasterAI";
 	const topic =
 		searchParams.get("topic") || "General Knowledge";
 	const type =

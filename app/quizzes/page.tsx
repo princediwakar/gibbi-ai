@@ -1,6 +1,51 @@
 import { QuizCard } from "@/components/quiz-card";
 import { getPublicQuizzes } from "@/lib/queries";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Public Quizzes - QuizMasterAI",
+	description:
+		"Explore and take public quizzes on various topics. Test your knowledge and learn new things!",
+	keywords: [
+		"quizzes",
+		"public quizzes",
+		"knowledge test",
+		"learning",
+		"education",
+	],
+	openGraph: {
+		title: "Public Quizzes - QuizMasterAI",
+		description:
+			"Explore and take public quizzes on various topics",
+		url: "/quizzes",
+		siteName: "QuizMaster",
+		images: [
+			{
+				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
+				width: 1200,
+				height: 630,
+				alt: "QuizMasterAI Public Quizzes",
+			},
+		],
+		locale: "en_US",
+		type: "website",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "Public Quizzes - QuizMasterAI",
+		description:
+			"Explore and take public quizzes on various topics",
+		images: [
+			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
+		], // Add your Twitter image path here
+	},
+};
+
+
+
+
+
 export default async function QuizzesPage() {
 	const quizzes = await getPublicQuizzes();
 

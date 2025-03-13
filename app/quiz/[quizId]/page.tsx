@@ -25,7 +25,7 @@ export async function generateMetadata({
 	}
 
 	return {
-		title: `${quiz.title} - QuizMaster`,
+		title: `${quiz.title} - QuizMasterAI`,
 		description: `Take the ${quiz.title} quiz on ${
 			quiz.topic
 		}. Created by ${quiz.creatorName}. ${
@@ -43,7 +43,7 @@ export async function generateMetadata({
 		openGraph: {
 			type: "website",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
-			title: `${quiz.title} - QuizMaster`,
+			title: `${quiz.title} - QuizMasterAI`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 			images: [
 				{
@@ -61,7 +61,7 @@ export async function generateMetadata({
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: `${quiz.title} - QuizMaster`,
+			title: `${quiz.title} - QuizMasterAI`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
 			images: [
 				`${
