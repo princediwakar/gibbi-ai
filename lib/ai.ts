@@ -22,11 +22,12 @@ const openai = new OpenAI({
 	baseURL: process.env.BASE_URL,
 });
 
-// Configuration
-const DEFAULT_QUESTION_COUNT = 2;
-const DEFAULT_DIFFICULTY = "Advanced";
-const MAX_ATTEMPTS = 5;
-const MAX_TOKENS = 4096;
+//  Quiz Configuration
+const defaultQuestionCount = process.env.DEFAULT_QUESTION_COUNT
+const default_difficulty = process.env.DEFAULT_DIFFICULTY
+const maxAttempts = Number(process.env.MAX_ATTEMPTS)
+const maxTokens = Number(process.env.MAX_TOKENS)
+
 
 interface QuizData {
 	title: string;
@@ -49,7 +50,7 @@ interface QuizData {
 
 const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include topic, subject, difficulty & number of questions.
 If the user specifies difficulty, map it to one of these levels: Beginner, Intermediate, or Advanced.
-If the user doesn't specify difficulty or number of questions, then by default generate ${DEFAULT_QUESTION_COUNT} questions of ${DEFAULT_DIFFICULTY} difficulty level.
+If the user doesn't specify difficulty or number of questions, then by default generate ${defaultQuestionCount} questions of ${default_difficulty} difficulty level.
 
 For questions or options involving mathematics or equations, format the mathematical expressions using LaTeX notation inside double dollar signs ($$...$$) for block equations and single dollar signs ($...$) for inline equations.
 For mathematical expressions:
@@ -182,7 +183,7 @@ export async function createQuizWithAI(
 		let completed = false;
 
 		// Loop to accumulate response until we detect the END_OF_JSON marker.
-		while (attempts < MAX_ATTEMPTS && !completed) {
+		while (attempts < maxAttempts && !completed) {
 			const userContent =
 				attempts === 0
 					? `Generate a quiz for the following prompt: ${prompt}. Please return the output as a JSON object following the specified format and include "END_OF_JSON" at the end.`
@@ -204,7 +205,7 @@ export async function createQuizWithAI(
 							},
 						],
 						temperature: 0.7,
-						max_tokens: MAX_TOKENS,
+						max_tokens: maxTokens,
 					});
 
 				const content =
@@ -232,7 +233,7 @@ export async function createQuizWithAI(
 					attempts++;
 				}
 			} catch (error) {
-				if (attempts < MAX_ATTEMPTS - 1) {
+				if (attempts < maxAttempts - 1) {
 					console.warn(
 						`Attempt ${
 							attempts + 1
