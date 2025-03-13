@@ -6,7 +6,7 @@ import { QuizResults } from "./QuizResults";
 import Link from "next/link";
 import { QuizDetails } from "./QuizDetails";
 import { GoBackOrHome } from "./GoBackOrHome";
-import {BlockMath, InlineMath} from 'react-katex'
+import Katex from "@matejmazur/react-katex";
 
 interface QuizPlayerProps {
 	quiz: Quiz;
@@ -20,16 +20,18 @@ interface Option {
 
 
 
-const renderMathContent = (text: string) => {
-	// Split text into math and non-math parts
+const renderMathContent = (
+	text: string
+): React.ReactNode[] => {
 	const parts = text.split(/(\$\$.*?\$\$|\$.*?\$)/g);
 
 	return parts.map((part, index) => {
 		if (part.startsWith("$$") && part.endsWith("$$")) {
 			return (
-				<BlockMath
+				<Katex
 					key={index}
 					math={part.slice(2, -2)}
+					block // This makes it a block math element
 				/>
 			);
 		} else if (
@@ -37,7 +39,7 @@ const renderMathContent = (text: string) => {
 			part.endsWith("$")
 		) {
 			return (
-				<InlineMath
+				<Katex
 					key={index}
 					math={part.slice(1, -1)}
 				/>
@@ -46,7 +48,6 @@ const renderMathContent = (text: string) => {
 		return <span key={index}>{part}</span>;
 	});
 };
-
 
 export const QuizPlayer = ({
 	quiz,
