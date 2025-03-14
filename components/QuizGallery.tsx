@@ -18,10 +18,16 @@ export const QuizGallery = ({
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Memoized filtered quizzes
-	const filteredQuizzes = useMemo(() => {
+    const filteredQuizzes = useMemo(() => {
 		if (!savedQuizzes) return null;
+
+		// Filter out failed quizzes
+		const validQuizzes = savedQuizzes.filter(
+			(quiz) => quiz.status !== "failed"
+		);
+
 		const searchLower = searchQuery.toLowerCase();
-		return savedQuizzes.filter((quiz) => {
+		return validQuizzes.filter((quiz) => {
 			return (
 				quiz.subject
 					?.toLowerCase()
@@ -29,9 +35,6 @@ export const QuizGallery = ({
 				quiz.topic
 					?.toLowerCase()
 					.includes(searchLower) ||
-				// quiz.difficulty
-				// 	?.toLowerCase()
-				// 	.includes(searchLower) ||
 				quiz.description
 					?.toLowerCase()
 					.includes(searchLower) ||

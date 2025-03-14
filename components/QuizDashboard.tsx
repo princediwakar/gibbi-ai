@@ -14,7 +14,7 @@ export function QuizDashboard() {
 	const user = useUser();
 
 	// Stable fetch function using useCallback
-	const fetchQuizzes = useCallback(async () => {
+    const fetchQuizzes = useCallback(async () => {
 		if (!user) {
 			setQuizzes([]);
 			setIsLoading(false);
@@ -27,6 +27,7 @@ export function QuizDashboard() {
 				.from("quizzes")
 				.select("*")
 				.eq("creator_id", user.id)
+				.neq("status", "failed") // Exclude failed quizzes
 				.order("created_at", { ascending: false })
 				.limit(10);
 
@@ -42,7 +43,7 @@ export function QuizDashboard() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [user]); // Only recreate when user.id changes
+	}, [user]);
 
 	// Fetch quizzes when user.id changes
 	useEffect(() => {

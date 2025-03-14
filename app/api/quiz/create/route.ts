@@ -2,15 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createQuizWithAI } from "@/lib/ai";
 import { supabase } from "@/lib/supabase/client";
 
-interface Question {
-	question_text: string;
-	options: Record<string, string>;
-	correct_option: string;
-}
-
 export async function POST(req: NextRequest) {
 	try {
-		// Validate request body
 		const { prompt, creator_id } = await req.json();
 
 		if (!prompt) {
@@ -26,30 +19,24 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Generate quiz data using AI
-		const quizData = await createQuizWithAI(prompt);
-
-		// Prepare quiz data for insertion
-		const quizInsert = {
-			title: quizData.title,
-			description: quizData.description,
-			subject: quizData.subject,
-			topic: quizData.topic,
-			difficulty: quizData.difficulty,
-			num_questions: quizData.num_questions,
-			is_public: true,
-			creator_id,
-		};
-
-		// Insert quiz record and select necessary columns
+		// Create pending quiz entry
 		const { data: quiz, error: quizError } =
 			await supabase
 				.from("quizzes")
-				.insert(quizInsert)
-				.select(
-					"quiz_id, title, description, subject, topic, difficulty, num_questions, created_at"
-				)
+				.insert({
+					title: "Generating...",
+					description:
+						"Your quiz is being generated",
+					status: "pending",
+					creator_id,
+					topic: "Generating...", // Add default topic
+					subject: "Generating...", // Add default subject
+					difficulty: "Generating...", // Add default difficulty
+					num_questions: 0, // Will be updated later
+				})
+				.select("quiz_id")
 				.single();
+
 
 		if (quizError) {
 			throw new Error(
@@ -57,42 +44,15 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const quizId = quiz.quiz_id;
-
-		// Prepare questions for bulk insertion
-		const questionsInsert = quizData.questions.map(
-			(q: Question) => ({
-				quiz_id: quizId,
-				question_text: q.question_text,
-				options: q.options,
-				correct_option: q.correct_option,
-			})
+		// Start background processing
+		processQuizInBackground(
+			quiz.quiz_id,
+			prompt,
 		);
 
-		// Batch insert questions
-		const { error: questionsError } = await supabase
-			.from("questions")
-			.insert(questionsInsert);
-
-		if (questionsError) {
-			console.error(
-				"Rolling back quiz insert due to question insert failure."
-			);
-			await supabase
-				.from("quizzes")
-				.delete()
-				.eq("quiz_id", quizId);
-			throw new Error(
-				`Questions insert failed: ${questionsError.message}`
-			);
-		}
-
-		// Return the complete quiz data
 		return NextResponse.json({
-			quiz: {
-				...quiz,
-				questions: questionsInsert,
-			},
+			quiz_id: quiz.quiz_id,
+			status: "pending",
 		});
 	} catch (error) {
 		console.error("API error:", error);
@@ -105,5 +65,56 @@ export async function POST(req: NextRequest) {
 			},
 			{ status: 500 }
 		);
+	}
+}
+
+async function processQuizInBackground(
+	quizId: string,
+	prompt: string,
+) {
+	try {
+		// Generate quiz data using AI
+		const quizData = await createQuizWithAI(prompt);
+
+		// Update quiz with generated data
+		await supabase
+			.from("quizzes")
+			.update({
+				title: quizData.title,
+				description: quizData.description,
+				subject: quizData.subject,
+				topic: quizData.topic,
+				difficulty: quizData.difficulty,
+				num_questions: quizData.num_questions,
+				status: "ready",
+			})
+			.eq("quiz_id", quizId);
+
+		// Insert questions
+		const questionsInsert = quizData.questions.map(
+			(q) => ({
+				quiz_id: quizId,
+				question_text: q.question_text,
+				options: q.options,
+				correct_option: q.correct_option,
+			})
+		);
+
+		await supabase
+			.from("questions")
+			.insert(questionsInsert);
+
+		console.log(
+			`Quiz ${quizId} processed successfully`
+		);
+	} catch (error) {
+		console.error(
+			`Error processing quiz ${quizId}:`,
+			error
+		);
+		await supabase
+			.from("quizzes")
+			.update({ status: "failed" })
+			.eq("quiz_id", quizId);
 	}
 }

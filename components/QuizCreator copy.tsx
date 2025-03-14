@@ -19,61 +19,21 @@ export const QuizCreator = ({
 	const [isLoading, setIsLoading] = useState(false);
 	const user = useUser();
 
-	const checkQuizStatus = useCallback(
-		async (
-			quizId: string,
-			toastId: string | number
-		) => {
-			try {
-				const response = await fetch(
-					`/api/quiz/status?id=${quizId}`
-				);
-				const data = await response.json();
-
-				if (data.status === "ready") {
-					toast.success(
-						"Quiz generated successfully!",
-						{ id: toastId }
-					);
-					onQuizCreated(data.quiz);
-				} else if (data.status === "failed") {
-					toast.error(
-						"Quiz generation failed. Please try again.",
-						{ id: toastId }
-					);
-					// Remove failed quiz from the list
-					onQuizCreated({
-						quiz_id: quizId,
-						status: "failed",
-					} as Quiz);
-				} else {
-					toast.loading(
-						`Generating quiz based on "${prompt}"`,
-						{ id: toastId }
-					);
-					setTimeout(
-						() =>
-							checkQuizStatus(
-								quizId,
-								toastId
-							),
-						5000
-					);
-				}
-			} catch (error) {
-				console.error("Polling error:", error);
-				toast.error("Failed to check quiz status", {
-					id: toastId,
-				});
-			}
-		},
-		[onQuizCreated, prompt]
-	);
-
 	const handleGenerateQuiz = useCallback(
 		async (e?: React.FormEvent) => {
 			e?.preventDefault();
-			if (!user || !prompt.trim()) return;
+			if (!user) {
+				toast.error(
+					"You must be logged in to create quizzes"
+				);
+				return;
+			}
+
+			if (!prompt.trim()) {
+				toast.error("Please enter a quiz topic");
+				return;
+			}
+
 
 			setIsLoading(true);
 			const toastId = toast.loading(
@@ -81,6 +41,11 @@ export const QuizCreator = ({
 			);
 
 			try {
+				// Step 1: Generating quiz with AI
+				toast.loading(
+					"Generating quiz content with AI...",
+					{ id: toastId }
+				);
 				const response = await fetch(
 					"/api/quiz/create",
 					{
@@ -97,15 +62,31 @@ export const QuizCreator = ({
 					}
 				);
 
-				const data = await response.json();
-				if (!response.ok)
+				if (!response.ok) {
+					const errorData = await response.json();
 					throw new Error(
-						data.error ||
+						errorData.error ||
 							"Failed to create quiz"
 					);
+				}
 
-				checkQuizStatus(data.quiz_id, toastId);
+				// Step 2: Processing quiz data
+				toast.loading("Processing quiz data...", {
+					id: toastId,
+				});
+				const data = await response.json();
+
+				// Step 3: Success
+				toast.success(
+					`Quiz "${data.quiz.title}" created successfully!`,
+					{ id: toastId }
+				);
+				onQuizCreated(data.quiz);
 			} catch (error) {
+				console.error(
+					"Quiz creation failed:",
+					error
+				);
 				toast.error(
 					error instanceof Error
 						? error.message
@@ -117,7 +98,7 @@ export const QuizCreator = ({
 				setPrompt("");
 			}
 		},
-		[prompt, user, checkQuizStatus]
+		[prompt, user, onQuizCreated]
 	);
 
 	return (

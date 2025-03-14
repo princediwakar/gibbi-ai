@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import {Question} from '@/types/quiz'
+
 const validateEnvVars = () => {
 	if (!process.env.OPENAI_API_KEY) {
 		throw new Error(
@@ -22,12 +22,11 @@ const openai = new OpenAI({
 	baseURL: process.env.BASE_URL,
 });
 
-//  Quiz Configuration
-const defaultQuestionCount = process.env.DEFAULT_QUESTION_COUNT
-const default_difficulty = process.env.DEFAULT_DIFFICULTY
+// Configuration
+const defaultQuestionCount = process.env.DEFAULT_QUESTION_COUNT;
+const defaultDifficulty = process.env.DEFAULT_DIFFICULTY
 const maxAttempts = Number(process.env.MAX_ATTEMPTS)
 const maxTokens = Number(process.env.MAX_TOKENS)
-
 
 interface QuizData {
 	title: string;
@@ -50,14 +49,7 @@ interface QuizData {
 
 const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include topic, subject, difficulty & number of questions.
 If the user specifies difficulty, map it to one of these levels: Beginner, Intermediate, or Advanced.
-If the user doesn't specify difficulty or number of questions, then by default generate ${defaultQuestionCount} questions of ${default_difficulty} difficulty level.
-
-For questions or options involving mathematics or equations, format the mathematical expressions using LaTeX notation inside double dollar signs ($$...$$) for block equations and single dollar signs ($...$) for inline equations.
-For mathematical expressions:
-- Use $...$ for inline math
-- Use $$...$$ for display math
-- Ensure all math expressions are properly escaped
-
+If the user doesn't specify difficulty or number of questions, then by default generate ${defaultQuestionCount} questions of ${defaultDifficulty} difficulty level.
 Output must be a valid JSON object strictly matching this format:
 {
   "title": string,
@@ -68,14 +60,13 @@ Output must be a valid JSON object strictly matching this format:
   "num_questions": number,
   "questions": [
     {
-      "question_text": string, // May contain LaTeX math expressions
-      "options": { "a": string, "b": string, "c": string, "d": string }, // May contain LaTeX math expressions
+      "question_text": string,
+      "options": { "a": string, "b": string, "c": string, "d": string },
       "correct_option": string
     }
   ]
 }
 IMPORTANT: Do not wrap your output in markdown formatting or triple backticks. Append the token "END_OF_JSON" (without quotes) at the very end of the output and nothing else.`;
-
 
 // Utility to check if the accumulated response is complete.
 const isCompleteResponse = (text: string): boolean => {
@@ -102,51 +93,19 @@ const cleanResponse = (text: string): string => {
 // Parse JSON safely by first removing control characters and stripping any invalid backslashes.
 // This regex removes any backslash not followed by a valid escape sequence:
 // Valid escapes are: ", \, /, b, f, n, r, t or a Unicode escape (\uXXXX)
+
+
 const parseJSONSafely = (jsonString: string): QuizData => {
 	try {
-		// First, replace escaped backslashes with a temporary marker
 		let cleanedString = jsonString.replace(
-			/\\\\/g,
-			"\\BACKSLASH\\"
-		);
-
-		// Remove invalid control characters
-		cleanedString = cleanedString.replace(
 			/[\x00-\x1F\x7F]/g,
 			""
 		);
-
-		// Restore LaTeX backslashes
 		cleanedString = cleanedString.replace(
-			/\\BACKSLASH\\/g,
-			"\\\\"
+			/\\(?!["\\\/bfnrt]|u[0-9A-Fa-f]{4})/g,
+			""
 		);
-
-		// Parse the JSON
-		const parsedData = JSON.parse(cleanedString);
-
-		// Validate and clean each question
-		const cleanedData: QuizData = {
-			...parsedData,
-			questions: parsedData.questions.map(
-				(question: Question) => ({
-					...question,
-					question_text: cleanLaTeX(
-						question.question_text
-					),
-					options: Object.fromEntries(
-						Object.entries(
-							question.options
-						).map(([key, value]) => [
-							key,
-							cleanLaTeX(value as string),
-						])
-					),
-				})
-			),
-		};
-
-		return cleanedData;
+		return JSON.parse(cleanedString);
 	} catch (err) {
 		console.error("Failed to parse JSON:", jsonString);
 		throw new Error(
@@ -158,21 +117,34 @@ const parseJSONSafely = (jsonString: string): QuizData => {
 		);
 	}
 };
-const cleanLaTeX = (text: string): string => {
-    // Replace problematic LaTeX sequences
-    return text
-        .replace(/\\{/g, '{')
-        .replace(/\\}/g, '}')
-        .replace(/\\\[/g, '[')
-        .replace(/\\\]/g, ']')
-        .replace(/\\\(/g, '(')
-        .replace(/\\\)/g, ')')
-        .replace(/\\\$/g, '$');
-};
+
+
+
+
+
 
 export async function createQuizWithAI(
 	prompt: string
 ): Promise<QuizData> {
+	// Add a unique identifier to the prompt
+	const uniquePrompt = `${prompt} [${Date.now()}]`;
+
+	// Add instructions for variability
+	const variabilityInstructions = `
+        IMPORTANT: 
+        1. Generate unique questions that haven't been asked before
+        2. Vary the question types and perspectives
+        3. Use different examples and scenarios
+        4. Ensure answers are not predictable
+		5. Generate unique description every time.
+    `;
+
+	const totalStart = performance.now();
+	let generationTime = 0;
+	let cleaningTime = 0;
+	let parsingTime = 0;
+	let validationTime = 0;
+
 	try {
 		console.log(
 			`Generating quiz for prompt: "${prompt}"`
@@ -182,12 +154,13 @@ export async function createQuizWithAI(
 		let attempts = 0;
 		let completed = false;
 
-		// Loop to accumulate response until we detect the END_OF_JSON marker.
+		// Response Generation
+		const generationStart = performance.now();
 		while (attempts < maxAttempts && !completed) {
 			const userContent =
 				attempts === 0
-					? `Generate a quiz for the following prompt: ${prompt}. Please return the output as a JSON object following the specified format and include "END_OF_JSON" at the end.`
-					: `The previous output was incomplete or invalid. Continue generating the remaining part of the JSON object without repeating what was already provided.`;
+					? `Generate a quiz for the following prompt: ${uniquePrompt}. ${variabilityInstructions} Please return the output as a JSON object following the specified format and include "END_OF_JSON" at the end.`
+					: `The previous output was incomplete or invalid. Continue generating the remaining part of the JSON object without repeating what was already provided. ${variabilityInstructions}`;
 
 			try {
 				const response =
@@ -224,7 +197,6 @@ export async function createQuizWithAI(
 					throw new Error(content);
 				}
 
-				// Accumulate the response text
 				fullResponse += content;
 
 				if (isCompleteResponse(fullResponse)) {
@@ -246,17 +218,33 @@ export async function createQuizWithAI(
 				throw error;
 			}
 		}
+		generationTime =
+			performance.now() - generationStart;
 
-		if (!completed) {
+		// Response Cleaning
+		const cleaningStart = performance.now();
+		let cleanedOutput: string;
+		try {
+			cleanedOutput = cleanResponse(fullResponse);
+		} catch (error) {
+			console.error(
+				"Response cleaning failed:",
+				error
+			);
 			throw new Error(
-				"Failed to generate a complete JSON response after multiple attempts."
+				`Failed to clean response: ${
+					error instanceof Error
+						? error.message
+						: "Unknown error"
+				}`
 			);
 		}
+		cleaningTime = performance.now() - cleaningStart;
 
+		// JSON Parsing
+		const parsingStart = performance.now();
 		let quizData: QuizData;
 		try {
-			const cleanedOutput =
-				cleanResponse(fullResponse);
 			quizData = parseJSONSafely(cleanedOutput);
 		} catch (err) {
 			console.error("JSON parsing failed:", {
@@ -271,7 +259,10 @@ export async function createQuizWithAI(
 				}`
 			);
 		}
+		parsingTime = performance.now() - parsingStart;
 
+		// Data Validation
+		const validationStart = performance.now();
 		if (
 			!quizData.title ||
 			!Array.isArray(quizData.questions) ||
@@ -281,8 +272,42 @@ export async function createQuizWithAI(
 				"Invalid quiz data structure received from OpenAI."
 			);
 		}
+		validationTime =
+			performance.now() - validationStart;
 
-		console.log("Parsed Quiz Data:", quizData);
+		const totalEnd = performance.now();
+		const totalTime = totalEnd - totalStart;
+
+		console.log(`\nAI Generation Performance Metrics:`);
+		console.log(
+			`- Response Generation: ${generationTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- Response Cleaning: ${cleaningTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- JSON Parsing: ${parsingTime.toFixed(2)}ms`
+		);
+		console.log(
+			`- Data Validation: ${validationTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- Total Time: ${totalTime.toFixed(2)}ms`
+		);
+		console.log(`- Attempts: ${attempts + 1}`);
+		console.log(
+			`- Response Length: ${fullResponse.length} characters`
+		);
+		console.log(
+			`- Cleaned Length: ${cleanedOutput.length} characters`
+		);
+
 		return quizData;
 	} catch (error) {
 		console.error("Error in createQuizWithAI:", error);
