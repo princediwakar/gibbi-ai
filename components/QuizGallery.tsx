@@ -9,16 +9,20 @@ import { QuizCard } from "./quiz-card";
 interface QuizGalleryProps {
 	savedQuizzes: Quiz[] | null;
 	isLoading: boolean;
+	onQuizDeleted?: (quizId: string) => void;
+	onQuizUpdated?: (updatedQuiz: Quiz) => void;
 }
 
 export const QuizGallery = ({
 	savedQuizzes,
 	isLoading,
+	onQuizDeleted,
+	onQuizUpdated,
 }: QuizGalleryProps) => {
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Memoized filtered quizzes
-    const filteredQuizzes = useMemo(() => {
+	const filteredQuizzes = useMemo(() => {
 		if (!savedQuizzes) return null;
 
 		// Filter out failed quizzes
@@ -55,6 +59,15 @@ export const QuizGallery = ({
 			return acc;
 		}, {} as Record<string, Quiz[]>);
 	}, [filteredQuizzes]);
+
+	// Add this check after hooks
+	if (!savedQuizzes && !isLoading) {
+		return (
+			<div className="text-center text-muted-foreground py-6">
+				Please log in to view your quizzes.
+			</div>
+		);
+	}
 
 	// Loading state
 	if (isLoading) {
@@ -100,24 +113,34 @@ export const QuizGallery = ({
 			{quizzesBySubject &&
 			Object.keys(quizzesBySubject).length ? (
 				Object.entries(quizzesBySubject).map(
-					([subject, quizzes]) => (
-						<div
-							key={subject}
-							className="space-y-4"
-						>
-							<h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-								{subject}
-							</h3>
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-								{quizzes.map((quiz) => (
-									<QuizCard
-										key={quiz.quiz_id}
-										quiz={quiz}
-									/>
-								))}
+					([subject, quizzes]) => {
+						return (
+							<div
+								key={subject}
+								className="space-y-4"
+							>
+								<h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+									{subject}
+								</h3>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+									{quizzes.map((quiz) => (
+										<QuizCard
+											key={
+												quiz.quiz_id
+											}
+											quiz={quiz}
+											onDelete={
+												onQuizDeleted
+											}
+											onUpdate={
+												onQuizUpdated
+											}
+										/>
+									))}
+								</div>
 							</div>
-						</div>
-					)
+						);
+					}
 				)
 			) : (
 				<p className="text-center text-muted-foreground py-6">
@@ -129,4 +152,3 @@ export const QuizGallery = ({
 		</div>
 	);
 };
-

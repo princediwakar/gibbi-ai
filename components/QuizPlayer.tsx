@@ -92,7 +92,7 @@ export const QuizPlayer = ({
 
 	const getProgressPercentage = () => {
 		return (
-			((currentIndex + 1) / quiz.num_questions) * 100
+			((currentIndex + 1) / quiz.question_count) * 100
 		);
 	};
 

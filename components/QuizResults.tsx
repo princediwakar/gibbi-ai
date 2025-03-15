@@ -52,7 +52,7 @@ export const QuizResults = ({
 	score,
 }: QuizResultsProps) => {
 	const percentage = (
-		(score / quiz.num_questions) *
+		(score / quiz.question_count) *
 		100
 	).toFixed(1);
 
@@ -91,7 +91,7 @@ export const QuizResults = ({
 					</div>
 					<div className="bg-red-50 p-4 rounded-lg">
 						<div className="text-red-600 font-bold text-2xl">
-							{quiz.num_questions - score}
+							{quiz.question_count - score}
 						</div>
 						<div className="text-sm text-red-600">
 							Incorrect Answers

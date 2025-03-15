@@ -31,7 +31,7 @@ export const ShareableResultsCard = ({
 				<div className="text-5xl font-bold">
 					{score}
 					<span className="text-2xl">
-						/{quiz.num_questions}
+						/{quiz.question_count}
 					</span>
 				</div>
 
@@ -42,7 +42,6 @@ export const ShareableResultsCard = ({
 					scored {percentage}%
 				</div>
 
-
 				<div className="text-sm space-y-1">
 					<div>Topic: {quiz.topic}</div>
 					{quiz.difficulty && (
@@ -52,7 +51,7 @@ export const ShareableResultsCard = ({
 					)}
 				</div>
 
-{/* 				<Button
+				{/* 				<Button
 					onClick={handleShare}
 					className="w-full mt-4 gap-2 bg-white text-indigo-600 hover:bg-gray-100"
 				>

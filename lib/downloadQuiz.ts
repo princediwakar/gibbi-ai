@@ -87,8 +87,8 @@ export const downloadQuiz = async (
 							description: quiz.description,
 							topic: quiz.topic,
 							subject: quiz.subject,
-							num_questions:
-								quiz.num_questions,
+							question_count:
+								quiz.question_count,
 						},
 						questions: questions,
 						filename: `${quiz.title}.pdf`,

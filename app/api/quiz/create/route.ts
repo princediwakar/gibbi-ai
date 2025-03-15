@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createQuizWithAI } from "@/lib/ai";
 import { supabase } from "@/lib/supabase/client";
+import { Quiz } from "@/types/quiz"; // Add this import
+
+const maxPendingTime = Number(process.env.MAX_PENDING_TIME); 
+
 
 export async function POST(req: NextRequest) {
 	try {
@@ -30,9 +34,8 @@ export async function POST(req: NextRequest) {
 					status: "pending",
 					creator_id,
 					topic: "Generating...", // Add default topic
-					subject: "Generating...", // Add default subject
+					subject: "...Generating...", // Add default subject
 					difficulty: "Generating...", // Add default difficulty
-					num_questions: 0, // Will be updated later
 				})
 				.select("quiz_id")
 				.single();
@@ -68,13 +71,32 @@ export async function POST(req: NextRequest) {
 	}
 }
 
+
+
+
+
+
 async function processQuizInBackground(
 	quizId: string,
-	prompt: string,
+	prompt: string
 ) {
+	const startTime = Date.now();
+	let success = false;
+
 	try {
-		// Generate quiz data using AI
-		const quizData = await createQuizWithAI(prompt);
+		// Generate quiz data using AI with timeout
+		const quizData = await Promise.race<Quiz>([
+			createQuizWithAI(prompt),
+			new Promise<never>((_, reject) =>
+				setTimeout(
+					() =>
+						reject(
+							new Error("Processing timeout")
+						),
+					maxPendingTime
+				)
+			),
+		]);
 
 		// Update quiz with generated data
 		await supabase
@@ -85,7 +107,6 @@ async function processQuizInBackground(
 				subject: quizData.subject,
 				topic: quizData.topic,
 				difficulty: quizData.difficulty,
-				num_questions: quizData.num_questions,
 				status: "ready",
 			})
 			.eq("quiz_id", quizId);
@@ -104,6 +125,7 @@ async function processQuizInBackground(
 			.from("questions")
 			.insert(questionsInsert);
 
+		success = true;
 		console.log(
 			`Quiz ${quizId} processed successfully`
 		);
@@ -112,9 +134,24 @@ async function processQuizInBackground(
 			`Error processing quiz ${quizId}:`,
 			error
 		);
+
+		// Mark as failed if timeout or other error occurs
 		await supabase
 			.from("quizzes")
-			.update({ status: "failed" })
+			.update({
+				status: "failed",
+				error_message:
+					error instanceof Error
+						? error.message
+						: "Unknown error",
+			})
 			.eq("quiz_id", quizId);
+	} finally {
+		if (!success) {
+			const elapsedTime = Date.now() - startTime;
+			console.log(
+				`Quiz ${quizId} failed after ${elapsedTime}ms`
+			);
+		}
 	}
 }

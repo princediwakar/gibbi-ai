@@ -1,15 +1,16 @@
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/Header";
 import { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 export const metadata: Metadata = {
-
 	icons: {
 		icon: "/favicon.ico",
 	},
 };
+
 export default async function RootLayout({
 	children,
 }: {
@@ -21,13 +22,14 @@ export default async function RootLayout({
 				{/* Include Header */}
 				<Header />
 				{/* Main Content */}
-				<main className="max-w-5xl mx-auto p-6">
+				<div className="max-w-5xl mx-auto p-6">
 					{children}
+					<FeedbackWidget />
 					<Toaster
 						position="top-center"
 						richColors
 					/>
-				</main>
+				</div>
 			</body>
 		</html>
 	);

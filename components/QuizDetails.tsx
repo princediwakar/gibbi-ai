@@ -19,7 +19,7 @@ export function QuizDetails({
 				{quiz.title}
 			</h1>
 			<p className="text-gray-600">
-				Created by: {quiz.creatorName || "Unknown"}
+				Created by: {quiz.creator_name || "Unknown"}
 			</p>
 
 			{quiz.description && (
@@ -58,7 +58,7 @@ export function QuizDetails({
 						Questions
 					</span>
 					<span className="font-medium">
-						{quiz.num_questions || 0}
+						{quiz.question_count || 0}
 					</span>
 				</div>
 			</div>

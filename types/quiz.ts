@@ -1,22 +1,45 @@
 export interface Question {
 	question_text: string;
-	options: Record<string, string>;
+	options: {
+		a: string;
+		b: string;
+		c: string;
+		d: string;
+	};
 	correct_option: string;
 }
 
 export interface Quiz {
 	quiz_id: string;
-	status: string;
 	title: string;
-	description?: string;
-	topic?: string;
-	subject?: string;
-	difficulty?: string;
-	num_questions: number;
+	description: string;
+	topic: string;
+	subject: string;
+	difficulty: string;
+	status: string;
+	creator_id: string;
 	created_at: string;
 	updated_at: string;
-	is_public: boolean;
-	creator_id: string;
-	creatorName?: string;
-	questions?: Question[];
+	question_count: number; // Added from the view
+	creator_name?: string;
+	questions: Question[];
 }
+
+// export interface QuizData {
+// 	title: string;
+// 	description: string;
+// 	topic: string;
+// 	subject: string;
+// 	difficulty: string;
+// 	question_count: number;
+// 	questions: Array<{
+// 		question_text: string;
+// 		options: {
+// 			a: string;
+// 			b: string;
+// 			c: string;
+// 			d: string;
+// 		};
+// 		correct_option: string;
+// 	}>;
+// }

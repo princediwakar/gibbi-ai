@@ -1,7 +1,7 @@
 import { QuizCard } from "@/components/quiz-card";
 import { getPublicQuizzes } from "@/lib/queries";
-
 import { Metadata } from "next";
+
 
 export const metadata: Metadata = {
 	title: "Public Quizzes - QuizMasterAI",
@@ -45,19 +45,28 @@ export const metadata: Metadata = {
 
 
 
-
 export default async function QuizzesPage() {
 	const quizzes = await getPublicQuizzes();
 
+	// Filter out failed quizzes but include ready and those without status
+	const validQuizzes = quizzes.filter(
+		(quiz) =>
+			quiz.status !== "failed" &&
+			quiz.status !== "pending"
+	);
+
 	// Group quizzes by subject
-	const quizzesBySubject = quizzes.reduce((acc, quiz) => {
-		const subject = quiz.subject || "General";
-		if (!acc[subject]) {
-			acc[subject] = [];
-		}
-		acc[subject].push(quiz);
-		return acc;
-	}, {} as Record<string, typeof quizzes>);
+	const quizzesBySubject = validQuizzes.reduce(
+		(acc, quiz) => {
+			const subject = quiz.subject || "General";
+			if (!acc[subject]) {
+				acc[subject] = [];
+			}
+			acc[subject].push(quiz);
+			return acc;
+		},
+		{} as Record<string, typeof validQuizzes>
+	);
 
 	return (
 		<div className="container mx-auto px-4 py-8">
@@ -73,7 +82,10 @@ export default async function QuizzesPage() {
 				<div className="space-y-8">
 					{Object.entries(quizzesBySubject).map(
 						([subject, quizzes]) => (
-							<div key={subject} className="space-y-4">
+							<div
+								key={subject}
+								className="space-y-4"
+							>
 								<h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
 									{subject}
 								</h3>

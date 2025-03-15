@@ -7,7 +7,6 @@ interface PdfRequest {
 		description?: string;
 		topic?: string;
 		subject?: string;
-		num_questions?: number;
 	};
 	questions: Array<{
 		question_text: string;
@@ -83,7 +82,7 @@ export async function POST(req: NextRequest) {
 			`Subject: ${quiz.subject || "General"}`,
 			`Topic: ${quiz.topic || "General"}`,
 			`Number of Questions: ${
-				quiz.num_questions || 0
+				questions.length || 0
 			}`,
 		];
 

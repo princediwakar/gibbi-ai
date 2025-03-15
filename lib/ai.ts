@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { Quiz } from "@/types/quiz";
 
 const validateEnvVars = () => {
 	if (!process.env.OPENAI_API_KEY) {
@@ -23,41 +24,24 @@ const openai = new OpenAI({
 });
 
 // Configuration
-const defaultQuestionCount = process.env.DEFAULT_QUESTION_COUNT;
+const defaultQuestionCount = Number(process.env.DEFAULT_QUESTION_COUNT);
 const defaultDifficulty = process.env.DEFAULT_DIFFICULTY
 const maxAttempts = Number(process.env.MAX_ATTEMPTS)
 const maxTokens = Number(process.env.MAX_TOKENS)
 
-interface QuizData {
-	title: string;
-	description: string;
-	topic: string;
-	subject: string;
-	difficulty: string;
-	num_questions: number;
-	questions: Array<{
-		question_text: string;
-		options: {
-			a: string;
-			b: string;
-			c: string;
-			d: string;
-		};
-		correct_option: string;
-	}>;
-}
+
 
 const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include topic, subject, difficulty & number of questions.
-If the user specifies difficulty, map it to one of these levels: Beginner, Intermediate, or Advanced.
+Think what would be the suitable no. of questions according to the prompt. e.g. GMAT Mock Test. This expects 54 questions - 27 verbal reasoning and 27 verbal quantitative reasoning. 
 If the user doesn't specify difficulty or number of questions, then by default generate ${defaultQuestionCount} questions of ${defaultDifficulty} difficulty level.
+If the user specifies difficulty, map it to one of these levels: Beginner, Intermediate, or Advanced.
 Output must be a valid JSON object strictly matching this format:
 {
   "title": string,
-  "description": string,
-  "topic": string,
+  "description": string, // Generate variable description even for the same prompt
+  "topic": string, //
   "subject": string,
   "difficulty": string, // Must be one of: Beginner, Intermediate, Advanced
-  "num_questions": number,
   "questions": [
     {
       "question_text": string,
@@ -95,7 +79,7 @@ const cleanResponse = (text: string): string => {
 // Valid escapes are: ", \, /, b, f, n, r, t or a Unicode escape (\uXXXX)
 
 
-const parseJSONSafely = (jsonString: string): QuizData => {
+const parseJSONSafely = (jsonString: string): Quiz => {
 	try {
 		let cleanedString = jsonString.replace(
 			/[\x00-\x1F\x7F]/g,
@@ -125,18 +109,20 @@ const parseJSONSafely = (jsonString: string): QuizData => {
 
 export async function createQuizWithAI(
 	prompt: string
-): Promise<QuizData> {
+): Promise<Quiz> {
 	// Add a unique identifier to the prompt
 	const uniquePrompt = `${prompt} [${Date.now()}]`;
 
 	// Add instructions for variability
 	const variabilityInstructions = `
-        IMPORTANT: 
-        1. Generate unique questions that haven't been asked before
-        2. Vary the question types and perspectives
-        3. Use different examples and scenarios
-        4. Ensure answers are not predictable
-		5. Generate unique description every time.
+    IMPORTANT: 
+    1. Generate unique questions that haven't been asked before
+    2. Vary the question types and perspectives
+    3. Use different examples and scenarios
+    4. Ensure answers are not predictable
+    5. Generate unique description every time
+    6. Do not include any timestamps or unique identifiers in the title
+    7. Create natural, human-readable titles that reflect the quiz content
     `;
 
 	const totalStart = performance.now();
@@ -243,7 +229,7 @@ export async function createQuizWithAI(
 
 		// JSON Parsing
 		const parsingStart = performance.now();
-		let quizData: QuizData;
+		let quizData: Quiz;
 		try {
 			quizData = parseJSONSafely(cleanedOutput);
 		} catch (err) {

@@ -3,8 +3,8 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { QuizPlayer } from "@/components/QuizPlayer";
-import { getQuizWithQuestions } from "@/lib/getQuizWithQuestions";
-import { getQuizMetadata } from "@/lib/getQuizMetadata";
+import { getQuizWithQuestions } from "@/lib/queries";
+import { getQuizMetadata } from "@/lib/queries";
 
 interface PageProps {
 	params: Promise<{ quizId: string }>;
@@ -28,7 +28,7 @@ export async function generateMetadata({
 		title: `${quiz.title} - QuizMasterAI`,
 		description: `Take the ${quiz.title} quiz on ${
 			quiz.topic
-		}. Created by ${quiz.creatorName}. ${
+		}. Created by ${quiz.creator_name}. ${
 			quiz.description || ""
 		}`,
 		keywords: [
@@ -44,7 +44,7 @@ export async function generateMetadata({
 			type: "website",
 			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
 			title: `${quiz.title} - QuizMasterAI`,
-			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creator_name}.`,
 			images: [
 				{
 					url: `${
@@ -62,7 +62,7 @@ export async function generateMetadata({
 		twitter: {
 			card: "summary_large_image",
 			title: `${quiz.title} - QuizMasterAI`,
-			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creatorName}.`,
+			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creator_name}.`,
 			images: [
 				`${
 					process.env.NEXT_PUBLIC_BASE_URL

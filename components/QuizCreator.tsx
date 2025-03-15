@@ -8,6 +8,7 @@ import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Quiz } from "@/types/quiz";
 
+
 interface QuizCreatorProps {
 	onQuizCreated: (quiz: Quiz) => void;
 }
@@ -19,57 +20,50 @@ export const QuizCreator = ({
 	const [isLoading, setIsLoading] = useState(false);
 	const user = useUser();
 
-	const checkQuizStatus = useCallback(
-		async (
-			quizId: string,
-			toastId: string | number
-		) => {
-			try {
-				const response = await fetch(
-					`/api/quiz/status?id=${quizId}`
+const checkQuizStatus = useCallback(
+	async (quizId: string, toastId: string | number) => {
+		try {
+			const response = await fetch(
+				`/api/quiz/status?id=${quizId}`
+			);
+			const data = await response.json();
+
+			if (data.status === "ready") {
+				toast.success(
+					"Quiz generated successfully!",
+					{ id: toastId }
 				);
-				const data = await response.json();
-
-				if (data.status === "ready") {
-					toast.success(
-						"Quiz generated successfully!",
-						{ id: toastId }
-					);
-					onQuizCreated(data.quiz);
-				} else if (data.status === "failed") {
-					toast.error(
+				onQuizCreated(data.quiz);
+			} else if (data.status === "failed") {
+				toast.error(
+					data.error ||
 						"Quiz generation failed. Please try again.",
-						{ id: toastId }
-					);
-					// Remove failed quiz from the list
-					onQuizCreated({
-						quiz_id: quizId,
-						status: "failed",
-					} as Quiz);
-				} else {
-					toast.loading(
-						`Generating quiz based on "${prompt}"`,
-						{ id: toastId }
-					);
-					setTimeout(
-						() =>
-							checkQuizStatus(
-								quizId,
-								toastId
-							),
-						5000
-					);
-				}
-			} catch (error) {
-				console.error("Polling error:", error);
-				toast.error("Failed to check quiz status", {
-					id: toastId,
-				});
+					{ id: toastId }
+				);
+				// Remove failed quiz from the list
+				onQuizCreated({
+					quiz_id: quizId,
+					status: "failed",
+				} as Quiz);
+			} else {
+				toast.loading(
+					`Generating quiz for ${prompt}`,
+					{ id: toastId }
+				);
+				setTimeout(
+					() => checkQuizStatus(quizId, toastId),
+					5000
+				);
 			}
-		},
-		[onQuizCreated, prompt]
-	);
-
+		} catch (error) {
+			console.error("Polling error:", error);
+			toast.error("Failed to check quiz status", {
+				id: toastId,
+			});
+		}
+	},
+	[onQuizCreated, prompt]
+);
 	const handleGenerateQuiz = useCallback(
 		async (e?: React.FormEvent) => {
 			e?.preventDefault();
@@ -104,7 +98,14 @@ export const QuizCreator = ({
 							"Failed to create quiz"
 					);
 
-				checkQuizStatus(data.quiz_id, toastId);
+				// Store the cleanup function from checkQuizStatus
+				const cleanup = checkQuizStatus(
+					data.quiz_id,
+					toastId
+				);
+
+				// Return cleanup function to be called if component unmounts
+				return cleanup;
 			} catch (error) {
 				toast.error(
 					error instanceof Error
@@ -119,7 +120,6 @@ export const QuizCreator = ({
 		},
 		[prompt, user, checkQuizStatus]
 	);
-
 	return (
 		<div className="space-y-4">
 			<h2 className="text-4xl font-bold text-gray-800 mb-12 text-center">
