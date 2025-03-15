@@ -21,7 +21,7 @@ export function QuizDashboard() {
 					.from("quiz_with_counts")
 					.select("*")
 					.eq("creator_id", userId)
-					.neq("status", "failed")
+					.eq("status", "ready")
 					.order("created_at", {
 						ascending: false,
 					});
