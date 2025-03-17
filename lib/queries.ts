@@ -140,34 +140,34 @@ export async function deleteQuiz(
 
 
 
-// export async function getUserName(
-// 	userId: string
-// ): Promise<string> {
-// 	try {
-// 		const {
-// 			data: { user },
-// 			error,
-// 		} = await supabase.auth.admin.getUserById(userId);
+export async function getUserName(
+	userId: string
+): Promise<string> {
+	try {
+		const {
+			data: { user },
+			error,
+		} = await supabase.auth.admin.getUserById(userId);
 
-// 		if (error) {
-// 			console.error("Supabase auth error:", error);
-// 			return "Anonymous";
-// 		}
+		if (error) {
+			console.error("Supabase auth error:", error);
+			return "Anonymous";
+		}
 
-// 		return (
-// 			user?.user_metadata?.display_name ||
-// 			user?.user_metadata?.full_name ||
-// 			user?.email?.split("@")[0] ||
-// 			"Anonymous"
-// 		);
-// 	} catch (error) {
-// 		console.error(
-// 			"Error fetching user details:",
-// 			error
-// 		);
-// 		return "Anonymous";
-// 	}
-// }
+		return (
+			user?.user_metadata?.display_name ||
+			user?.user_metadata?.full_name ||
+			user?.email?.split("@")[0] ||
+			"Anonymous"
+		);
+	} catch (error) {
+		console.error(
+			"Error fetching user details:",
+			error
+		);
+		return "Anonymous";
+	}
+}
 
 
 
@@ -221,6 +221,8 @@ export async function getQuizWithQuestions(
 
 		if (quizError || !quiz) return null;
 
+		const creator_name = getUserName(quiz.creator_id)
+
 		// Fetch questions separately
 		const { data: questions, error: questionsError } =
 			await supabase
@@ -235,9 +237,11 @@ export async function getQuizWithQuestions(
 			);
 			return null;
 		}
+		
 
 		return {
 			...quiz,
+			creator_name,
 			questions: questions || [],
 		};
 	} catch (error) {
@@ -262,8 +266,9 @@ export async function getQuizMetadata(
 			.single();
 
 		if (error || !quiz) return null;
+		const creator_name = getUserName(quiz.creator_id);
 
-		return quiz; // ✅ No need to manually fetch creator_name if it's in the view
+		return {...quiz, creator_name}; // ✅ No need to manually fetch creator_name if it's in the view
 	} catch (error) {
 		console.error(
 			"Error fetching quiz metadata:",

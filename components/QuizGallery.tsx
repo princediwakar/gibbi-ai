@@ -27,7 +27,7 @@ export const QuizGallery = ({
 
 		// Filter out failed quizzes
 		const validQuizzes = savedQuizzes.filter(
-			(quiz) => quiz.status !== "failed"
+			(quiz) => quiz.status === "ready" 
 		);
 
 		const searchLower = searchQuery.toLowerCase();

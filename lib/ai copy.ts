@@ -3,20 +3,25 @@ import { Quiz } from "../types/quiz";
 import { randomUUID } from "crypto";
 
 // Validate environment variables
-const REQUIRED_ENV_VARS = ["OPENAI_API_KEY"];
-REQUIRED_ENV_VARS.forEach((varName) => {
-	if (!process.env[varName]) {
+const validateEnvVars = () => {
+	if (!process.env.OPENAI_API_KEY) {
 		throw new Error(
-			`Missing ${varName} in environment variables.`
+			"Missing OPENAI_API_KEY in environment variables."
 		);
 	}
-});
+	if (!process.env.BASE_URL) {
+		throw new Error(
+			"Missing BASE_URL in environment variables."
+		);
+	}
+};
 
+// Validate environment variables once at startup
+validateEnvVars();
 
-const AI_BASE_URL = "https://api.deepseek.com/v1";
+const AI_BASE_URL =
+	process.env.NEXT_PUBLIC_AI_BASE_URL;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MAX_TOKENS = 4096;
-const MAX_ATTEMPTS = 5;
 
 // Create a singleton OpenAI instance
 const openai = new OpenAI({
@@ -24,8 +29,11 @@ const openai = new OpenAI({
 	baseURL: AI_BASE_URL,
 });
 
+// Configuration
+const maxAttempts = Number(process.env.MAX_ATTEMPTS);
+const maxTokens = Number(process.env.MAX_TOKENS);
 
-
+// Revised system prompt with explicit uniqueness instructions
 
 // Utility to check if the accumulated response is complete.
 const isCompleteResponse = (text: string): boolean => {
@@ -96,11 +104,17 @@ const creativityModifiers = [
 const pickRandom = (arr: string[]) =>
 	arr[Math.floor(Math.random() * arr.length)];
 
-
+function getRandomInstruction(): string {
+	const randomIndex = Math.floor(
+		Math.random() *
+			additionalVariabilityInstructions.length
+	);
+	return additionalVariabilityInstructions[randomIndex];
+}
 
 export async function createQuizWithAI(
 	prompt: string,
-	questionCount?: number,
+	numQuestions?: number,
 	difficulty?: string,
 	customInstructions?: string
 ): Promise<Quiz> {
@@ -113,7 +127,7 @@ export async function createQuizWithAI(
 	);
 	const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include context about topic, subject, difficulty, target audience and number of questions.
 	0. Generate a user-friendly title focusing on the topic only, not the modifiers.
-  1. Generate ${questionCount} questions
+  1. Generate ${numQuestions} questions
   2. Use ${difficulty} difficulty
   3. ${
 		customInstructions
@@ -143,10 +157,16 @@ export async function createQuizWithAI(
 	const variabilityInstructions = `
     1. The tone should be "${selectedTone}".
     2. ${selectedCreativityModifier}
-    3. Ensure each quiz is DISTINCTLY DIFFERENT from previous ones, changing phrasing, scenarios, contexts, and question logic.
-    4. ${pickRandom(additionalVariabilityInstructions)}
+    3. Ensure each quiz is DISTINCTLY DIFFERENT from previous ones, changing phrasing, contexts, and question logic.
+    4. Inject a variation token: ${randomUUID()} to guarantee uniqueness.
+    5. ${getRandomInstruction()}
   `;
 
+	const totalStart = performance.now();
+	let generationTime = 0;
+	let cleaningTime = 0;
+	let parsingTime = 0;
+	let validationTime = 0;
 
 	try {
 		console.log(
@@ -158,8 +178,8 @@ export async function createQuizWithAI(
 		let completed = false;
 		let quizData: Quiz | null = null;
 
-		
-		while (attempts < MAX_ATTEMPTS && !completed) {
+		const generationStart = performance.now();
+		while (attempts < maxAttempts && !completed) {
 			// Inject a new unique token each attempt
 			const currentUniqueToken = randomUUID();
 			const userContent =
@@ -172,7 +192,7 @@ export async function createQuizWithAI(
 					await openai.chat.completions.create({
 						model: "deepseek-chat",
 						messages: [
-							{
+				 			{
 								role: "system",
 								content:
 									systemMessageContent,
@@ -184,7 +204,7 @@ export async function createQuizWithAI(
 						],
 						temperature: 0.9, // increased randomness
 						top_p: 0.9, // allow more diverse word choices
-						max_tokens: MAX_TOKENS,
+						max_tokens: maxTokens,
 					});
 
 				const content =
@@ -206,12 +226,21 @@ export async function createQuizWithAI(
 
 				if (isCompleteResponse(fullResponse)) {
 					// Clean and parse the response
+					const cleaningStart = performance.now();
 					const cleanedOutput =
 						cleanResponse(fullResponse);
+					cleaningTime =
+						performance.now() - cleaningStart;
+
+					const parsingStart = performance.now();
 					quizData =
 						parseJSONSafely(cleanedOutput);
+					parsingTime =
+						performance.now() - parsingStart;
 
 					// Validate the structure
+					const validationStart =
+						performance.now();
 					if (
 						!quizData.title ||
 						!Array.isArray(
@@ -223,14 +252,15 @@ export async function createQuizWithAI(
 							"Invalid quiz data structure received from OpenAI."
 						);
 					}
-
+					validationTime =
+						performance.now() - validationStart;
 
 					completed = true;
 				} else {
 					attempts++;
 				}
 			} catch (error) {
-				if (attempts < MAX_ATTEMPTS - 1) {
+				if (attempts < maxAttempts - 1) {
 					console.warn(
 						`Attempt ${
 							attempts + 1
@@ -243,7 +273,39 @@ export async function createQuizWithAI(
 				throw error;
 			}
 		}
-		
+		generationTime =
+			performance.now() - generationStart;
+
+		const totalEnd = performance.now();
+		const totalTime = totalEnd - totalStart;
+
+		console.log(`\nAI Generation Performance Metrics:`);
+		console.log(
+			`- Response Generation: ${generationTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- Response Cleaning: ${cleaningTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- JSON Parsing: ${parsingTime.toFixed(2)}ms`
+		);
+		console.log(
+			`- Data Validation: ${validationTime.toFixed(
+				2
+			)}ms`
+		);
+		console.log(
+			`- Total Time: ${totalTime.toFixed(2)}ms`
+		);
+		console.log(`- Attempts: ${attempts + 1}`);
+		console.log(
+			`- Response Length: ${fullResponse.length} characters`
+		);
+
 		if (!quizData) {
 			throw new Error("Quiz data generation failed.");
 		}

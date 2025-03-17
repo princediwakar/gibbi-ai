@@ -200,14 +200,19 @@ export function QuizCard({
 				</h2>
 				<div className="text-sm text-gray-600 mb-4 space-y-2">
 					<p className="">
-						{quiz.question_count} questions •{" "}
+						{quiz.question_count && (
+							<span>
+								{quiz.question_count}{" "}
+								questions •{" "}
+							</span>
+						)}
 						{quiz.topic}
 					</p>
-						{quiz.creator_name && (
-							<p className="text-xs text-gray-500 mt-1">
-								Created by: {quiz.creator_name}
-							</p>
-						)}
+					{quiz.creator_name && (
+						<p className="text-xs text-gray-500 mt-1">
+							Created by: {quiz.creator_name}
+						</p>
+					)}
 					<p className="line-clamp-3 min-h-[60px]">
 						{quiz.description ||
 							"No description available"}

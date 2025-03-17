@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 		description:
 			"Create, share, and take quizzes on any topic. Join QuizmasterAI to challenge yourself and others!",
 		images: [
-			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
+		`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 		],
 	},
 };

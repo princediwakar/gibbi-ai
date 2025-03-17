@@ -27,13 +27,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-
 interface QuizCreatorProps {
 	onQuizCreated: (quiz: Quiz) => void;
 }
-
-const defaultQuestionCount = Number(process.env.DEFAULT_QUESTION_COUNT)
-const defaultDifficulty = process.env.DEFAULT_DIFFICULTY
+const MAX_QUESTION_COUNT = 60;
+const DEFAULT_QUESTION_COUNT = 10;
+const DEFAULT_DIFFICULTY = "Hard";
+const STATUS_CHECK_FREQUENCY = 10000;
 
 export const QuizCreator = ({
 	onQuizCreated,
@@ -42,11 +42,14 @@ export const QuizCreator = ({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] =
 		useState(false);
-	const [numQuestions, setNumQuestions] = useState(
-		defaultQuestionCount
+	const [questionCount, setQuestionCount] = useState(
+		DEFAULT_QUESTION_COUNT
 	);
+	const [isCustomCount, setIsCustomCount] =
+		useState(false);
+
 	const [difficulty, setDifficulty] = useState(
-		defaultDifficulty
+		DEFAULT_DIFFICULTY
 	);
 	const [customInstructions, setCustomInstructions] =
 		useState("");
@@ -91,7 +94,7 @@ export const QuizCreator = ({
 								quizId,
 								toastId
 							),
-						5000
+						STATUS_CHECK_FREQUENCY
 					);
 				}
 			} catch (error) {
@@ -103,6 +106,28 @@ export const QuizCreator = ({
 		},
 		[onQuizCreated, prompt]
 	);
+
+	const handleCustomCountChange = (value: string) => {
+		const num = parseInt(value, 10);
+
+		if (isNaN(num) || num < 0) {
+			toast.warning(
+				"Please enter a valid number greater than 0"
+			);
+			return;
+		}
+
+		if (num > MAX_QUESTION_COUNT) {
+			toast.warning(
+				`You can generate up to ${MAX_QUESTION_COUNT} questions only`
+			);
+			setQuestionCount(MAX_QUESTION_COUNT);
+			return;
+		}
+
+		setQuestionCount(num);
+	};
+
 	const handleGenerateQuiz = useCallback(
 		async (e?: React.FormEvent) => {
 			e?.preventDefault();
@@ -128,10 +153,10 @@ export const QuizCreator = ({
 						body: JSON.stringify({
 							prompt,
 							creator_id: user.id,
-							num_questions: numQuestions,
+							question_count: questionCount,
 							difficulty: difficulty,
-							custom_instructions: customInstructions
-						
+							custom_instructions:
+								customInstructions,
 						}),
 					}
 				);
@@ -166,12 +191,13 @@ export const QuizCreator = ({
 		[
 			prompt,
 			user,
-			numQuestions,
+			questionCount,
 			difficulty,
 			customInstructions,
 			checkQuizStatus,
 		]
 	);
+
 	return (
 		<div className="space-y-4">
 			<h2 className="text-4xl font-bold text-gray-800 mb-12 text-center">
@@ -217,31 +243,81 @@ export const QuizCreator = ({
 							<Label>
 								Number of Questions
 							</Label>
-							<Select
-								value={numQuestions.toString()}
-								onValueChange={(value) =>
-									setNumQuestions(
-										Number(value)
-									)
-								}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select number of questions" />
-								</SelectTrigger>
-								<SelectContent>
-									{[
-										5, 10, 15, 20, 25,
-										30,
-									].map((num) => (
-										<SelectItem
-											key={num}
-											value={num.toString()}
-										>
-											{num} questions
+							<div className="flex gap-2">
+								<Select
+									value={
+										isCustomCount
+											? "custom"
+											: questionCount.toString()
+									}
+									onValueChange={(
+										value
+									) => {
+										if (
+											value ===
+											"custom"
+										) {
+											setIsCustomCount(
+												true
+											);
+										} else {
+											setIsCustomCount(
+												false
+											);
+											setQuestionCount(
+												Number(
+													value
+												)
+											);
+										}
+									}}
+								>
+									<SelectTrigger className="flex-1">
+										<SelectValue placeholder="Select number of questions" />
+									</SelectTrigger>
+									<SelectContent>
+										{[
+											5, 10, 15, 20,
+											25, 30, 35, 40,
+											50, 60,
+										].map((num) => (
+											<SelectItem
+												key={num}
+												value={num.toString()}
+											>
+												{num}{" "}
+												questions
+											</SelectItem>
+										))}
+										<SelectItem value="custom">
+											Custom
 										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+									</SelectContent>
+								</Select>
+								{isCustomCount && (
+									<Input
+										type="number"
+										min="1"
+										max={MAX_QUESTION_COUNT.toString()}
+										value={
+											questionCount
+										}
+										onChange={(e) =>
+											handleCustomCountChange(
+												e.target
+													.value
+											)
+										}
+										className="w-24"
+									/>
+								)}
+							</div>
+							{isCustomCount && (
+								<p className="text-xs text-muted-foreground">
+									Enter a number between 1
+									and {MAX_QUESTION_COUNT}
+								</p>
+							)}
 						</div>
 
 						{/* Difficulty Level */}
