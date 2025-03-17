@@ -70,10 +70,6 @@ export default async function QuizzesPage() {
 			quiz.status !== "pending"
 	);
 
-	console.log(
-		"Valid quizzes after filtering:",
-		validQuizzes
-	);
 
 	// Group quizzes by subject
 	const quizzesBySubject = validQuizzes.reduce(
@@ -88,10 +84,6 @@ export default async function QuizzesPage() {
 		{} as Record<string, typeof validQuizzes>
 	);
 
-	console.log(
-		"Quizzes grouped by subject:",
-		quizzesBySubject
-	);
 
 	return (
 		<div className="container mx-auto px-4 py-8">

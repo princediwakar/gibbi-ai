@@ -39,7 +39,6 @@ async function getcreator_name(
 
 export async function getPublicQuizzes(): Promise<Quiz[]> {
 	try {
-		console.log("Fetching public quizzes...");
 
 		// Get all public quizzes without status filter
 		const { data: quizzes, error: quizzesError } =
@@ -58,7 +57,6 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 			return [];
 		}
 
-		console.log("Quizzes fetched:", quizzes);
 
 		// If no quizzes found, return empty array
 		if (!quizzes || quizzes.length === 0) {
@@ -70,7 +68,6 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 		const creatorIds = [
 			...new Set(quizzes.map((q) => q.creator_id)),
 		];
-		console.log("Creator IDs found:", creatorIds);
 
 		// Fetch creator names in parallel
 		const creatorNames = await Promise.all(
@@ -93,7 +90,6 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 			status: quiz.status || "ready",
 		}));
 
-		console.log("Final quiz data:", result);
 		return result;
 	} catch (error) {
 		console.error("Error in getPublicQuizzes:", error);
