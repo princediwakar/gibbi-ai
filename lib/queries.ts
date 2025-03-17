@@ -37,7 +37,6 @@ async function getcreator_name(
 }
 
 
-
 export async function getPublicQuizzes(): Promise<Quiz[]> {
 	try {
 		// Get all public quizzes without status filter
@@ -57,13 +56,18 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 			return [];
 		}
 
+		// If no quizzes found, return empty array
+		if (!quizzes || quizzes.length === 0) {
+			return [];
+		}
+
 		// Get unique creator IDs
 		const creatorIds = [
 			...new Set(quizzes.map((q) => q.creator_id)),
 		];
 
 		// Fetch creator names in parallel
-		const creator_names = await Promise.all(
+		const creatorNames = await Promise.all(
 			creatorIds.map((id) => getcreator_name(id))
 		);
 
@@ -71,7 +75,7 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 		const userMap = new Map(
 			creatorIds.map((id, index) => [
 				id,
-				creator_names[index],
+				creatorNames[index],
 			])
 		);
 
@@ -80,7 +84,7 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 			...quiz,
 			creator_name:
 				userMap.get(quiz.creator_id) || "Anonymous",
-			status: quiz.status || "ready", // Default to ready if status is missing
+			status: quiz.status || "ready",
 		}));
 	} catch (error) {
 		console.error("Error in getPublicQuizzes:", error);
@@ -163,22 +167,67 @@ export async function deleteQuiz(
 
 
 
+// export async function getQuizWithQuestions(
+// 	quizId: string
+// ): Promise<Quiz | null> {
+// 	try {
+// 		const quiz = await getQuizMetadata(quizId);
+// 		if (!quiz) return null;
+
+// 		const { data: questions, error } = await supabase
+// 			.from("questions")
+// 			.select("*")
+// 			.eq("quiz_id", quizId);
+
+// 		if (error) {
+// 			console.error(
+// 				"Error fetching questions:",
+// 				error
+// 			);
+// 			return null;
+// 		}
+// 		const question_count = questions.length
+// 		return {
+// 			...quiz,
+// 			question_count,
+// 			questions: questions || [],
+// 		};
+// 	} catch (error) {
+// 		console.error(
+// 			"Error fetching quiz with questions:",
+// 			error
+// 		);
+// 		return null;
+// 	}
+// }
+
+
+
 export async function getQuizWithQuestions(
 	quizId: string
 ): Promise<Quiz | null> {
 	try {
-		const quiz = await getQuizMetadata(quizId);
-		if (!quiz) return null;
+		// Fetch quiz metadata from the view
+		const { data: quiz, error: quizError } =
+			await supabase
+				.from("quiz_with_counts") // ✅ Use the view
+				.select("*")
+				.eq("quiz_id", quizId)
+				.single();
 
-		const { data: questions, error } = await supabase
-			.from("questions")
-			.select("*")
-			.eq("quiz_id", quizId);
+		if (quizError || !quiz) return null;
 
-		if (error) {
+		// Fetch questions separately
+		const { data: questions, error: questionsError } =
+			await supabase
+				.from("questions")
+				.select("*")
+				.eq("quiz_id", quizId);
+
+		if (questionsError) {
 			console.error(
 				"Error fetching questions:",
-				error
+				questionsError
 			);
 			return null;
 		}
@@ -203,20 +252,14 @@ export async function getQuizMetadata(
 ): Promise<Quiz | null> {
 	try {
 		const { data: quiz, error } = await supabase
-			.from("quiz_with_counts")
+			.from("quiz_with_counts") // ✅ Use the view
 			.select("*")
 			.eq("quiz_id", quizId)
 			.single();
 
 		if (error || !quiz) return null;
 
-		const creator_name = await getcreator_name(
-			quiz.creator_id
-		);
-		return {
-			...quiz,
-			creator_name,
-		};
+		return quiz; // ✅ No need to manually fetch creator_name if it's in the view
 	} catch (error) {
 		console.error(
 			"Error fetching quiz metadata:",
@@ -228,18 +271,19 @@ export async function getQuizMetadata(
 
 
 
-// export async function getQuestions(quizId: string) {
-// 	try {
-// 		const { data: questions } = await supabase
-// 			.from("questions")
-// 			.select("*")
-// 			.eq("quiz_id", quizId);
 
-// 		return {
-// 			questions: questions || [],
-// 		};
-// 	} catch (error) {
-// 		console.error("Error fetching questions:", error);
-// 		return null;
-// 	}
-// }
+export async function getQuestions(quizId: string) {
+	try {
+		const { data: questions } = await supabase
+			.from("questions")
+			.select("*")
+			.eq("quiz_id", quizId);
+
+		return {
+			questions: questions || [],
+		};
+	} catch (error) {
+		console.error("Error fetching questions:", error);
+		return null;
+	}
+}

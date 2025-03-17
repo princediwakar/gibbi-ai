@@ -59,6 +59,7 @@ export function QuizCard({
 	const user = useUser();
 	const isOwner = user?.id === quiz.creator_id;
 	const [isDeleting, setIsDeleting] = useState(false);
+	  const [isDeleted, setIsDeleted] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] =
 		useState(false);
 	const [isEditing, setIsEditing] = useState(false);
@@ -157,12 +158,14 @@ export function QuizCard({
 			);
 		}
 	};
+	
 	const handleDelete = async () => {
 		if (!isOwner || !user) return;
 
 		try {
 			setIsDeleting(true);
 			await deleteQuiz(quiz.quiz_id, user.id);
+			setIsDeleted(true);
 			toast.success("Quiz deleted successfully");
 
 			// Call the onDelete callback if provided
@@ -170,7 +173,10 @@ export function QuizCard({
 				onDelete(quiz.quiz_id);
 			}
 		} catch (error) {
-			console.error("Error deleting quiz:", error);
+			console.error(
+				"Error deleting quiz:",
+				error
+			);
 			toast.error(
 				error instanceof Error
 					? error.message
@@ -181,6 +187,11 @@ export function QuizCard({
 			setIsDeleteDialogOpen(false);
 		}
 	};
+
+		// Don't render if deleted
+		if (isDeleted) {
+			return null;
+		}
 	return (
 		<div className="border rounded-lg p-6 hover:shadow-lg transition-shadow flex flex-col h-full">
 			<div className="flex-1">

@@ -22,7 +22,7 @@ export default async function RootLayout({
 				{/* Include Header */}
 				<Header />
 				{/* Main Content */}
-				<div className="max-w-5xl mx-auto p-6">
+				<div className="max-w-5xl mx-auto">
 					{children}
 					<FeedbackWidget />
 					<Toaster

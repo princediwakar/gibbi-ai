@@ -3,24 +3,31 @@ import { Quiz } from "../types/quiz";
 import { randomUUID } from "crypto";
 
 // Validate environment variables
-const validateEnvVars = () => {
-	if (!process.env.OPENAI_API_KEY) {
-		throw new Error(
-			"Missing OPENAI_API_KEY in environment variables."
-		);
-	}
-	if (!process.env.BASE_URL) {
-		throw new Error(
-			"Missing BASE_URL in environment variables."
-		);
-	}
-};
+// const validateEnvVars = () => {
+// 	if (!process.env.OPENAI_API_KEY) {
+// 		throw new Error(
+// 			"Missing OPENAI_API_KEY in environment variables."
+// 		);
+// 	}
+// 	if (!process.env.BASE_URL) {
+// 		throw new Error(
+// 			"Missing BASE_URL in environment variables."
+// 		);
+// 	}
+// };
 
 // Validate environment variables once at startup
-validateEnvVars();
+// validateEnvVars();
 
-const BASE_URL = process.env.BASE_URL;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY =
+	"sk-6206ad67e8d14d408739f44fc49b478e";
+const BASE_URL = "https://api.deepseek.com/v1";
+
+const defaultQuestionCount = 15;
+const defaultDifficulty = "Hard";
+const MAX_ATTEMPTS = 5;
+const MAX_TOKENS = 4096;
+
 
 // Create a singleton OpenAI instance
 const openai = new OpenAI({
@@ -29,8 +36,8 @@ const openai = new OpenAI({
 });
 
 // Configuration
-const maxAttempts = Number(process.env.MAX_ATTEMPTS);
-const maxTokens = Number(process.env.MAX_TOKENS);
+const maxAttempts = MAX_ATTEMPTS;
+const maxTokens = MAX_TOKENS;
 
 // Revised system prompt with explicit uniqueness instructions
 
@@ -111,6 +118,12 @@ function getRandomInstruction(): string {
 	return additionalVariabilityInstructions[randomIndex];
 }
 
+
+
+
+
+
+
 export async function createQuizWithAI(
 	prompt: string,
 	numQuestions?: number,
@@ -125,8 +138,8 @@ export async function createQuizWithAI(
 		creativityModifiers
 	);
 	const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt that may include context about topic, subject, difficulty, target audience and number of questions.
-  1. Generate ${numQuestions} questions
-  2. Use ${difficulty} difficulty
+  1. Generate ${numQuestions || defaultQuestionCount} questions
+  2. Use ${difficulty || defaultDifficulty} difficulty
   3. ${
 		customInstructions
 			? `IMPORTANT: Follow these custom instructions: ${customInstructions}`

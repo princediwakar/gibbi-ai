@@ -4,11 +4,20 @@ import { supabase } from "@/lib/supabase/client";
 import { Quiz } from "@/types/quiz"; // Add this import
 
 const maxPendingTime = Number(process.env.MAX_PENDING_TIME); 
-
+const defaultQuestionCount = Number(process.env.DEFAULT_QUESTION_COUNT || 10)
+const defaultDifficulty = Number(
+	process.env.DEFAULT_QUESTION_COUNT || 'Medium'
+);
 
 export async function POST(req: NextRequest) {
 	try {
-		const { prompt, creator_id } = await req.json();
+    const {
+		prompt,
+		creator_id,
+		num_questions,
+		difficulty,
+		custom_instructions,
+	} = await req.json();
 
 		if (!prompt) {
 			return NextResponse.json(
@@ -35,7 +44,7 @@ export async function POST(req: NextRequest) {
 					creator_id,
 					topic: "Generating...", // Add default topic
 					subject: "...Generating...", // Add default subject
-					difficulty: "Generating...", // Add default difficulty
+					difficulty: difficulty || defaultDifficulty, // Add default difficulty
 				})
 				.select("quiz_id")
 				.single();
@@ -51,6 +60,9 @@ export async function POST(req: NextRequest) {
 		processQuizInBackground(
 			quiz.quiz_id,
 			prompt,
+			num_questions || defaultQuestionCount,
+			difficulty || defaultDifficulty,
+			custom_instructions
 		);
 
 		return NextResponse.json({
@@ -78,7 +90,10 @@ export async function POST(req: NextRequest) {
 
 async function processQuizInBackground(
 	quizId: string,
-	prompt: string
+	prompt: string,
+	numQuestions?: number,
+	difficulty?: string,
+	customInstructions?: string
 ) {
 	const startTime = Date.now();
 	let success = false;
@@ -86,7 +101,12 @@ async function processQuizInBackground(
 	try {
 		// Generate quiz data using AI with timeout
 		const quizData = await Promise.race<Quiz>([
-			createQuizWithAI(prompt),
+			createQuizWithAI(
+				prompt,
+				numQuestions,
+				difficulty,
+				customInstructions
+			),
 			new Promise<never>((_, reject) =>
 				setTimeout(
 					() =>
