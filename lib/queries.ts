@@ -39,6 +39,8 @@ async function getcreator_name(
 
 export async function getPublicQuizzes(): Promise<Quiz[]> {
 	try {
+		console.log("Fetching public quizzes...");
+
 		// Get all public quizzes without status filter
 		const { data: quizzes, error: quizzesError } =
 			await supabase
@@ -56,8 +58,11 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 			return [];
 		}
 
+		console.log("Quizzes fetched:", quizzes);
+
 		// If no quizzes found, return empty array
 		if (!quizzes || quizzes.length === 0) {
+			console.log("No quizzes found in database");
 			return [];
 		}
 
@@ -65,6 +70,7 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 		const creatorIds = [
 			...new Set(quizzes.map((q) => q.creator_id)),
 		];
+		console.log("Creator IDs found:", creatorIds);
 
 		// Fetch creator names in parallel
 		const creatorNames = await Promise.all(
@@ -80,18 +86,20 @@ export async function getPublicQuizzes(): Promise<Quiz[]> {
 		);
 
 		// Map quizzes with creator names and ensure proper typing
-		return quizzes.map((quiz) => ({
+		const result = quizzes.map((quiz) => ({
 			...quiz,
 			creator_name:
 				userMap.get(quiz.creator_id) || "Anonymous",
 			status: quiz.status || "ready",
 		}));
+
+		console.log("Final quiz data:", result);
+		return result;
 	} catch (error) {
 		console.error("Error in getPublicQuizzes:", error);
 		return [];
 	}
 }
-
 
 
 

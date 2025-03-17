@@ -46,28 +46,33 @@ export const metadata: Metadata = {
 
 
 export default async function QuizzesPage() {
-		const quizzes = await getPublicQuizzes();
-		if (quizzes.length === 0) {
-			return (
-				<div className="container mx-auto px-4 py-8">
-					<h1 className="text-3xl font-bold mb-8">
-						Public Quizzes
-					</h1>
-					<div className="text-center text-gray-500">
-						No public quizzes available. Why not
-						create one?
-					</div>
-				</div>
-			);
-		}
+	const quizzes = await getPublicQuizzes();
 
-		
+
+	if (quizzes.length === 0) {
+		return (
+			<div className="container mx-auto px-4 py-8">
+				<h1 className="text-3xl font-bold mb-8">
+					Public Quizzes
+				</h1>
+				<div className="text-center text-gray-500">
+					No public quizzes available. Why not
+					create one?
+				</div>
+			</div>
+		);
+	}
 
 	// Filter out failed quizzes but include ready and those without status
 	const validQuizzes = quizzes.filter(
 		(quiz) =>
 			quiz.status !== "failed" &&
 			quiz.status !== "pending"
+	);
+
+	console.log(
+		"Valid quizzes after filtering:",
+		validQuizzes
 	);
 
 	// Group quizzes by subject
@@ -81,6 +86,11 @@ export default async function QuizzesPage() {
 			return acc;
 		},
 		{} as Record<string, typeof validQuizzes>
+	);
+
+	console.log(
+		"Quizzes grouped by subject:",
+		quizzesBySubject
 	);
 
 	return (
