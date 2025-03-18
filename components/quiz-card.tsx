@@ -407,14 +407,14 @@ export function QuizCard({
 										<SelectValue placeholder="Select difficulty" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="Beginner">
-											Beginner
+										<SelectItem value="Easy">
+											Easy
 										</SelectItem>
-										<SelectItem value="Intermediate">
-											Intermediate
+										<SelectItem value="Medium">
+											Medium
 										</SelectItem>
-										<SelectItem value="Advanced">
-											Advanced
+										<SelectItem value="Hard">
+											Hard
 										</SelectItem>
 									</SelectContent>
 								</Select>
