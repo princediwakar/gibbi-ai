@@ -9,7 +9,6 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { memo, useState } from "react";
 import {
   DropdownMenu,
@@ -23,7 +22,6 @@ import Cookies from "js-cookie";
 
 const Header = memo(() => {
   const user = useUser();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
 const handleSignIn = async () => {
@@ -47,7 +45,6 @@ const handleSignIn = async () => {
   const handleSignOut = async () => {
 		await supabase.auth.signOut();
 		Cookies.remove("access_token"); // Clear token cookie
-		// router.push("/");
 		setIsOpen(false);
   };
 
