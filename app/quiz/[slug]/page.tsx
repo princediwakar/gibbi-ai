@@ -5,15 +5,24 @@ import { Metadata } from "next";
 import { QuizPlayer } from "@/components/QuizPlayer";
 import { getQuizWithQuestions } from "@/lib/queries";
 import { getQuizMetadata } from "@/lib/queries";
+import { extractIdFromSlug } from "@/lib/utils";
 
 interface PageProps {
-	params: Promise<{ quizId: string }>;
+	params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
-	const { quizId } = await params;
+	const { slug } = await params;
+	// Make sure the slug exists
+	if (!slug) {
+		throw new Error("Slug is required");
+	}
+	const quizId = extractIdFromSlug(slug);
+	if (!quizId) {
+		throw new Error("quizId is required");
+	}
 	const quiz = await getQuizMetadata(quizId);
 
 	if (!quiz) {
@@ -42,7 +51,7 @@ export async function generateMetadata({
 		],
 		openGraph: {
 			type: "website",
-			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${quizId}`,
+			url: `${process.env.NEXT_PUBLIC_BASE_URL}/quiz/${slug}`,
 			title: `${quiz.title} - QuizMasterAI`,
 			description: `Take the ${quiz.title} quiz on ${quiz.topic}. Created by ${quiz.creator_name}.`,
 			images: [
@@ -79,7 +88,16 @@ export async function generateMetadata({
 export default async function QuizPage({
 	params,
 }: PageProps) {
-	const { quizId } = await params;
+	const { slug } = await params;
+	// Make sure the slug exists
+	if (!slug) {
+		throw new Error("Slug is required");
+	}
+	const quizId = extractIdFromSlug(slug);
+	if (!quizId) {
+		throw new Error("quizId is required");
+	}
+
 	const quiz = await getQuizWithQuestions(quizId);
 
 	if (!quiz) {

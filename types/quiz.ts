@@ -16,6 +16,7 @@ export interface Quiz {
 	topic: string;
 	subject: string;
 	difficulty: string;
+	slug: string;
 	status: string;
 	creator_id: string;
 	created_at: string;

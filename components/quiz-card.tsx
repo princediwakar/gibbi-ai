@@ -88,31 +88,30 @@ export function QuizCard({
 	};
 
 	const handleShare = (platform: string) => {
-		const shareUrl = `${window.location.origin}/quiz/${quiz.quiz_id}`;
-		const shareText = `Check out this quiz: ${quiz.title}`;
+		const shareUrl = encodeURIComponent(
+			`${window.location.origin}/quiz/${quiz.quiz_id}`
+		);
+		const shareText = encodeURIComponent(
+			`Check out this quiz: ${quiz.title}`
+		);
 
 		switch (platform) {
 			case "twitter":
 				window.open(
-					`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-						shareText
-					)}&url=${encodeURIComponent(shareUrl)}`,
+					`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`,
 					"_blank"
 				);
 				break;
 			case "facebook":
 				window.open(
-					`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-						shareUrl
-					)}`,
-					"_blank"
+					`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&quote=${shareText}`,
+					"_blank",
+					"width=600,height=400"
 				);
 				break;
 			case "whatsapp":
 				window.open(
-					`https://api.whatsapp.com/send?text=${encodeURIComponent(
-						`${shareText} ${shareUrl}`
-					)}`,
+					`https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}`,
 					"_blank"
 				);
 				break;
@@ -222,7 +221,7 @@ export function QuizCard({
 
 			<div className="flex gap-2 mt-auto">
 				<Button asChild className="flex-1">
-					<Link href={`/quiz/${quiz.quiz_id}`}>
+					<Link href={`/quiz/${quiz.slug}`}>
 						Take Quiz
 					</Link>
 				</Button>
