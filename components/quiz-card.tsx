@@ -89,7 +89,7 @@ export function QuizCard({
 
 	const handleShare = (platform: string) => {
 		const shareUrl = encodeURIComponent(
-			`${window.location.origin}/quiz/${quiz.quiz_id}`
+			`${window.location.origin}/quiz/${quiz.slug}`
 		);
 		const shareText = encodeURIComponent(
 			`Check out this quiz: ${quiz.title}`

@@ -1,4 +1,4 @@
-// File: app/quiz/[quizId]/page.tsx
+// File: app/quiz/[slug]/page.tsx
 
 import { notFound } from "next/navigation";
 import { Metadata } from "next";

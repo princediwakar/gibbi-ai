@@ -18,23 +18,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
+import Cookies from "js-cookie";
+
 
 const Header = memo(() => {
   const user = useUser();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) console.error("Sign-in error:", error.message);
-  };
+const handleSignIn = async () => {
+    window.localStorage.setItem(
+		"returnUrl",
+		window.location.pathname
+	);
+
+	const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`
+
+	const { error } = await supabase.auth.signInWithOAuth({
+		provider: "google",
+		options: {
+			redirectTo: redirectTo,
+		}, // Add redirect URL dynamically
+	});
+	if (error)
+		console.error("Sign-in error:", error.message);
+};
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-    setIsOpen(false);
+		await supabase.auth.signOut();
+		Cookies.remove("access_token"); // Clear token cookie
+		// router.push("/");
+		setIsOpen(false);
   };
 
   return (
