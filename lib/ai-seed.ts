@@ -126,8 +126,8 @@ function getRandomInstruction(): string {
 
 export async function createQuizWithAI(
 	prompt: string,
-	numQuestions?: number,
-	difficulty?: string,
+	numQuestions: number,
+	difficulty: string,
 	customInstructions?: string
 ): Promise<Quiz> {
 	const uniquePromptSeed = randomUUID();
@@ -181,7 +181,7 @@ export async function createQuizWithAI(
 
 	try {
 		console.log(
-			`Generating quiz for prompt: "${prompt}"`
+			`Generating quiz for prompt: "${prompt.slice(0, 60)}"`
 		);
 
 		let fullResponse = "";

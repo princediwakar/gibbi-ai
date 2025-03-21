@@ -1,53 +1,14 @@
+// app/page.tsx
+
 import { QuizCard } from "@/components/quiz-card";
 import { getPublicQuizzes } from "@/lib/queries";
-import { Metadata } from "next";
+import { metadata } from "./metadata";
 
-
-export const metadata: Metadata = {
-	title: "Public Quizzes - QuizMasterAI",
-	description:
-		"Explore and take public quizzes on various topics. Test your knowledge and learn new things!",
-	keywords: [
-		"quizzes",
-		"public quizzes",
-		"knowledge test",
-		"learning",
-		"education",
-	],
-	openGraph: {
-		title: "Public Quizzes - QuizMasterAI",
-		description:
-			"Explore and take public quizzes on various topics",
-		url: "/quizzes",
-		siteName: "QuizMaster",
-		images: [
-			{
-				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
-				width: 1200,
-				height: 630,
-				alt: "QuizMasterAI Public Quizzes",
-			},
-		],
-		locale: "en_US",
-		type: "website",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "Public Quizzes - QuizMasterAI",
-		description:
-			"Explore and take public quizzes on various topics",
-		images: [
-			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
-		], // Add your Twitter image path here
-	},
-};
-
-
+export { metadata };
 
 
 export default async function QuizzesPage() {
 	const quizzes = await getPublicQuizzes();
-
 
 	if (quizzes.length === 0) {
 		return (
@@ -70,7 +31,6 @@ export default async function QuizzesPage() {
 			quiz.status !== "pending"
 	);
 
-
 	// Group quizzes by subject
 	const quizzesBySubject = validQuizzes.reduce(
 		(acc, quiz) => {
@@ -83,7 +43,6 @@ export default async function QuizzesPage() {
 		},
 		{} as Record<string, typeof validQuizzes>
 	);
-
 
 	return (
 		<div className="container mx-auto px-4 py-8">

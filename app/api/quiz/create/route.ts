@@ -3,9 +3,7 @@ import { createQuizWithAI } from "@/lib/ai";
 import { supabase } from "@/lib/supabase/client";
 import { Quiz } from "@/types/quiz";
 
-const MAX_PENDING_TIME = 300000;
-const DEFAULT_QUESTION_COUNT = 10;
-const DEFAULT_DIFFICULTY = "Hard";
+const MAX_PENDING_TIME = Number(process.env.MAX_PENDING_TIME)
 
 export async function POST(req: NextRequest) {
   const startTime = performance.now();
@@ -18,7 +16,7 @@ export async function POST(req: NextRequest) {
       creator_id,
       question_count,
       difficulty,
-      custom_instructions,
+      language
     } = await req.json();
     metrics.parseRequest = performance.now() - parseStart;
 
@@ -49,7 +47,8 @@ export async function POST(req: NextRequest) {
         creator_id,
         topic: "Generating...",
         subject: "...Generating...",
-        difficulty: difficulty || DEFAULT_DIFFICULTY,
+        difficulty: difficulty,
+        language: language,
       })
       .select("quiz_id")
       .single();
@@ -64,9 +63,9 @@ export async function POST(req: NextRequest) {
     processQuizInBackground(
       quiz.quiz_id,
       prompt,
-      question_count || DEFAULT_QUESTION_COUNT,
-      difficulty || DEFAULT_DIFFICULTY,
-      custom_instructions
+      question_count,
+      difficulty,
+      language
     );
     metrics.bgProcessStart = performance.now() - bgProcessStart;
 
@@ -101,9 +100,9 @@ export async function POST(req: NextRequest) {
 async function processQuizInBackground(
   quizId: string,
   prompt: string,
-  questionCount?: number,
-  difficulty?: string,
-  customInstructions?: string
+  questionCount: number,
+  difficulty: string,
+  language: string
 ) {
   const startTime = performance.now();
   const metrics: Record<string, number> = {};
@@ -112,7 +111,7 @@ async function processQuizInBackground(
     // Generate quiz data using AI with timeout
     const aiStart = performance.now();
     const quizData = await Promise.race<Quiz>([
-      createQuizWithAI(prompt, questionCount, difficulty, customInstructions),
+      createQuizWithAI(prompt, questionCount, difficulty, language),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Processing timeout")), MAX_PENDING_TIME))
     ]);
@@ -156,7 +155,7 @@ async function processQuizInBackground(
 
     // Log success metrics
     metrics.totalTime = performance.now() - startTime;
-    console.log(`Quiz ${quizId} processed successfully`, metrics);
+    console.log(`${prompt.slice(0, 60)}: Quiz processed successfully`, metrics);
   } catch (error) {
     const errorStart = performance.now();
     console.error(`Error processing quiz ${quizId}:`, error);

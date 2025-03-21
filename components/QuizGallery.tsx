@@ -94,7 +94,7 @@ export const QuizGallery = ({
 	return (
 		<div className="space-y-8 max-w-2xl mx-auto">
 			<h2 className="text-xl font-bold text-gray-800 mb-4">
-				My Quiz Library
+				My Library
 			</h2>
 
 			<div className="relative">

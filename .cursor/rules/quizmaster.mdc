@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+# Quiz Creation Tool
+
+## Overview
+QuizmasterAI is a powerful, AI-driven platform designed for anyone looking to create quizzes effortlessly. Whether you're a student, teacher, business professional, or marketer, this tool helps you generate engaging quizzes tailored to your needs.
+
+## Key Features
+- **AI-Powered Quiz Generation**: Simply provide a topic or prompt, and the AI will generate a quiz instantly.
+- **Customizable Difficulty Levels**: Choose from easy, medium, or hard levels for your quizzes.
+- **Flexible Audience Use**: Suitable for educators, students, businesses, and marketing campaigns.
+- **Shareable & Embeddable**: Quizzes can be shared via links or embedded on websites and blogs.
+- **Data & Analytics**: Track quiz attempts, scores, and engagement.
+- **Multi-Industry Applications**: Use quizzes for learning, training, lead generation, audience engagement, and more.
+
+## How It Works
+1. **Enter a Prompt**: Provide a topic or detailed prompt (e.g., "Create a quiz on digital marketing fundamentals").
+2. **AI Processing**: The system generates a title, description, and questions based on the input.
+3. **Review & Customize**: Edit quiz details if needed.
+4. **Publish & Share**: Share via a link, embed on your site, or invite participants directly.
+5. **Track Performance**: View analytics to measure quiz success.
+
+## Use Cases
+### 🎓 Education & Learning
+- Teachers can create quizzes for assessments.
+- Students can generate quizzes for self-study.
+
+### 📊 Business & Training
+- HR teams can use quizzes for employee training.
+- Companies can assess knowledge retention in training programs.
+
+### 📣 Marketing & Engagement
+- Marketers can create quizzes for lead generation.
+- Brands can boost audience engagement through interactive content.
+
+## Get Started
+1. Visit [Quiz Creation Tool](https://quizmasterai.vercel.app) (link to the platform).
+2. Sign up or log in.
+3. Start creating and sharing quizzes effortlessly!
+
+## Future Enhancements
+- **Adaptive Learning Paths**: AI will suggest follow-up quizzes based on user performance.
+- **Gamification**: Add badges, leaderboards, and rewards.
+- **Integrations**: Connect with learning management systems (LMS) and CRM tools.
+
+Ready to create your first quiz? Get started today and make learning and engagement fun and interactive!

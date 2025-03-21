@@ -96,6 +96,8 @@ export function QuizDashboard() {
 			<QuizCreator
 				onQuizCreated={handleQuizCreated}
 			/>
+			
+
 			{user && (
 				<QuizGallery
 					savedQuizzes={quizzes}

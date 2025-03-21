@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 
-const maxPendingTime = Number(process.env.MAX_PENDING_TIME)
+const MAX_PENDING_TIME = Number(process.env.MAX_PENDING_TIME);
 
 export async function GET(req: NextRequest) {
 	try {
@@ -23,32 +23,38 @@ export async function GET(req: NextRequest) {
 
 		if (error) throw error;
 
+		// If the quiz status is failed, remove it from the database
+		if (data.status === "failed") {
+			await supabase
+				.from("quizzes")
+				.delete()
+				.eq("quiz_id", id);
+
+			return NextResponse.json({
+				status: "failed",
+				error: "Quiz generation failed and has been removed",
+			});
+		}
 		// Check if quiz has been pending too long
 		if (data.status === "pending") {
-			const createdTime = new Date(
-				data.created_at
-			).getTime();
+			const createdTime = new Date(data.created_at).getTime();
 			const currentTime = Date.now();
 
-			if (
-				currentTime - createdTime >
-				maxPendingTime
-			) {
+			if (currentTime - createdTime > MAX_PENDING_TIME) {
 				// Mark as failed if pending too long
 				await supabase
 					.from("quizzes")
-					.update({
-						status: "failed",
-						error_message: "Processing timeout",
-					})
+					.delete()
 					.eq("quiz_id", id);
 
 				return NextResponse.json({
 					status: "failed",
-					error: "Quiz generation timed out",
+					error: "Quiz generation timed out and has been removed",
 				});
 			}
 		}
+
+
 
 		return NextResponse.json({
 			status: data.status,
@@ -58,10 +64,7 @@ export async function GET(req: NextRequest) {
 		console.error("Status check error:", error);
 		return NextResponse.json(
 			{
-				error:
-					error instanceof Error
-						? error.message
-						: "Internal Server Error",
+				error: error instanceof Error ? error.message : "Internal Server Error",
 			},
 			{ status: 500 }
 		);

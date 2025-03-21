@@ -1,13 +1,21 @@
+// export interface Question {
+// 	question_text: string;
+// 	options: {
+// 		a: string;
+// 		b: string;
+// 		c: string;
+// 		d: string;
+// 	};
+// 	correct_option: string;
+// }
+
+
 export interface Question {
 	question_text: string;
-	options: {
-		a: string;
-		b: string;
-		c: string;
-		d: string;
-	};
+	options: Record<string, string>; // Allows a dynamic number of options
 	correct_option: string;
 }
+
 
 export interface Quiz {
 	quiz_id: string;

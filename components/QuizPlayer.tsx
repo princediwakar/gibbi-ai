@@ -19,7 +19,6 @@ interface Option {
 }
 
 
-
 const renderMathContent = (
 	text: string
 ): React.ReactNode[] => {

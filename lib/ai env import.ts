@@ -3,25 +3,27 @@ import { Quiz } from "../types/quiz";
 import { randomUUID } from "crypto";
 
 // Validate environment variables
-const validateEnvVars = () => {
-	if (!process.env.OPENAI_API_KEY) {
-		throw new Error(
-			"Missing OPENAI_API_KEY in environment variables."
-		);
-	}
-	if (!process.env.BASE_URL) {
-		throw new Error(
-			"Missing BASE_URL in environment variables."
-		);
-	}
-};
+const REQUIRED_ENV_VARS = ["OPENAI_API_KEY",
+	"AI_BASE_URL",
+	"MAX_ATTEMPTS",
+	// "MAX_TOKENS"
+];
 
-// Validate environment variables once at startup
-validateEnvVars();
+REQUIRED_ENV_VARS.forEach((varName) => {
+	if (!process.env[varName]) {
+		throw new Error(
+			`Missing ${varName} in environment variables.`
+		);
+	}
+});
+
 
 const AI_BASE_URL =
-	process.env.NEXT_PUBLIC_AI_BASE_URL;
+	process.env.AI_BASE_URL;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const MAX_ATTEMPTS = Number(process.env.MAX_ATTEMPTS);
+// const MAX_TOKENS = Number(process.env.MAX_TOKENS);
+
 
 // Create a singleton OpenAI instance
 const openai = new OpenAI({
@@ -29,11 +31,7 @@ const openai = new OpenAI({
 	baseURL: AI_BASE_URL,
 });
 
-// Configuration
-const maxAttempts = Number(process.env.MAX_ATTEMPTS);
-const maxTokens = Number(process.env.MAX_TOKENS);
 
-// Revised system prompt with explicit uniqueness instructions
 
 // Utility to check if the accumulated response is complete.
 const isCompleteResponse = (text: string): boolean => {
@@ -69,10 +67,9 @@ const parseJSONSafely = (jsonString: string): Quiz => {
 	} catch (err) {
 		console.error("Failed to parse JSON:", jsonString);
 		throw new Error(
-			`Failed to parse JSON: ${
-				err instanceof Error
-					? err.message
-					: "Unknown error"
+			`Failed to parse JSON: ${err instanceof Error
+				? err.message
+				: "Unknown error"
 			}`
 		);
 	}
@@ -107,15 +104,15 @@ const pickRandom = (arr: string[]) =>
 function getRandomInstruction(): string {
 	const randomIndex = Math.floor(
 		Math.random() *
-			additionalVariabilityInstructions.length
+		additionalVariabilityInstructions.length
 	);
 	return additionalVariabilityInstructions[randomIndex];
 }
 
 export async function createQuizWithAI(
 	prompt: string,
-	numQuestions?: number,
-	difficulty?: string,
+	numQuestions: number,
+	difficulty: string,
 	customInstructions?: string
 ): Promise<Quiz> {
 	const uniquePromptSeed = randomUUID();
@@ -129,11 +126,10 @@ export async function createQuizWithAI(
 	0. Generate a user-friendly title focusing on the topic only, not the modifiers.
   1. Generate ${numQuestions} questions
   2. Use ${difficulty} difficulty
-  3. ${
-		customInstructions
+  3. ${customInstructions
 			? `IMPORTANT: Follow these custom instructions: ${customInstructions}`
 			: ""
-  }
+		}
 	4. Map any provided difficulty to one of these levels: Easy, Medium, or Hard.
 	5. Ensure every output is distinctly different in wording, structure, and examples. Do not replicate any phrasing or scenarios from prior outputs
 	6. Output must be a valid JSON object strictly matching this format:
@@ -170,7 +166,7 @@ export async function createQuizWithAI(
 
 	try {
 		console.log(
-			`Generating quiz for prompt: "${prompt}"`
+			`Generating quiz for prompt: "${prompt.slice(0, 60)}"`
 		);
 
 		let fullResponse = "";
@@ -179,7 +175,7 @@ export async function createQuizWithAI(
 		let quizData: Quiz | null = null;
 
 		const generationStart = performance.now();
-		while (attempts < maxAttempts && !completed) {
+		while (attempts < MAX_ATTEMPTS && !completed) {
 			// Inject a new unique token each attempt
 			const currentUniqueToken = randomUUID();
 			const userContent =
@@ -192,7 +188,7 @@ export async function createQuizWithAI(
 					await openai.chat.completions.create({
 						model: "deepseek-chat",
 						messages: [
-				 			{
+							{
 								role: "system",
 								content:
 									systemMessageContent,
@@ -204,7 +200,7 @@ export async function createQuizWithAI(
 						],
 						temperature: 0.9, // increased randomness
 						top_p: 0.9, // allow more diverse word choices
-						max_tokens: maxTokens,
+						max_tokens: MAX_TOKENS,
 					});
 
 				const content =
@@ -260,10 +256,9 @@ export async function createQuizWithAI(
 					attempts++;
 				}
 			} catch (error) {
-				if (attempts < maxAttempts - 1) {
+				if (attempts < MAX_ATTEMPTS - 1) {
 					console.warn(
-						`Attempt ${
-							attempts + 1
+						`Attempt ${attempts + 1
 						} failed, retrying...`,
 						error
 					);
@@ -319,3 +314,4 @@ export async function createQuizWithAI(
 		);
 	}
 }
+
