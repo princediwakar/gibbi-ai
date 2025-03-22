@@ -11,6 +11,7 @@
 
 
 export interface Question {
+	// question_id: string;
 	question_text: string;
 	options: Record<string, string>; // Allows a dynamic number of options
 	correct_option: string;

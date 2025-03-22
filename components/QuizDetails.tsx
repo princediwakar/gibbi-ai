@@ -1,17 +1,17 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-import { Button } from "@/components/ui/button";
-import { GoBackOrHome } from "./GoBackOrHome";
+// import { Button } from "@/components/ui/button";
+// import { GoBackOrHome } from "./GoBackOrHome";
 
 interface QuizDetailsProps {
 	quiz: Quiz;
-	onStart: () => void;
+	// onStart: () => void;
 }
 
 export function QuizDetails({
 	quiz,
-	onStart,
+	// onStart,
 }: QuizDetailsProps) {
 	return (
 		<div className="space-y-6">
@@ -62,13 +62,13 @@ export function QuizDetails({
 					</span>
 				</div>
 			</div>
-
+{/* 
 			<div className="grid grid-cols-2 gap-4">
 				<GoBackOrHome />
 				<Button onClick={onStart}>
 					Start Quiz
 				</Button>
-			</div>
+			</div> */}
 		</div>
 	);
 }

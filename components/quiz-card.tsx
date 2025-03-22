@@ -10,15 +10,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -39,7 +30,7 @@ import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { deleteQuiz } from "@/lib/queries";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 
 
@@ -54,7 +45,6 @@ interface QuizCardProps {
 export function QuizCard({
 	quiz,
 	onDelete,
-	onUpdate,
 }: QuizCardProps) {
 	const user = useUser();
 	const isOwner = user?.id === quiz.creator_id;
@@ -62,15 +52,9 @@ export function QuizCard({
 	  const [isDeleted, setIsDeleted] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] =
 		useState(false);
-	const [isEditing, setIsEditing] = useState(false);
-	const [editData, setEditData] = useState({
-		title: quiz.title,
-		description: quiz.description,
-		topic: quiz.topic,
-		subject: quiz.subject,
-		difficulty: quiz.difficulty,
-	});
-	  
+
+	const router = useRouter()
+
 
 	const handleDownload = async (
 		format: "pdf" | "excel"
@@ -120,43 +104,7 @@ export function QuizCard({
 		}
 	};
 
-	const handleEdit = async () => {
-		if (!isOwner || !user) return;
 
-		// Create a copy of the current quiz data in case we need to revert
-		const originalQuiz = { ...quiz };
-
-		try {
-			// Optimistically update local state
-			if (onUpdate) {
-				onUpdate({ ...quiz, ...editData });
-			}
-
-			// Make the API call
-			const { error } = await supabase
-				.from("quizzes")
-				.update(editData)
-				.eq("quiz_id", quiz.quiz_id);
-
-			if (error) throw error;
-
-			setIsEditing(false);
-			toast.success("Quiz updated successfully");
-		} catch (error) {
-			console.error("Error updating quiz:", error);
-
-			// Revert to original state if update fails
-			if (onUpdate) {
-				onUpdate(originalQuiz);
-			}
-
-			toast.error(
-				error instanceof Error
-					? error.message
-					: "Failed to update quiz"
-			);
-		}
-	};
 	
 	const handleDelete = async () => {
 		if (!isOwner || !user) return;
@@ -222,7 +170,7 @@ export function QuizCard({
 			<div className="flex gap-2 mt-auto">
 				<Button asChild className="flex-1">
 					<Link href={`/quiz/${quiz.slug}`}>
-						Take Quiz
+						View Quiz
 					</Link>
 				</Button>
 
@@ -287,7 +235,7 @@ export function QuizCard({
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									onClick={() =>
-										setIsEditing(true)
+										router.push(`/quiz/${quiz.slug}/?edit=true`)
 									}
 								>
 									<Pencil className="mr-2 h-4 w-4" />
@@ -318,113 +266,6 @@ export function QuizCard({
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				{/* Edit Dialog */}
-
-				<Dialog
-					open={isEditing}
-					onOpenChange={setIsEditing}
-				>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>
-								Edit Quiz
-							</DialogTitle>
-						</DialogHeader>
-						<div className="space-y-4">
-							<div>
-								<Label>Title</Label>
-								<Input
-									value={editData.title}
-									onChange={(e) =>
-										setEditData({
-											...editData,
-											title: e.target
-												.value,
-										})
-									}
-								/>
-							</div>
-							<div>
-								<Label>Description</Label>
-								<Input
-									value={
-										editData.description
-									}
-									onChange={(e) =>
-										setEditData({
-											...editData,
-											description:
-												e.target
-													.value,
-										})
-									}
-								/>
-							</div>
-							<div>
-								<Label>Topic</Label>
-								<Input
-									value={editData.topic}
-									onChange={(e) =>
-										setEditData({
-											...editData,
-											topic: e.target
-												.value,
-										})
-									}
-								/>
-							</div>
-							<div>
-								<Label>Subject</Label>
-								<Input
-									value={editData.subject}
-									onChange={(e) =>
-										setEditData({
-											...editData,
-											subject:
-												e.target
-													.value,
-										})
-									}
-								/>
-							</div>
-							<div>
-								<Label>Difficulty</Label>
-								<Select
-									value={
-										editData.difficulty
-									}
-									onValueChange={(
-										value
-									) =>
-										setEditData({
-											...editData,
-											difficulty:
-												value,
-										})
-									}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select difficulty" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="Easy">
-											Easy
-										</SelectItem>
-										<SelectItem value="Medium">
-											Medium
-										</SelectItem>
-										<SelectItem value="Hard">
-											Hard
-										</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-							<Button onClick={handleEdit}>
-								Save Changes
-							</Button>
-						</div>
-					</DialogContent>
-				</Dialog>
 
 				{/* Delete Confirmation Dialog */}
 				<Dialog

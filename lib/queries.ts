@@ -296,3 +296,44 @@ export async function getQuestions(quizId: string) {
 		return null;
 	}
 }
+
+
+
+
+
+
+export async function updateQuizDetails(quizId: string, details: Partial<Quiz>): Promise<void> {
+	try {
+	  const { error } = await supabase
+		.from('quizzes')
+		.update(details)
+		.eq('quiz_id', quizId);
+  
+	  if (error) throw error;
+	} catch (error) {
+	  console.error("Error updating quiz details:", error);
+	  throw new Error("Failed to update quiz details");
+	}
+  }
+  
+  export async function updateQuizQuestions(quizId: string, questions: Question[]): Promise<void> {
+	try {
+	  // Delete existing questions
+	  const { error: deleteError } = await supabase
+		.from('questions')
+		.delete()
+		.eq('quiz_id', quizId);
+  
+	  if (deleteError) throw deleteError;
+  
+	  // Insert new questions
+	  const { error: insertError } = await supabase
+		.from('questions')
+		.insert(questions.map(q => ({ ...q, quiz_id: quizId })));
+  
+	  if (insertError) throw insertError;
+	} catch (error) {
+	  console.error("Error updating quiz questions:", error);
+	  throw new Error("Failed to update quiz questions");
+	}
+  }
