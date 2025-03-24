@@ -5,7 +5,7 @@ import { Quiz } from "@/types/quiz";
 // import { Share2 } from "lucide-react";
 // import { toast } from "sonner";
 // import { useCopyToClipboard } from "usehooks-ts";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/hooks/useUser";
 
 interface ShareableResultsCardProps {
 	quiz: Quiz;

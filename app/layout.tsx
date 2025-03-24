@@ -1,11 +1,16 @@
-import { Toaster } from "@/components/ui/sonner";
-import Header from "@/components/Header";
+import {Header} from "@/components/Header";
+import { Toaster } from "@/components/ui/sonner"
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 import { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
-import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 export const metadata: Metadata = {
+	title: {
+		default: "QuizMaster AI",
+		template: "%s - QuizMaster AI", // Appends app name to page titles
+	  },
+	  description: "Create and explore AI-powered quizzes.",
 	icons: {
 		icon: "/favicon.ico",
 	},

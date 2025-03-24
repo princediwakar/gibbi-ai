@@ -9,7 +9,7 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ShareableResultsCard } from "./ShareableResultsCard";
-import { GoBackOrHome } from "./GoBackOrHome";
+import { GoBackOrHome } from "../GoBackOrHome";
 import Katex from "@matejmazur/react-katex";
 
 interface QuizResultsProps {

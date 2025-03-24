@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-
 // Supabase configuration
 const NEXT_PUBLIC_SUPABASE_URL =
 	"https://ppbiycqjoravxsyebmfs.supabase.co";
@@ -12,9 +11,9 @@ export const supabase = createClient(
 );
 
 
-function generateSlug(title: string, quizId: string) {
+function generateSlug(topic: string, quizId: string) {
 	// Generate the slug using underscore as a separator
-	const slug = `${title
+	const slug = `${topic
 		.replace(/\s+/g, "-")
 		.toLowerCase()}_${quizId}`;
 
@@ -25,7 +24,7 @@ async function updateSlugsForExistingQuizzes() {
 	// Fetch all existing quizzes
 	const { data: quizzes, error } = await supabase
 		.from("quizzes")
-		.select("quiz_id, title, slug"); // Select the necessary columns
+		.select("quiz_id, topic, slug"); // Select the necessary columns
 
 	if (error) {
 		throw new Error("Error fetching quizzes");
@@ -33,10 +32,10 @@ async function updateSlugsForExistingQuizzes() {
 
 	// Loop through each quiz and update its slug
 	for (const quiz of quizzes) {
-		const { title, quiz_id: quiz_id } = quiz;
+		const { topic, quiz_id: quiz_id } = quiz;
 
 		// Generate a new slug
-		const newSlug = generateSlug(title, quiz_id);
+		const newSlug = generateSlug(topic, quiz_id);
 
 		// Update the quiz with the new slug
 		const { error: updateError } = await supabase

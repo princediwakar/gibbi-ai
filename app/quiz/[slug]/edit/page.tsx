@@ -1,6 +1,7 @@
-// app/quiz/[slug]/page.tsx
+// app/quiz/[slug]/edit/page.tsx
 import { notFound } from "next/navigation";
 import { QuizPlayer } from "@/components/quiz-player/QuizPlayer";
+import { QuizEditor } from "@/components/quiz-editor/QuizEditor";
 import { getQuizWithQuestions, getQuizMetadata } from "@/lib/queries";
 import { extractIdFromSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
@@ -8,30 +9,22 @@ import { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  // searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const quizId = extractIdFromSlug(slug);
   if (!quizId) {
-    return {
-      title: "Quiz Not Found",
-      description: "Invalid quiz URL",
-    };
+    return { title: "Quiz Not Found", description: "Invalid quiz URL" };
   }
 
   try {
     const quiz = await getQuizMetadata(quizId);
     if (!quiz) {
-      return {
-        title: "Quiz Not Found",
-        description: "The requested quiz could not be found",
-      };
+      return { title: "Quiz Not Found", description: "The requested quiz could not be found" };
     }
 
     const ogImageUrl = `${baseUrl}/api/og?type=quiz&title=${encodeURIComponent(quiz.title)}&topic=${encodeURIComponent(quiz.topic || "General")}`;
@@ -39,27 +32,12 @@ export async function generateMetadata({
     return {
       title: quiz.title,
       description: `Take the ${quiz.title} quiz on ${quiz.topic || "various topics"}. Created by ${quiz.creator_name || "Unknown"}. ${quiz.description || "Test your knowledge now!"}`,
-      keywords: [
-        quiz.title,
-        quiz.topic,
-        quiz.subject,
-        quiz.difficulty,
-        "quiz",
-        "test",
-        "knowledge",
-      ].filter(Boolean) as string[],
+      keywords: [quiz.title, quiz.topic, quiz.subject, quiz.difficulty, "quiz", "test", "knowledge"].filter(Boolean) as string[],
       openGraph: {
         title: quiz.title,
         description: `Take the ${quiz.title} quiz on ${quiz.topic || "various topics"}. Created by ${quiz.creator_name || "Unknown"}.`,
         url: `${baseUrl}/quiz/${slug}`,
-        images: [
-          {
-            url: ogImageUrl,
-            width: 1200,
-            height: 630,
-            alt: `${quiz.title} Quiz`,
-          },
-        ],
+        images: [{ url: ogImageUrl, width: 1200, height: 630, alt: `${quiz.title} Quiz` }],
       },
       twitter: {
         title: quiz.title,
@@ -69,24 +47,19 @@ export async function generateMetadata({
     };
   } catch (error) {
     console.error("Error generating metadata for quiz:", error);
-    return {
-      title: "Quiz",
-      description: "Take quizzes and test your knowledge",
-    };
+    return { title: "Quiz", description: "Take quizzes and test your knowledge" };
   }
 }
 
-export default async function QuizPage({ params }: PageProps) {
+export default async function QuizEditPage({ params, searchParams }: PageProps) {
   const supabase = await createClient();
   let user = null;
 
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (error) {
-      if (error.message !== "Auth session missing!") {
-        console.error("Unexpected auth error:", error.message);
-      } // Else, user is not signed in, which is fine
-    } else {
+    if (error && error.message !== "Auth session missing!") {
+      console.error("Unexpected auth error:", error.message);
+    } else if (data) {
       user = data.user;
     }
   } catch (e) {
@@ -94,6 +67,7 @@ export default async function QuizPage({ params }: PageProps) {
   }
 
   const { slug } = await params;
+  const { edit } = await searchParams;
   const quizId = extractIdFromSlug(slug);
   if (!quizId) notFound();
 
@@ -101,9 +75,11 @@ export default async function QuizPage({ params }: PageProps) {
   if (!quiz) notFound();
 
   const isCreator = user?.id === quiz.creator_id;
+  const initialEditMode = edit === "true"; // Optional: Use ?edit=true to force edit mode
 
-  return (
-	<QuizPlayer quiz={quiz} isCreator={isCreator} />
-  )
-    
+  return isCreator ? (
+    <QuizEditor quiz={quiz} initialEditMode={initialEditMode} />
+  ) : (
+    <QuizPlayer quiz={quiz} isCreator={isCreator} />
+  );
 }

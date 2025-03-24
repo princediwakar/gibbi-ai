@@ -87,7 +87,7 @@ export async function createQuizWithAI(
     const maxTokens = Math.min(baseTokens + (question_count * tokensPerQuestion), 4096);
 
     const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt.
-    1. Generate a concise title based on the user prompt. Let the subject be broad - e.g. History instead of World History.
+    1. Generate a very short title based on the user prompt.
     2. ${variabilityInstructions}
     3. Language: ${language}. Auto-detect the language if needed. Difficulty should always be either Easy, Medium or Hard.
     4. Output must be a valid JSON object strictly matching this format:
@@ -95,7 +95,7 @@ export async function createQuizWithAI(
         "title": string,
         "description": string,
         "topic": string,
-        "subject": string,
+        "subject": string, // Parent category of topic. Be consistent in naming. e.g. Use "Mathematics" for "Maths", "Math"
         "language": string,
         "difficulty": string,
         "questions": [

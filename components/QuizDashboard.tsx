@@ -1,111 +1,70 @@
+// components/QuizDashboard.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { QuizCreator } from "./QuizCreator";
-import { QuizGallery } from "./QuizGallery";
+import { QuizList } from "./QuizList";
 import { Quiz } from "@/types/quiz";
-import { supabase } from "@/lib/supabase/client";
-import { toast } from "sonner";
-import { useUser } from "@/hooks/use-user";
+import { useQuizzes } from "@/hooks/useQuizzes";
+import { useUser } from "@/hooks/useUser";
+import { handleQuizCreated, handleQuizDeleted } from "./quiz-handlers";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 export function QuizDashboard() {
-	const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const user = useUser();
+  const user = useUser();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { quizzes, setQuizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } =
+    useQuizzes({ userId: user?.id, searchQuery });
 
-	const fetchQuizzes = useCallback(
-		async (userId: string) => {
-			setIsLoading(true);
-			try {
-				const { data, error } = await supabase
-					.from("quiz_with_counts")
-					.select("*")
-					.eq("creator_id", userId)
-					.eq("status", "ready")
-					.order("created_at", {
-						ascending: false,
-					});
+  const onQuizCreated = useCallback(
+    (quiz: Quiz) => handleQuizCreated(quiz, setQuizzes),
+    [setQuizzes]
+  );
 
-				if (error) throw error;
-				setQuizzes(data as Quiz[]);
-			} catch (error: unknown) {
-				console.error(
-					"Error fetching quizzes:",
-					error
-				);
-				const errorMessage =
-					error instanceof Error
-						? error.message
-						: "Failed to load quizzes";
-				toast.error(errorMessage);
-			} finally {
-				setIsLoading(false);
-			}
-		},
-		[]
-	);
+  const onQuizDeleted = useCallback(
+    (deletedQuizId: string): Promise<void> => {
+      return Promise.resolve(handleQuizDeleted(deletedQuizId, setQuizzes));
+    },
+    [setQuizzes]
+  );
 
-	useEffect(() => {
-		if (user?.id) {
-			fetchQuizzes(user.id);
-		} else {
-			setIsLoading(false); // Add this line to handle logged out state
-		}
-	}, [user?.id, fetchQuizzes]);
-
-	// Handle quiz creation
-	const handleQuizCreated = useCallback((quiz: Quiz) => {
-		if (quiz.status === "failed") {
-			// Filter out the failed quiz
-			setQuizzes((prev) =>
-				prev.filter(
-					(q) => q.quiz_id !== quiz.quiz_id
-				)
-			);
-		} else {
-			// Add the new quiz to the list
-			setQuizzes((prev) => [quiz, ...prev]);
-		}
-	}, []);
-
-	const handleQuizDeleted = useCallback(
-		(deletedQuizId: string) => {
-			setQuizzes((prevQuizzes) =>
-				prevQuizzes.filter(
-					(quiz) => quiz.quiz_id !== deletedQuizId
-				)
-			);
-		},
-		[]
-	);
-	const handleQuizUpdated = useCallback(
-		(updatedQuiz: Quiz) => {
-			setQuizzes((prevQuizzes) =>
-				prevQuizzes.map((quiz) =>
-					quiz.quiz_id === updatedQuiz.quiz_id
-						? updatedQuiz
-						: quiz
-				)
-			);
-		},
-		[]
-	);
-
-	return (
-		<div className="max-w-4xl mx-auto space-y-24 p-4">
-			<QuizCreator
-				onQuizCreated={handleQuizCreated}
-			/>
-			
-
-			{user && (
-				<QuizGallery
-					savedQuizzes={quizzes}
-					isLoading={isLoading}
-					onQuizDeleted={handleQuizDeleted}
-					onQuizUpdated={handleQuizUpdated}
-				/>
-			)}
-		</div>
-	);
+  return (
+    <div className="max-w-5xl mx-auto space-y-24 p-4">
+      <QuizCreator onQuizCreated={onQuizCreated} />
+      {user && (
+        <div className="space-y-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">My Library</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search your quizzes..."
+              className="pl-10 max-w-md"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <QuizList
+            quizzes={quizzes}
+            isLoading={isInitialLoading}
+            onQuizDeleted={onQuizDeleted}
+            emptyMessage={
+              searchQuery
+                ? "No matching quizzes found."
+                : "No quizzes available. Create one to get started!"
+            }
+          />
+          {!isInitialLoading && hasMore && (
+            <div className="text-center">
+              <Button onClick={loadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? "Loading..." : "Load More"}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

@@ -1,20 +1,13 @@
-// export interface Question {
-// 	question_text: string;
-// 	options: {
-// 		a: string;
-// 		b: string;
-// 		c: string;
-// 		d: string;
-// 	};
-// 	correct_option: string;
-// }
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 
 export interface Question {
-	// question_id: string;
+	question_id?: number;
 	question_text: string;
 	options: Record<string, string>; // Allows a dynamic number of options
 	correct_option: string;
+	isNew?: boolean; // Optional flag for new questions
+	
 }
 
 
@@ -35,21 +28,11 @@ export interface Quiz {
 	questions: Question[];
 }
 
-// export interface QuizData {
-// 	title: string;
-// 	description: string;
-// 	topic: string;
-// 	subject: string;
-// 	difficulty: string;
-// 	question_count: number;
-// 	questions: Array<{
-// 		question_text: string;
-// 		options: {
-// 			a: string;
-// 			b: string;
-// 			c: string;
-// 			d: string;
-// 		};
-// 		correct_option: string;
-// 	}>;
-// }
+
+// Generate a temporary ID for new questions
+export function generateTempId(): number {
+	return -Math.floor(Math.random() * 1000000); // Temporary negative ID for client-side only
+  }
+
+
+export type User = SupabaseUser;

@@ -1,29 +1,22 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
 	/* config options here */
-	  env: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  },
-
 	images: {
-		remotePatterns: [
-			{
-				protocol: "https",
-				hostname: "**",
-			},
-		],
+	  remotePatterns: [
+		{
+		  protocol: "https",
+		  hostname: "**",
+		},
+	  ],
 	},
 	async rewrites() {
-		return [
-			{
-				source: "/oembed",
-				destination: "/api/oembed",
-			},
-		];
+	  return [
+		{
+		  source: "/oembed",
+		  destination: "/api/oembed",
+		},
+	  ];
 	},
-};
-
-export default nextConfig;
+  };
+  
+  export default nextConfig;

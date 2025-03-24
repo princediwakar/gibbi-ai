@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/hooks/useUser";
 // import { Lightbulb, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Quiz } from "@/types/quiz";
@@ -257,7 +257,7 @@ export const QuizCreator = ({ onQuizCreated }: QuizCreatorProps) => {
           </CollapsibleContent>
         </Collapsible>
 
-        <Button type="submit" disabled={isLoading} className="w-full h-12">
+        <Button type="submit" disabled={isLoading || !user} className="w-full h-12">
           {isLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />

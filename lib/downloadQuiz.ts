@@ -3,12 +3,7 @@ import { utils, writeFile } from "xlsx";
 import { supabase } from "@/lib/supabase/client";
 import { saveAs } from "file-saver";
 import { Quiz } from "@/types/quiz";
-
-interface Question {
-	question_text: string;
-	options: Record<string, string>;
-	correct_option: string;
-}
+import {Question} from '@/types/quiz'
 
 interface ExcelQuestion {
 	Question: string;

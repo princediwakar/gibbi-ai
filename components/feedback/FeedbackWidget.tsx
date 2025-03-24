@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/hooks/useUser";
 
 export function FeedbackWidget() {
 	const [isOpen, setIsOpen] = useState(false);

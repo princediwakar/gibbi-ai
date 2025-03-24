@@ -4,30 +4,29 @@ import { useRouter } from "next/navigation";
 import { Quiz } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
 import { QuizDetails } from "./QuizDetails";
-import { QuizResults } from "./QuizResults";
-import { GoBackOrHome } from "./GoBackOrHome";
-import { useUser } from "@/hooks/use-user";
-import { QuizProgress } from "./quiz/QuizProgress";
-import { QuizQuestion } from "./quiz/QuizQuestion";
+import { QuizResults } from "../quiz-results/QuizResults";
+import { GoBackOrHome } from "../GoBackOrHome";
+import { QuizProgress } from "./QuizProgress";
+import { QuizQuestion } from "./QuizQuestion";
 import { parseOptions } from "@/lib/quiz-utils";
 
 interface QuizPlayerProps {
   quiz: Quiz;
+  isCreator: boolean;
 }
 
-export const QuizPlayer = ({ quiz }: QuizPlayerProps) => {
-  const router = useRouter();
-  const user = useUser();
-  const isCreator = user?.id === quiz.creator_id;
-  
+export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
 
+  const router = useRouter();
+
   const handleEdit = () => {
-    router.push(`/quiz/${quiz.slug}?edit=true`);
+    router.push(`/quiz/${quiz.slug}/edit?edit=true`);
+    // router.refresh(); // Ensure the page updates
   };
 
   if (!quiz) {

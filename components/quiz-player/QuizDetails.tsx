@@ -1,8 +1,4 @@
-"use client";
-
 import { Quiz } from "@/types/quiz";
-// import { Button } from "@/components/ui/button";
-// import { GoBackOrHome } from "./GoBackOrHome";
 
 interface QuizDetailsProps {
 	quiz: Quiz;
@@ -62,13 +58,6 @@ export function QuizDetails({
 					</span>
 				</div>
 			</div>
-{/* 
-			<div className="grid grid-cols-2 gap-4">
-				<GoBackOrHome />
-				<Button onClick={onStart}>
-					Start Quiz
-				</Button>
-			</div> */}
 		</div>
 	);
 }

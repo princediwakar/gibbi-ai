@@ -7,9 +7,6 @@ export const generateMetadata = (): Metadata => metadata;
 
 export default function Dashboard() {
 	return (
-		<div>
-			{/* <Header /> */}
 			<QuizDashboard />
-		</div>
 	);
 }

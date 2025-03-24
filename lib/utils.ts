@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -19,6 +20,9 @@ export function generateSlug(title: string, quizId: string) {
 
 	return slug;
 }
+
+
+
 
 
 export const LANGUAGES = [
