@@ -1,19 +1,13 @@
+// components/QuizCreator.tsx
 "use client";
 
-import { useState, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useState, useCallback, memo } from "react";
 import { useUser } from "@/hooks/useUser";
-// import { Lightbulb, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { Quiz } from "@/types/quiz";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Loader2, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,35 +15,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "./ui/textarea";
-import {LANGUAGES} from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { LANGUAGES } from "@/lib/utils";
+import { signInWithGoogle } from "@/lib/supabase/auth";
+
+const PromptInput = memo(
+  ({ value, onChange, disabled }: { value: string; onChange: (value: string) => void; disabled: boolean }) => (
+    <Textarea
+      id="prompt"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Enter a topic, custom prompt, or paste text content (e.g., Maths, French History, Sentence Correction, Javascript)"
+      disabled={disabled}
+      rows={4}
+      className="w-full"
+    />
+  )
+);
+PromptInput.displayName = "PromptInput";
+
+const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 50;
+const DEFAULT_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_DEFAULT_QUESTION_COUNT) || 10;
+const DEFAULT_DIFFICULTY = process.env.NEXT_PUBLIC_DEFAULT_DIFFICULTY || "Medium";
+const STATUS_CHECK_FREQUENCY = Number(process.env.NEXT_PUBLIC_STATUS_CHECK_FREQUENCY) || 5000;
 
 interface QuizCreatorProps {
   onQuizCreated: (quiz: Quiz) => void;
 }
 
-const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT);
-const DEFAULT_QUESTION_COUNT = Number(
-  process.env.NEXT_PUBLIC_DEFAULT_QUESTION_COUNT
-);
-const DEFAULT_DIFFICULTY = process.env.NEXT_PUBLIC_DEFAULT_DIFFICULTY;
-const STATUS_CHECK_FREQUENCY = Number(
-  process.env.NEXT_PUBLIC_STATUS_CHECK_FREQUENCY
-);
-
-
-
-export const QuizCreator = ({ onQuizCreated }: QuizCreatorProps) => {
+export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
+  const [step, setStep] = useState(1);
   const [prompt, setPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [language, setLanguage] = useState("Auto");
   const [questionCount, setQuestionCount] = useState(DEFAULT_QUESTION_COUNT);
-
   const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY);
-  const [language, setLanguage] = useState('Auto');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
-
-  const user = useUser();
+  const { user } = useUser();
 
   const checkQuizStatus = useCallback(
     async (quizId: string, toastId: string | number) => {
@@ -61,163 +73,138 @@ export const QuizCreator = ({ onQuizCreated }: QuizCreatorProps) => {
           toast.success("Quiz generated successfully!", { id: toastId });
           onQuizCreated(data.quiz);
         } else if (data.status === "failed") {
-          toast.error(
-            data.error || "Quiz generation failed. Please try again.",
-            { id: toastId }
-          );
-          // Remove failed quiz from the list
-          onQuizCreated({
-            quiz_id: quizId,
-            status: "failed",
-          } as Quiz);
+          toast.error(data.error || "Quiz generation failed. Please try again.", { id: toastId });
+          onQuizCreated({ quiz_id: quizId, status: "failed" } as Quiz);
         } else {
-          toast.loading(`Generating quiz for ${prompt.slice(0, 60)}...`, {
-            id: toastId,
-          });
-          setTimeout(
-            () => checkQuizStatus(quizId, toastId),
-            STATUS_CHECK_FREQUENCY
-          );
+          toast.loading(`Generating quiz for "${prompt.slice(0, 60)}"...`, { id: toastId });
+          setTimeout(() => checkQuizStatus(quizId, toastId), STATUS_CHECK_FREQUENCY);
         }
       } catch (error) {
         console.error("Polling error:", error);
-        toast.error("Failed to check quiz status", {
-          id: toastId,
-        });
+        toast.error("Failed to check quiz status", { id: toastId });
       }
     },
     [onQuizCreated, prompt]
   );
 
-  const handleQuestionCount = (value: string) => {
+  const handleQuestionCount = useCallback((value: string) => {
     const num = parseInt(value, 10);
-
-    if (isNaN(num) || num < 0) {
-      toast.warning("Please enter a valid number greater than 0");
+    if (isNaN(num) || num < 1) {
+      toast.warning("Please enter a number greater than 0");
       return;
     }
-
     if (num > MAX_QUESTION_COUNT) {
-      toast.warning(
-        `You can generate up to ${MAX_QUESTION_COUNT} questions only`
-      );
+      toast.warning(`Maximum is ${MAX_QUESTION_COUNT} questions`);
       setQuestionCount(MAX_QUESTION_COUNT);
       return;
     }
-
     setQuestionCount(num);
-  };
+  }, []);
 
-  const handleGenerateQuiz = useCallback(
-    async (e?: React.FormEvent) => {
-      e?.preventDefault();
-      if (!prompt.trim()) {
-        toast.warning("Please enter a valid prompt...");
-        return;
-      }
+  const handleGenerateQuiz = useCallback(async () => {
+    if (!prompt.trim()) {
+      toast.warning("Please enter a valid prompt");
+      return;
+    }
+    if (!user) {
+      setIsSignInModalOpen(true);
+      return;
+    }
 
-      setIsLoading(true);
-      setIsSettingsOpen(false); // Add this line to close settings
-      const toastId = toast.loading("Starting quiz generation...");
+    setIsLoading(true);
+    const toastId = toast.loading("Starting quiz generation...");
+    setStep(1);
+    setPrompt("");
 
-      try {
-        const response = await fetch("/api/quiz/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.access_token}`,
-          },
-          body: JSON.stringify({
-            prompt,
-            creator_id: user.id,
-            question_count: questionCount,
-            difficulty,
-            language
-          }),
-        });
+    try {
+      const response = await fetch("/api/quiz/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.access_token}`, // Note: This should be session.access_token as per previous fix
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          prompt,
+          creator_id: user.id,
+          question_count: questionCount,
+          difficulty,
+          language,
+        }),
+      });
 
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Failed to create quiz");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to create quiz");
 
-        // Store the cleanup function from checkQuizStatus
-        const cleanup = checkQuizStatus(data.quiz_id, toastId);
+      checkQuizStatus(data.quiz_id, toastId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to generate quiz", {
+        id: toastId,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [prompt, user, questionCount, difficulty, language, checkQuizStatus]);
 
-        // Return cleanup function to be called if component unmounts
-        return cleanup;
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to generate quiz",
-          { id: toastId }
-        );
-      } finally {
-        setIsLoading(false);
-        setPrompt("");
-      }
-    },
-    [prompt, user, questionCount, difficulty, language, checkQuizStatus]
-  );
+  const handleNext = useCallback(() => {
+    if (!prompt.trim()) {
+      toast.warning("Please enter a prompt before proceeding");
+      return;
+    }
+    if (!user) {
+      setIsSignInModalOpen(true);
+      return;
+    }
+    setStep(2);
+  }, [prompt, user]);
+
+  const handleSignIn = useCallback(async () => {
+    try {
+      await signInWithGoogle();
+      setIsSignInModalOpen(false);
+    } catch (error: unknown) { // Explicitly type error as unknown
+      // Use the error message if available
+      toast.error(error instanceof Error ? `Failed to sign in: ${error.message}` : "Failed to sign in with Google. Please try again.");
+    }
+  }, []);
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-4xl font-bold text-gray-800 mb-12 text-center">
-        Create your quiz
-      </h2>
-      <form
-        className="space-y-6 max-w-2xl mx-auto"
-        onSubmit={handleGenerateQuiz}
-      >
-        <div className="relative">
-          {/* <Lightbulb className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" /> */}
-          <Textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter a topic, custom prompt, or paste any text content."
-            disabled={isLoading}
-            onFocus={() => setIsSettingsOpen(true)}
-          />
-        </div>
-
-        {/* Settings Collapsible */}
-        <Collapsible open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Settings className="w-4 h-4" />
-              <span>Questions Settings</span>
-              {isSettingsOpen ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 mt-4">
-            {/* Grid Layout for Settings */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Number of Questions */}
+    <div className="max-w-lg mx-auto p-6 rounded-md">
+      <div className="min-h-[300px] flex flex-col space-y-6">
+        <h2 className="text-3xl font-bold text-center">
+          {step === 1 ? "What’s your quiz about?" : "Customize Your Quiz"}
+        </h2>
+        <div className="flex-1 space-y-4">
+          {step === 1 ? (
+            <>
               <div className="space-y-2">
-                <Label>Number of Questions</Label>
+                <Label htmlFor="prompt">Prompt</Label>
+                <PromptInput value={prompt} onChange={setPrompt} disabled={isLoading} />
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="questionCount">Number of Questions</Label>
                 <Input
+                  id="questionCount"
                   type="number"
                   min="1"
-                  max={MAX_QUESTION_COUNT.toString()}
+                  max={MAX_QUESTION_COUNT}
                   value={questionCount}
                   onChange={(e) => handleQuestionCount(e.target.value)}
-                  className="w-full" // Use full width within the grid cell
+                  disabled={isLoading}
+                  className="w-full"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Enter a number between 1 and {MAX_QUESTION_COUNT}
-                </p>
               </div>
-
-              {/* Difficulty Level */}
               <div className="space-y-2">
-                <Label>Difficulty Level</Label>
+                <Label htmlFor="difficulty">Difficulty Level</Label>
                 <Select
                   value={difficulty}
-                  onValueChange={(value) => setDifficulty(value)}
+                  onValueChange={setDifficulty}
+                  disabled={isLoading}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="difficulty" className="w-full">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
@@ -227,21 +214,10 @@ export const QuizCreator = ({ onQuizCreated }: QuizCreatorProps) => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </CollapsibleContent>
-          <CollapsibleContent className="space-y-4 mt-4">
-            {/* Grid Layout for Settings */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Question Type */}
-
-              {/* Difficulty Level */}
               <div className="space-y-2">
-                <Label>Language</Label>
-                <Select
-                  value={language}
-                  onValueChange={(value) => setLanguage(value)}
-                >
-                  <SelectTrigger className="w-full">
+                <Label htmlFor="language">Language (Optional)</Label>
+                <Select value={language} onValueChange={setLanguage} disabled={isLoading}>
+                  <SelectTrigger id="language" className="w-full">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -254,20 +230,61 @@ export const QuizCreator = ({ onQuizCreated }: QuizCreatorProps) => {
                 </Select>
               </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        <Button type="submit" disabled={isLoading || !user} className="w-full h-12">
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Generating your quiz...
-            </div>
-          ) : (
-            "Generate Quiz"
           )}
-        </Button>
-      </form>
+        </div>
+        <div className="flex gap-4">
+          {step === 2 && (
+            <Button
+              variant="outline"
+              onClick={() => setStep(1)}
+              disabled={isLoading}
+              className="w-full"
+            >
+              Back
+            </Button>
+          )}
+          <Button
+            onClick={step === 1 ? handleNext : handleGenerateQuiz}
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : step === 1 ? (
+              "Next"
+            ) : (
+              "Generate Quiz"
+            )}
+          </Button>
+        </div>
+      </div>
+      <Dialog open={isSignInModalOpen} onOpenChange={setIsSignInModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription>
+              You need to sign in to create a quiz. Please sign in with Google to continue.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSignInModalOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSignIn} disabled={isLoading}>
+              Sign In with Google
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
+});
+
+QuizCreator.displayName = "QuizCreator";

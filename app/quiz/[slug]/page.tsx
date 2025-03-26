@@ -76,6 +76,7 @@ export async function generateMetadata({
   }
 }
 
+// app/quiz/[slug]/page.tsx
 export default async function QuizPage({ params }: PageProps) {
   const supabase = await createClient();
   let user = null;
@@ -84,13 +85,13 @@ export default async function QuizPage({ params }: PageProps) {
     const { data, error } = await supabase.auth.getUser();
     if (error) {
       if (error.message !== "Auth session missing!") {
-        console.error("Unexpected auth error:", error.message);
-      } // Else, user is not signed in, which is fine
+        console.error("[QuizPage] Unexpected auth error:", error.message);
+      }
     } else {
       user = data.user;
     }
   } catch (e) {
-    console.error("Failed to fetch user session:", e);
+    console.error("[QuizPage] Failed to fetch user session:", e);
   }
 
   const { slug } = await params;
@@ -101,9 +102,5 @@ export default async function QuizPage({ params }: PageProps) {
   if (!quiz) notFound();
 
   const isCreator = user?.id === quiz.creator_id;
-
-  return (
-	<QuizPlayer quiz={quiz} isCreator={isCreator} />
-  )
-    
+  return <QuizPlayer quiz={quiz} isCreator={isCreator} />;
 }

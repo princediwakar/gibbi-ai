@@ -1,3 +1,5 @@
+import { ThemeProvider } from "@/components/theme-provider"
+
 import {Header} from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner"
 import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
@@ -6,10 +8,10 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-	title: {
-		default: "QuizMaster AI",
-		template: "%s - QuizMaster AI", // Appends app name to page titles
-	  },
+	// title: {
+	// 	default: "QuizMaster AI",
+	// 	template: "%s - QuizMaster AI", // Appends app name to page titles
+	//   },
 	  description: "Create and explore AI-powered quizzes.",
 	icons: {
 		icon: "/favicon.ico",
@@ -22,8 +24,14 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<body>
+			<ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
 				{/* Include Header */}
 				<Header />
 				{/* Main Content */}
@@ -35,6 +43,8 @@ export default async function RootLayout({
 						richColors
 					/>
 				</div>
+				</ThemeProvider>
+
 			</body>
 		</html>
 	);

@@ -24,7 +24,6 @@ export function generateSlug(title: string, quizId: string) {
 
 
 
-
 export const LANGUAGES = [
 	// Europe
 	{ code: "Auto", name: "Auto" },

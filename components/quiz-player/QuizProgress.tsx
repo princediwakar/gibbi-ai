@@ -11,7 +11,7 @@ export const QuizProgress = ({ current, total }: QuizProgressProps) => (
         style={{ width: `${((current + 1) / total) * 100}%` }}
       ></div>
     </div>
-    <div className="text-sm text-gray-600 mb-6">
+    <div className="text-sm text-muted-foreground mb-6">
       Question {current + 1} of {total}
     </div>
   </>

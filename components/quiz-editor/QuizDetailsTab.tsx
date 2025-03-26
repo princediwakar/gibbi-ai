@@ -22,7 +22,7 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title" className="text-muted-foreground">Title</Label>
         {isEditing ? (
           <Input
             id="title"
@@ -31,12 +31,12 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
             className="mt-1"
           />
         ) : (
-          <p className="text-gray-900 mt-1">{quiz.title}</p>
+          <p className="mt-1">{quiz.title}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="text-muted-foreground">Description</Label>
         {isEditing ? (
           <Input
             id="description"
@@ -45,12 +45,12 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
             className="mt-1"
           />
         ) : (
-          <p className="text-gray-900 mt-1">{quiz.description || "No description provided"}</p>
+          <p className="mt-1">{quiz.description || "No description provided"}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="subject">Subject</Label>
+        <Label htmlFor="subject" className="text-muted-foreground">Subject</Label>
         {isEditing ? (
           <Input
             id="subject"
@@ -59,12 +59,12 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
             className="mt-1"
           />
         ) : (
-          <p className="text-gray-900 mt-1">{quiz.subject || "Not specified"}</p>
+          <p className="mt-1">{quiz.subject || "Not specified"}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="topic">Topic</Label>
+        <Label htmlFor="topic" className="text-muted-foreground">Topic</Label>
         {isEditing ? (
           <Input
             id="topic"
@@ -73,12 +73,12 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
             className="mt-1"
           />
         ) : (
-          <p className="text-gray-900 mt-1">{quiz.topic || "Not specified"}</p>
+          <p className="mt-1">{quiz.topic || "Not specified"}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="difficulty">Difficulty</Label>
+        <Label htmlFor="difficulty" className="text-muted-foreground">Difficulty</Label>
         {isEditing ? (
           <Select
             value={quiz.difficulty || "Medium"}
@@ -94,8 +94,15 @@ export function QuizDetailsTab({ quiz, onQuizChange, isEditing }: QuizDetailsTab
             </SelectContent>
           </Select>
         ) : (
-          <p className="text-gray-900 mt-1">{quiz.difficulty || "Medium"}</p>
+          <p className="mt-1">{quiz.difficulty || "Medium"}</p>
         )}
+      </div>
+
+      <div>
+        <Label htmlFor="questionCount" className="text-muted-foreground">Number of Questions</Label>
+        <p className="mt-1" id="questionCount">
+          {quiz.questions.length}
+        </p>
       </div>
     </div>
   );

@@ -5,12 +5,14 @@ import { useMemo } from "react";
 import { Quiz } from "@/types/quiz";
 import { Loader2 } from "lucide-react";
 import { QuizCard } from "./quiz-card/QuizCard";
+import { format, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear } from 'date-fns';
 
 interface QuizListProps {
   quizzes: Quiz[] | null;
   isLoading?: boolean;
-  onQuizDeleted?: (quizId: string) => Promise<void>; // Aligned with QuizCardProps
+  onQuizDeleted?: (quizId: string) => Promise<void>;
   emptyMessage?: string;
+  groupBy?: "date" | "subject";
 }
 
 export const QuizList = ({
@@ -18,16 +20,46 @@ export const QuizList = ({
   isLoading = false,
   onQuizDeleted,
   emptyMessage = "No quizzes available",
+  groupBy = "subject",
 }: QuizListProps) => {
-  const quizzesBySubject = useMemo(() => {
+
+  
+  const formatDate = (date: Date | string): string => {
+    const quizDate = new Date(date);
+    if (isToday(quizDate)) {
+      return 'Today';
+    } else if (isYesterday(quizDate)) {
+      return 'Yesterday';
+    } else if (isThisWeek(quizDate)) {
+      return 'This Week';
+    } else if (isThisMonth(quizDate)) {
+      return 'This Month';
+    } else if (isThisYear(quizDate)) {
+      return format(quizDate, 'LLLL'); // Full month name
+    } else {
+      return format(quizDate, 'LLLL yyyy'); // Full month name and year
+    }
+  };
+
+  const groupedQuizzes = useMemo(() => {
     if (!quizzes) return null;
-    return quizzes.reduce((acc, quiz) => {
-      const subject = quiz.subject || "General";
-      if (!acc[subject]) acc[subject] = [];
-      acc[subject].push(quiz);
-      return acc;
-    }, {} as Record<string, Quiz[]>);
-  }, [quizzes]);
+
+    if (groupBy === "date") {
+      return quizzes.reduce((acc, quiz) => {
+        const date = formatDate(quiz.created_at);
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(quiz);
+        return acc;
+      }, {} as Record<string, Quiz[]>);
+    } else { // groupBy === "subject"
+      return quizzes.reduce((acc, quiz) => {
+        const subject = quiz.subject || "General";
+        if (!acc[subject]) acc[subject] = [];
+        acc[subject].push(quiz);
+        return acc;
+      }, {} as Record<string, Quiz[]>);
+    }
+  }, [quizzes, groupBy]);
 
   if (isLoading) {
     return (
@@ -46,18 +78,18 @@ export const QuizList = ({
   
   return (
     <div className="space-y-8">
-      {quizzesBySubject && Object.keys(quizzesBySubject).length ? (
-        Object.entries(quizzesBySubject).map(([subject, quizzes]) => (
-          <div key={subject} className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-              {subject}
+      {groupedQuizzes && Object.keys(groupedQuizzes).length ? (
+        Object.entries(groupedQuizzes).map(([group, quizzes]) => (
+          <div key={group} className="space-y-4">
+            <h3 className="text-lg font-semibold text-muted-foreground border-b pb-2">
+              {group}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {quizzes.map((quiz) => (
                 <QuizCard
                   key={quiz.quiz_id}
                   quiz={quiz}
-                  onDelete={onQuizDeleted} // Now matches QuizCardProps
+                  onDelete={onQuizDeleted}
                 />
               ))}
             </div>
@@ -69,3 +101,5 @@ export const QuizList = ({
     </div>
   );
 };
+
+

@@ -58,7 +58,7 @@ export const QuizResults = ({
 
 	if (!quiz.questions) {
 		return (
-			<div className="text-center text-gray-500 py-6">
+			<div className="text-center text-muted-foreground py-6">
 				No questions available for review.
 			</div>
 		);
@@ -77,7 +77,7 @@ export const QuizResults = ({
 
 			{/* Performance Breakdown */}
 			<div className="space-y-4">
-				<h3 className="text-xl font-bold text-gray-800">
+				<h3 className="text-xl font-bold">
 					Performance Breakdown
 				</h3>
 				<div className="grid grid-cols-2 gap-4">
@@ -102,7 +102,7 @@ export const QuizResults = ({
 
 			{/* Question Review */}
 			<div className="space-y-4">
-				<h3 className="text-xl font-bold text-gray-800">
+				<h3 className="text-xl font-bold">
 					Question Review
 				</h3>
 				<Accordion
@@ -131,7 +131,7 @@ export const QuizResults = ({
 									key={index}
 									value={`item-${index}`}
 								>
-									<AccordionTrigger className="hover:no-underline w-full px-4 py-3 rounded-lg hover:bg-gray-50">
+									<AccordionTrigger className="hover:no-underline w-full px-4 py-3 rounded-lg ">
 										<div className="flex items-start space-x-3 w-full">
 											{isCorrect ? (
 												<Check className="w-5 h-5 text-green-500 shrink-0 mt-1" />
@@ -139,13 +139,13 @@ export const QuizResults = ({
 												<X className="w-5 h-5 text-red-500 shrink-0 mt-1" />
 											)}
 											<div className="text-left flex-1 min-w-0">
-												<span className="font-medium text-gray-800">
+												<span className="font-medium">
 													Q
 													{index +
 														1}
 													:{" "}
 												</span>
-												<span className="whitespace-normal break-words text-gray-700">
+												<span className="whitespace-normal break-words">
 													{renderMathContent(
 														question.question_text
 													)}
@@ -154,8 +154,8 @@ export const QuizResults = ({
 										</div>
 									</AccordionTrigger>
 									<AccordionContent className="px-4">
-										<div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-											<div className="text-sm text-gray-700">
+										<div className="space-y-3 p-4  rounded-lg">
+											<div className="text-sm">
 												Your answer:{" "}
 												{renderMathContent(
 													optionsMap[
@@ -165,7 +165,7 @@ export const QuizResults = ({
 													"No answer"}
 											</div>
 											{!isCorrect && (
-												<div className="text-sm text-gray-700">
+												<div className="text-sm ">
 													Correct
 													answer:{" "}
 													{renderMathContent(
@@ -185,7 +185,7 @@ export const QuizResults = ({
 			</div>
 
 			{/* Navigation */}
-			<div className="flex gap-4">
+			<div className="space-y-8">
 				<GoBackOrHome />
 			</div>
 		</div>

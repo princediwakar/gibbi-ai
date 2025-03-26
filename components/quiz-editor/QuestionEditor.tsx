@@ -18,7 +18,7 @@ import { X } from "lucide-react";
 
 interface QuestionEditorProps {
   question: Question;
-  questionIndex: number; // Added to display question number
+  questionIndex: number;
   onChange: (
     questionId: number | undefined,
     field: string,
@@ -34,7 +34,7 @@ export const QuestionEditor = memo(
     return (
       <div className="border p-4 rounded-lg space-y-4">
         <div className="flex justify-between items-center">
-          <h4 className="font-medium">Question {questionIndex + 1}</h4>
+          <h4 className="font-medium text-muted-foreground">Question {questionIndex + 1}</h4>
           {isEditing && (
             <Button
               variant="ghost"
@@ -47,7 +47,7 @@ export const QuestionEditor = memo(
         </div>
 
         <div className="space-y-2">
-          <Label>Question Text</Label>
+          <Label className="text-muted-foreground">Question Text</Label>
           {isEditing ? (
             <Textarea
               value={question.question_text}
@@ -55,14 +55,14 @@ export const QuestionEditor = memo(
               placeholder="Enter question text"
             />
           ) : (
-            <p className="text-gray-900">{question.question_text || "No question text"}</p>
+            <p >{question.question_text || "No question text"}</p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           {Object.entries(question.options).map(([key, value]) => (
             <div key={key} className="space-y-2">
-              <Label>Option {key.toUpperCase()}</Label>
+              <Label className="text-muted-foreground">Option {key.toUpperCase()}</Label>
               {isEditing ? (
                 <Input
                   value={value}
@@ -70,15 +70,15 @@ export const QuestionEditor = memo(
                   placeholder={`Option ${key.toUpperCase()}`}
                 />
               ) : (
-                <p className="text-gray-900">{value || "Not specified"}</p>
+                <p >{value || "Not specified"}</p>
               )}
             </div>
           ))}
         </div>
-        {isEditing && (
+
         <div className="space-y-2">
-          <Label>Correct Answer</Label>
-          
+          <Label className="text-muted-foreground">Correct Answer</Label>
+          {isEditing ? (
             <Select
               value={question.correct_option}
               onValueChange={(value) => onChange(question.question_id, "correct_option", value)}
@@ -94,8 +94,12 @@ export const QuestionEditor = memo(
                 ))}
               </SelectContent>
             </Select>
-        </div>
+          ) : (
+            <p >
+              Option {question.correct_option.toUpperCase()}
+            </p>
           )}
+        </div>
       </div>
     );
   }

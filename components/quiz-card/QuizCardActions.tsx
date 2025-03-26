@@ -92,6 +92,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
       const response = await fetch("/api/quiz/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Send cookies
         body: JSON.stringify({ quizId: quiz.quiz_id, userId: user.id }),
       });
 

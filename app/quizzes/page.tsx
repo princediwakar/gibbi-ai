@@ -17,7 +17,9 @@ export default function QuizzesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Public Library</h2>
+      <div>      
+        <h1 className="text-3xl font-bold mb-4">From the community</h1>
+        <p className="text-muted-foreground">Discover quizzes on all sorts of topics created & shared by the community.</p></div>
       <div className="relative flex gap-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -30,6 +32,7 @@ export default function QuizzesPage() {
       </div>
       <QuizList
         quizzes={quizzes}
+        groupBy="subject"
         isLoading={isInitialLoading}
         emptyMessage={
           searchQuery

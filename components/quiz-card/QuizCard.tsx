@@ -14,7 +14,7 @@ interface QuizCardProps {
 }
 
 export function QuizCard({ quiz, onDelete, className }: QuizCardProps) {
-  const user = useUser();
+  const {user} = useUser();
   const isCreator = user?.id === quiz.creator_id;
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);

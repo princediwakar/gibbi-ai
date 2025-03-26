@@ -29,7 +29,6 @@ async function getCreatorName(creatorId: string): Promise<string> {
 
 export async function getPublicQuizzes(searchQuery: string = ""): Promise<Quiz[]> {
   try {
-    console.log("[getPublicQuizzes] Starting with searchQuery:", searchQuery); // Debug
 
     let query = supabase
       .from("quiz_with_counts")
@@ -39,7 +38,6 @@ export async function getPublicQuizzes(searchQuery: string = ""): Promise<Quiz[]
       .order("created_at", { ascending: false });
 
     if (searchQuery) {
-      console.log("[getPublicQuizzes] Applying filter for:", searchQuery); // Debug
       query = query.or(
         `title.ilike.%${searchQuery}%,subject.ilike.%${searchQuery}%,topic.ilike.%${searchQuery}%`
       );
@@ -51,10 +49,8 @@ export async function getPublicQuizzes(searchQuery: string = ""): Promise<Quiz[]
       throw quizzesError;
     }
 
-    console.log("[getPublicQuizzes] Quizzes fetched:", quizzes?.length || 0); // Debug
 
     if (!quizzes || quizzes.length === 0) {
-      console.log("[getPublicQuizzes] No quizzes found for query:", searchQuery);
       return [];
     }
 
@@ -67,7 +63,6 @@ export async function getPublicQuizzes(searchQuery: string = ""): Promise<Quiz[]
       creator_name: userMap.get(quiz.creator_id) || "Anonymous",
     }));
 
-    console.log("[getPublicQuizzes] Returning enriched quizzes:", enrichedQuizzes.length); // Debug
     return enrichedQuizzes;
   } catch (error) {
     console.error("[getPublicQuizzes] Unexpected Error:", error);

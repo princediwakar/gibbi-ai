@@ -9,11 +9,11 @@ import { QuizQuestionsTab } from "./QuizQuestionsTab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface QuizEditorProps {
   quiz: Quiz;
-  initialEditMode?: boolean; // Optional: Start in edit mode via URL param
+  initialEditMode?: boolean;
 }
 
 export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) => {
@@ -21,6 +21,7 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedQuiz, setEditedQuiz] = useState<Quiz>(quiz);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletedQuestionIds, setDeletedQuestionIds] = useState<(number | undefined)[]>([]); // Track deleted IDs
 
   const handleQuizChange = useCallback((field: keyof Quiz, value: string) => {
     setEditedQuiz((prev) => ({ ...prev, [field]: value }));
@@ -48,28 +49,45 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
       questions: [
         ...prev.questions,
         {
-          question_id: generateTempId(), // Temporary for UI only
+          question_id: generateTempId(),
           question_text: "",
           options: { A: "", B: "", C: "", D: "" },
           correct_option: "A",
-          isNew: true, // Mark as new
+          isNew: true,
         },
       ],
     }));
   }, []);
+
   const handleRemoveQuestion = useCallback((questionId: number | undefined) => {
     setEditedQuiz((prev) => ({
       ...prev,
       questions: prev.questions.filter((q) => q.question_id !== questionId),
     }));
-  }, []);
+    // Only add to deletedQuestionIds if it’s an existing question (not a new, unsaved one)
+    if (questionId && !quiz.questions.find((q) => q.question_id === questionId)?.isNew) {
+      setDeletedQuestionIds((prev) => [...prev, questionId]);
+    }
+  }, [quiz.questions]);
 
   const handleSave = useCallback(async () => {
+    const invalidQuestions = editedQuiz.questions.filter(
+      (q) =>
+        !q.question_text.trim() ||
+        Object.values(q.options).every((opt) => !opt.trim()) ||
+        !q.correct_option
+    );
+    if (invalidQuestions.length > 0) {
+      toast.error("Please fill in all question text, options, and correct answers.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const response = await fetch("/api/quiz/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Send cookies
         body: JSON.stringify({
           quizId: editedQuiz.quiz_id,
           details: {
@@ -80,43 +98,54 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
             difficulty: editedQuiz.difficulty,
           },
           questions: editedQuiz.questions.map((q) => ({
-            // Exclude question_id for new questions, let server assign it
             ...(q.isNew ? {} : { question_id: q.question_id }),
             question_text: q.question_text,
             options: q.options,
             correct_option: q.correct_option,
           })),
+          deletedQuestionIds, // Send deleted IDs to API
         }),
       });
-  
+
       if (!response.ok) throw new Error("Failed to update quiz");
-  
-      const updatedQuiz = await response.json(); // Expect server to return updated quiz with proper IDs
+
+      const updatedQuiz = await response.json();
       toast.success("Quiz updated successfully");
       setIsEditing(false);
-      setEditedQuiz(updatedQuiz); // Update local state with server response
+      setEditedQuiz(updatedQuiz);
+      setDeletedQuestionIds([]); // Clear deleted IDs after successful save
     } catch (error) {
       toast.error("Failed to update quiz");
       console.error("Error updating quiz:", error);
     } finally {
       setIsSaving(false);
     }
-  }, [editedQuiz]);
+  }, [editedQuiz, deletedQuestionIds]);
 
-
-  
   const handleStart = useCallback(() => {
     router.push(`/quiz/${quiz.slug}`);
   }, [quiz.slug, router]);
 
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{quiz.title}</h2>
-        <div className="flex gap-4">
-          <Button variant="outline" onClick={handleStart} disabled={isSaving}>
-            Start Quiz
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleBack}
+            disabled={isSaving}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <h2 className="text-2xl font-bold">{quiz.title}</h2>
+        </div>
+        <div className="flex gap-4">
           {isEditing ? (
             <>
               <Button
@@ -131,11 +160,13 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Pencil className="mr-2 h-4 w-4" />
+            <Button variant="outline" onClick={() => setIsEditing(true)}>
               Edit Quiz
             </Button>
           )}
+          <Button onClick={handleStart} disabled={isSaving}>
+            Start Quiz
+          </Button>
         </div>
       </div>
 

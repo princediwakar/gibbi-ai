@@ -8,9 +8,11 @@ import { SignInButton } from "./SignInButton";
 import { UserMenu } from "./UserMenu";
 import { signOut } from "@/lib/supabase/auth";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggleButton"; // Import the ThemeToggle component
 
 export const Header = memo(() => {
-  const user = useUser();
+  const { user, isLoading } = useUser();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -24,8 +26,31 @@ export const Header = memo(() => {
     }
   };
 
+  // Show a loading state while the user data is being fetched
+  if (isLoading) {
+    return (
+      <div className="border-b">
+      <header className="flex justify-between items-center max-w-5xl p-4 mx-auto">
+        <nav className="flex items-center space-x-8">
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <h1 className="text-xl font-bold">QuizMaster AI</h1>
+          </Link>
+          <Link href="/quizzes" className="hover:opacity-80 transition-opacity">
+            Explore
+          </Link>
+        </nav>
+        <div className="flex items-center space-x-4">
+          {/* Show a loading indicator */}
+          <Loader2 className="size-6 animate-spin" />
+        </div>
+      </header>
+      </div>
+    );
+  }
+
   return (
-    <header className="flex justify-between items-center p-4 max-w-5xl mx-auto text-gray-900">
+    <div className="border-b">
+      <header className="flex justify-between items-center max-w-5xl p-4 mx-auto">
       <nav className="flex items-center space-x-8">
         <Link href="/" className="hover:opacity-80 transition-opacity">
           <h1 className="text-xl font-bold">QuizMaster AI</h1>
@@ -35,6 +60,7 @@ export const Header = memo(() => {
         </Link>
       </nav>
       <div className="flex items-center space-x-4">
+        <ThemeToggle />
         {user ? (
           <UserMenu
             user={user}
@@ -47,6 +73,7 @@ export const Header = memo(() => {
         )}
       </div>
     </header>
+    </div>
   );
 });
 

@@ -29,7 +29,7 @@ export function FeedbackWidget() {
 	const [category, setCategory] = useState("");
 	const [rating, setRating] = useState(0);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const user = useUser();
+	const {user} = useUser();
 
 	const handleSubmit = async () => {
 		if (!feedback.trim() || !category) {

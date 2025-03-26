@@ -18,7 +18,7 @@ export const ShareableResultsCard = ({
 	score,
 	percentage,
 }: ShareableResultsCardProps) => {
-	const user = useUser();
+	const {user} = useUser();
 	
 
 	return (

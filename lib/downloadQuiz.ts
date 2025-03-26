@@ -77,6 +77,7 @@ export const downloadQuiz = async (
 					headers: {
 						"Content-Type": "application/json",
 					},
+					credentials: "include", // Send cookies
 					body: JSON.stringify({
 						quiz: {
 							title: quiz.title,

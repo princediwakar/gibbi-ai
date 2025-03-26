@@ -14,19 +14,19 @@ export function QuizDetails({
 			<h1 className="text-3xl font-bold">
 				{quiz.title}
 			</h1>
-			<p className="text-gray-600">
+			<p className="text-muted-foreground">
 				Created by: {quiz.creator_name || "Unknown"}
 			</p>
 
 			{quiz.description && (
-				<p className="text-gray-600">
+				<p className="text-muted-foreground">
 					{quiz.description}
 				</p>
 			)}
 
 			<div className="grid grid-cols-2 gap-4">
 				<div className="flex flex-col space-y-1">
-					<span className="text-sm text-gray-500">
+					<span className="text-sm text-muted-foreground">
 						Subject
 					</span>
 					<span className="font-medium">
@@ -34,7 +34,7 @@ export function QuizDetails({
 					</span>
 				</div>
 				<div className="flex flex-col space-y-1">
-					<span className="text-sm text-gray-500">
+					<span className="text-sm text-muted-foreground">
 						Topic
 					</span>
 					<span className="font-medium">
@@ -42,7 +42,7 @@ export function QuizDetails({
 					</span>
 				</div>
 				<div className="flex flex-col space-y-1">
-					<span className="text-sm text-gray-500">
+					<span className="text-sm text-muted-foreground">
 						Difficulty
 					</span>
 					<span className="font-medium">
@@ -50,7 +50,7 @@ export function QuizDetails({
 					</span>
 				</div>
 				<div className="flex flex-col space-y-1">
-					<span className="text-sm text-gray-500">
+					<span className="text-sm text-muted-foreground">
 						Questions
 					</span>
 					<span className="font-medium">

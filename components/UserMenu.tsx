@@ -31,10 +31,10 @@ export const UserMenu = memo(({ user, isOpen, onOpenChange, onSignOut }: UserMen
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="p-0 rounded-full hover:opacity-80 transition-opacity">
+        <Button variant="ghost" className="size-6 p-0 rounded-full hover:opacity-80 transition-opacity">
           <Avatar>
             <AvatarImage src={avatarUrl} alt="User avatar" />
-            <AvatarFallback className="text-gray-900">{initials}</AvatarFallback>
+            <AvatarFallback className="">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

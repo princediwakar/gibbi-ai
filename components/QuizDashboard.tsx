@@ -1,7 +1,7 @@
 // components/QuizDashboard.tsx
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { QuizCreator } from "./QuizCreator";
 import { QuizList } from "./QuizList";
 import { Quiz } from "@/types/quiz";
@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
 export function QuizDashboard() {
-  const user = useUser();
+  const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const { quizzes, setQuizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } =
     useQuizzes({ userId: user?.id, searchQuery });
+
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   const onQuizCreated = useCallback(
     (quiz: Quiz) => handleQuizCreated(quiz, setQuizzes),
@@ -30,12 +32,35 @@ export function QuizDashboard() {
     [setQuizzes]
   );
 
+  useEffect(() => {
+    if (!hasMore || isLoadingMore || isInitialLoading) return;
+
+    const sentinel = observerRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          console.log("Bottom of list reached, loading more quizzes");
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.unobserve(sentinel);
+    };
+  }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
+
   return (
-    <div className="max-w-5xl mx-auto space-y-24 p-4">
+    <div className="mx-auto space-y-16 p-6">
       <QuizCreator onQuizCreated={onQuizCreated} />
       {user && (
         <div className="space-y-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">My Library</h2>
+          <h2 className="text-xl font-bold mb-4">My Quizzes</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -48,6 +73,7 @@ export function QuizDashboard() {
           </div>
           <QuizList
             quizzes={quizzes}
+            groupBy="date"
             isLoading={isInitialLoading}
             onQuizDeleted={onQuizDeleted}
             emptyMessage={
@@ -56,10 +82,18 @@ export function QuizDashboard() {
                 : "No quizzes available. Create one to get started!"
             }
           />
+          {isLoadingMore && (
+            <div className="text-center py-4">
+              <span className="text-muted-foreground">Loading more quizzes...</span>
+            </div>
+          )}
           {!isInitialLoading && hasMore && (
+            <div ref={observerRef} className="h-10" />
+          )}
+          {!isInitialLoading && hasMore && !isLoadingMore && (
             <div className="text-center">
               <Button onClick={loadMore} disabled={isLoadingMore}>
-                {isLoadingMore ? "Loading..." : "Load More"}
+                Load More
               </Button>
             </div>
           )}
