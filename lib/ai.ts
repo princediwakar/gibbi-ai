@@ -91,8 +91,8 @@ export async function createQuizWithAI(
     2. Language: ${language}. Auto-detect the language if needed.
     3. Output must be a valid JSON object strictly matching this format:
     {
-        "title": string, // Keep it short.
-        "description": string, // It should sound like a quiz description.
+        "title": string, //
+        "description": string, // Keep it verbose.
         "topic": string,
         "subject": string, // Parent category of topic. Be consistent in naming. e.g. Use "Mathematics" for "Maths", "Math"
         "language": string, // Default: English

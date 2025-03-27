@@ -143,7 +143,7 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-2xl font-bold">{quiz.title}</h2>
+          <h2 className="text-2xl font-bold">{quiz.title.length > 40  ? `${quiz.title.slice(0, 40)}...` : quiz.title}</h2>
         </div>
         <div className="flex gap-4">
           {isEditing ? (

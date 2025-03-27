@@ -38,7 +38,7 @@ export async function generateMetadata({
 
     return {
       title: quiz.title,
-      description: `Take the ${quiz.title} quiz on ${quiz.topic || "various topics"}. Created by ${quiz.creator_name || "Unknown"}. ${quiz.description || "Test your knowledge now!"}`,
+      description: `${quiz.description}`,
       keywords: [
         quiz.title,
         quiz.topic,
@@ -50,7 +50,7 @@ export async function generateMetadata({
       ].filter(Boolean) as string[],
       openGraph: {
         title: quiz.title,
-        description: `Take the ${quiz.title} quiz on ${quiz.topic || "various topics"}. Created by ${quiz.creator_name || "Unknown"}.`,
+        description: `${quiz.description}`,
         url: `${baseUrl}/quiz/${slug}`,
         images: [
           {
@@ -63,7 +63,7 @@ export async function generateMetadata({
       },
       twitter: {
         title: quiz.title,
-        description: `Take the ${quiz.title} quiz on ${quiz.topic || "various topics"}. Created by ${quiz.creator_name || "Unknown"}.`,
+        description: `${quiz.description}`,
         images: [ogImageUrl],
       },
     };

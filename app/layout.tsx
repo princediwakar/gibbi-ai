@@ -8,10 +8,10 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-	// title: {
-	// 	default: "QuizMaster AI",
-	// 	template: "%s - QuizMaster AI", // Appends app name to page titles
-	//   },
+	title: {
+		default: "QuizMaster AI",
+		template: "%s - QuizMaster AI", // Appends app name to page titles
+	  },
 	  description: "Create and explore AI-powered quizzes.",
 	icons: {
 		icon: "/favicon.ico",

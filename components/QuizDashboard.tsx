@@ -11,9 +11,11 @@ import { handleQuizCreated, handleQuizDeleted } from "./quiz-handlers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import IndexPage from "@/app/landing/page";
+import Image from "next/image";
 
 export function QuizDashboard() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const { quizzes, setQuizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } =
     useQuizzes({ userId: user?.id, searchQuery });
@@ -56,11 +58,16 @@ export function QuizDashboard() {
   }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
 
   return (
-    <div className="mx-auto space-y-16 p-6">
+    <div className="flex flex-col items-center mx-auto space-y-8 p-6">
+        <Image src="/Q.svg" alt="Quizmaster logo" height={60} width={60} />
       <QuizCreator onQuizCreated={onQuizCreated} />
-      {user && (
-        <div className="space-y-8">
-          <h2 className="text-xl font-bold mb-4">My Quizzes</h2>
+      {isUserLoading || isInitialLoading ? ( // Show loading state only below QuizCreator
+          <div className="text-center py-4">
+            <span className="text-muted-foreground">Loading...</span>
+          </div>
+      ) : user ? (
+        <div className="space-y-8 w-full"> {/* Add w-full to ensure proper width */}
+          <h2 className="text-xl font-bold mb-4">My Quizzes</h2> {/* Remove text-center to avoid centering */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -98,7 +105,7 @@ export function QuizDashboard() {
             </div>
           )}
         </div>
-      )}
+      ) : <IndexPage />}
     </div>
   );
 }

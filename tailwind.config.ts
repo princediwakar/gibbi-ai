@@ -104,6 +104,9 @@ export default {
 					},
 				},
 			},
+			textColor: {
+				'gradient_indigo-purple': 'linear-gradient(to right, #6EE7B7, #3B82F6)', // Example gradient
+			  },
 			animation: {
 				"accordion-down":
 					"accordion-down 0.2s ease-out",

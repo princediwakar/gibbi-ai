@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+
+
 export default function QuizzesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { quizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } = useQuizzes({

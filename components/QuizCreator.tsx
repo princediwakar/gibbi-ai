@@ -34,7 +34,7 @@ const PromptInput = memo(
       id="prompt"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Enter a topic, custom prompt, or paste text content (e.g., Maths, French History, Sentence Correction, Javascript)"
+      placeholder="Enter a topic, or paste text content"
       disabled={disabled}
       rows={4}
       className="w-full"
@@ -60,6 +60,8 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [storedPrompt, setStoredPrompt] = useState(""); // New state to store the prompt
+
 
   const { user } = useUser();
 
@@ -152,6 +154,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       return;
     }
     if (!user) {
+      setStoredPrompt(prompt)
       setIsSignInModalOpen(true);
       return;
     }
@@ -162,16 +165,17 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     try {
       await signInWithGoogle();
       setIsSignInModalOpen(false);
+      setPrompt(storedPrompt); // Restore the prompt after successful sign-in
     } catch (error: unknown) { // Explicitly type error as unknown
       // Use the error message if available
       toast.error(error instanceof Error ? `Failed to sign in: ${error.message}` : "Failed to sign in with Google. Please try again.");
     }
-  }, []);
+  }, [storedPrompt]);
 
   return (
-    <div className="max-w-lg mx-auto p-6 rounded-md">
-      <div className="min-h-[300px] flex flex-col space-y-6">
-        <h2 className="text-3xl font-bold text-center">
+    <div className="max-w-2xl w-full mx-auto p-6">
+      <div className="min-h-[275px] flex flex-col space-y-6">
+        <h2 className="text-5xl font-bold text-center">
           {step === 1 ? "What’s your quiz about?" : "Customize Your Quiz"}
         </h2>
         <div className="flex-1 space-y-4">
@@ -185,7 +189,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="questionCount">Number of Questions</Label>
+                <Label htmlFor="questionCount">No. of Questions</Label>
                 <Input
                   id="questionCount"
                   type="number"

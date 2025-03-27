@@ -18,7 +18,7 @@ export function SignInButton() {
           fill="currentColor"
         />
       </svg>
-      Login with Google
+      Login
     </Button>
   );
 };
