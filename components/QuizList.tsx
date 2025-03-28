@@ -3,16 +3,20 @@
 
 import { useMemo } from "react";
 import { Quiz } from "@/types/quiz";
-import { Loader2 } from "lucide-react";
+import {  Loader2 } from "lucide-react";
 import { QuizCard } from "./quiz-card/QuizCard";
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear } from 'date-fns';
+import Link from "next/link";
 
 interface QuizListProps {
   quizzes: Quiz[] | null;
   isLoading?: boolean;
-  onQuizDeleted?: (quizId: string) => Promise<void>;
+  onQuizDeleted?: (quizId: string) => void;
   emptyMessage?: string;
   groupBy?: "date" | "subject";
+
+  showViewMore?: boolean; // Optional prop, only for public quizzes
+
 }
 
 export const QuizList = ({
@@ -21,6 +25,9 @@ export const QuizList = ({
   onQuizDeleted,
   emptyMessage = "No quizzes available",
   groupBy = "subject",
+  
+  showViewMore = false, // Default to false
+
 }: QuizListProps) => {
 
   
@@ -81,9 +88,19 @@ export const QuizList = ({
       {groupedQuizzes && Object.keys(groupedQuizzes).length ? (
         Object.entries(groupedQuizzes).map(([group, quizzes]) => (
           <div key={group} className="space-y-4">
-            <h3 className="text-lg font-semibold text-muted-foreground border-b pb-2">
+            <div className="flex justify-between items-center border-b">
+            <h3 className="text-lg font-semibold text-muted-foreground  pb-2">
               {group}
             </h3>
+            {showViewMore && (
+                <Link
+                  href={`/quizzes/${encodeURIComponent(group)}`}
+                  className="text-primary hover:underline"
+                >
+                  View More
+                </Link>
+              )}
+              </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {quizzes.map((quiz) => (
                 <QuizCard

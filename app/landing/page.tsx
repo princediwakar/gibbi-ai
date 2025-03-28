@@ -9,7 +9,7 @@ import Testimonials from "@/components/sections/testimonials";
 
 export default function IndexPage() {
   return (
-    <>
+    <div className="mt-28">
       <HeroLanding />
       {/* <PreviewLanding /> */}
       {/* <Powered /> */}
@@ -18,6 +18,6 @@ export default function IndexPage() {
       {/* <InfoLanding data={infos[1]} /> */}
       <Features />
       <Testimonials />
-    </>
+    </div>
   );
 }

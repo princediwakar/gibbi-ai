@@ -7,6 +7,7 @@ import { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
+
 export const metadata: Metadata = {
 	title: {
 		default: "QuizMaster AI",
@@ -18,7 +19,9 @@ export const metadata: Metadata = {
 	},
 };
 
-export default async function RootLayout({
+
+
+export default function RootLayout({
 	children,
 }: {
 	children: React.ReactNode;

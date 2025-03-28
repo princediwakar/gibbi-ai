@@ -92,7 +92,7 @@ export async function createQuizWithAI(
     3. Output must be a valid JSON object strictly matching this format:
     {
         "title": string, //
-        "description": string, // Keep it verbose.
+        "description": string, // Make it absolutely SEO-friendly.
         "topic": string,
         "subject": string, // Parent category of topic. Be consistent in naming. e.g. Use "Mathematics" for "Maths", "Math"
         "language": string, // Default: English

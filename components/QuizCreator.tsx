@@ -34,7 +34,7 @@ const PromptInput = memo(
       id="prompt"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder="Enter a topic, or paste text content"
+      placeholder="Enter a topic or paste text content"
       disabled={disabled}
       rows={4}
       className="w-full"
@@ -60,7 +60,6 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [difficulty, setDifficulty] = useState(DEFAULT_DIFFICULTY);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [storedPrompt, setStoredPrompt] = useState(""); // New state to store the prompt
 
 
   const { user } = useUser();
@@ -154,7 +153,6 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       return;
     }
     if (!user) {
-      setStoredPrompt(prompt)
       setIsSignInModalOpen(true);
       return;
     }
@@ -165,12 +163,11 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     try {
       await signInWithGoogle();
       setIsSignInModalOpen(false);
-      setPrompt(storedPrompt); // Restore the prompt after successful sign-in
     } catch (error: unknown) { // Explicitly type error as unknown
       // Use the error message if available
       toast.error(error instanceof Error ? `Failed to sign in: ${error.message}` : "Failed to sign in with Google. Please try again.");
     }
-  }, [storedPrompt]);
+  }, []);
 
   return (
     <div className="max-w-2xl w-full mx-auto p-6">
@@ -182,7 +179,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
           {step === 1 ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="prompt">Prompt</Label>
+                {/* <Label htmlFor="prompt">Topic</Label> */}
                 <PromptInput value={prompt} onChange={setPrompt} disabled={isLoading} />
               </div>
             </>

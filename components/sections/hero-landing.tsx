@@ -10,20 +10,6 @@ export default function HeroLanding() {
   return (
     <section className="space-y-6 py-12 sm:py-20 lg:py-20">
       <div className="container flex max-w-5xl flex-col items-center gap-5 text-center">
-        {/* <Image src="/Q.svg" alt="Quizmaster logo" height={200} width={200}
-        /> */}
-        {/* <Link
-          href="https://twitter.com/quizmasterai"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm", rounded: "full" }),
-            "px-4",
-          )}
-          target="_blank"
-        >
-          <span className="mr-3">🚀</span>
-          <span className="hidden md:flex">Follow us on&nbsp;</span> Twitter
-          <Twitter className="ml-2 size-3.5" />
-        </Link> */}
 
         <h1 className="text-balance font-urban text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-[66px]">
           Create Engaging Quizzes with{" "}

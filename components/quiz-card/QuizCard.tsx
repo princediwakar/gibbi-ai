@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface QuizCardProps {
   quiz: Quiz;
-  onDelete?: (quizId: string) => Promise<void>; // Made optional
+  onDelete?: (quizId: string) => void; // Made optional
   className?: string;
 }
 

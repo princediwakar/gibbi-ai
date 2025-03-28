@@ -42,7 +42,7 @@ interface QuizCardActionsProps {
   setIsDeleted: (value: boolean) => void;
   isDeleteDialogOpen: boolean;
   setIsDeleteDialogOpen: (value: boolean) => void;
-  onDelete?: (quizId: string) => Promise<void>; // Made optional
+  onDelete?: (quizId: string) => void; // Made optional
 }
 
 export const QuizCardActions: FC<QuizCardActionsProps> = ({
@@ -181,7 +181,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
           <DialogHeader>
             <DialogTitle>Delete Quiz</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete `&quot;`{quiz.title}`&quot;`? This action cannot be
+              Are you sure you want to delete &quot;{quiz.title}&quot;? This action cannot be
               undone.
             </DialogDescription>
           </DialogHeader>

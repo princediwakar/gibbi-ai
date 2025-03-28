@@ -28,8 +28,8 @@ export function QuizDashboard() {
   );
 
   const onQuizDeleted = useCallback(
-    (deletedQuizId: string): Promise<void> => {
-      return Promise.resolve(handleQuizDeleted(deletedQuizId, setQuizzes));
+    (deletedQuizId: string): void => {
+      return handleQuizDeleted(deletedQuizId, setQuizzes);
     },
     [setQuizzes]
   );
@@ -59,12 +59,12 @@ export function QuizDashboard() {
 
   return (
     <div className="flex flex-col items-center mx-auto space-y-8 p-6">
-        <Image src="/Q.svg" alt="Quizmaster logo" height={60} width={60} />
+      <Image src="/Q.svg" alt="Quizmaster logo" height={60} width={60} priority />
       <QuizCreator onQuizCreated={onQuizCreated} />
       {isUserLoading || isInitialLoading ? ( // Show loading state only below QuizCreator
-          <div className="text-center py-4">
-            <span className="text-muted-foreground">Loading...</span>
-          </div>
+        <div className="text-center py-4">
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
       ) : user ? (
         <div className="space-y-8 w-full"> {/* Add w-full to ensure proper width */}
           <h2 className="text-xl font-bold mb-4">My Quizzes</h2> {/* Remove text-center to avoid centering */}
@@ -76,6 +76,7 @@ export function QuizDashboard() {
               className="pl-10 max-w-md"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search quizzes"
             />
           </div>
           <QuizList

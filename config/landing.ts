@@ -2,51 +2,48 @@ import { FeatureLdg, InfoLdg, TestimonialType } from "@/types";
 
 export const infos: InfoLdg[] = [
   {
-    title: "Empower your projects",
+    title: "Create Quizzes Effortlessly",
     description:
-      "Unlock the full potential of your projects with our open-source SaaS platform. Collaborate seamlessly, innovate effortlessly, and scale limitlessly.",
-    image: "/_static/illustrations/work-from-home.jpg",
+      "With QuizMaster AI, you can generate quizzes in seconds. Just provide a topic or paste text, and our AI will create engaging questions for you.",
+    image: "/_static/illustrations/work-from-home.jpg", // Update the image path
     list: [
       {
-        title: "Collaborative",
-        description: "Work together with your team members in real-time.",
-        icon: "laptop",
+        title: "AI-Powered",
+        description: "Leverage AI to generate quizzes instantly.",
+        icon: "brain",
       },
       {
-        title: "Innovative",
-        description: "Stay ahead of the curve with access constant updates.",
+        title: "Customizable",
+        description: "Tailor quizzes to your specific needs.",
         icon: "settings",
       },
       {
-        title: "Scalable",
-        description:
-          "Our platform offers the scalability needed to adapt to your needs.",
-        icon: "search",
+        title: "Shareable",
+        description: "Easily share quizzes with your audience.",
+        icon: "share",
       },
     ],
   },
   {
-    title: "Seamless Integration",
+    title: "Track and Analyze Quiz Performance",
     description:
-      "Integrate our open-source SaaS seamlessly into your existing workflows. Effortlessly connect with your favorite tools and services for a streamlined experience.",
-    image: "/_static/illustrations/work-from-home.jpg",
+      "Get detailed analytics on quiz attempts, scores, and engagement. Use these insights to improve your quizzes and better understand your audience.",
+    image: "/_static/illustrations/work-from-home.jpg", // Update the image path
     list: [
       {
-        title: "Flexible",
-        description:
-          "Customize your integrations to fit your unique requirements.",
-        icon: "laptop",
+        title: "Data-Driven",
+        description: "Access comprehensive quiz analytics.",
+        icon: "chartBar",
       },
       {
-        title: "Efficient",
-        description: "Streamline your processes and reducing manual effort.",
+        title: "Insightful",
+        description: "Understand user performance and engagement.",
         icon: "search",
       },
       {
-        title: "Reliable",
-        description:
-          "Rely on our robust infrastructure and comprehensive documentation.",
-        icon: "settings",
+        title: "Actionable",
+        description: "Use insights to improve your quizzes.",
+        icon: "arrowRight",
       },
     ],
   },
