@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggleButton"; // Import the ThemeToggle component
 
+
 export const Header = memo(() => {
   const { user, isUserLoading } = useUser();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

@@ -20,7 +20,7 @@ import { randomUUID } from "crypto";
 // validateEnvVars();
 
 const OPENAI_API_KEY =
-	"sk-6206ad67e8d14d408739f44fc49b478e";
+	process.env.OPENAI_API_KEY
 const BASE_URL = "https://api.deepseek.com/v1";
 
 const defaultQuestionCount = 15;

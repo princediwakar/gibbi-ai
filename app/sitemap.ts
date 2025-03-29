@@ -5,6 +5,10 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const quizzesPerSitemap = 50000; // Maximum allowed by sitemap standards
 const subjectsPerSitemap = 50000; // Maximum allowed by sitemap standards
 
+console.log('Base URL:', baseUrl);
+console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
 async function getQuizCount() {
   const { error, count } = await supabase
     .from('quizzes')
@@ -16,6 +20,7 @@ async function getQuizCount() {
     return 0;
   }
 
+  console.log(`Fetched quiz count: ${count}`); // Debugging
   return count || 0;
 }
 
@@ -32,6 +37,7 @@ async function getSubjectCount() {
 
   // Deduplicate subjects
   const uniqueSubjects = [...new Set(data.map((quiz) => quiz.subject))];
+  console.log(`Fetched unique subjects: ${uniqueSubjects.length}`); // Debugging
   return uniqueSubjects.length;
 }
 
@@ -40,6 +46,9 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
   const totalSubjects = await getSubjectCount();
   const totalQuizSitemaps = Math.ceil(totalQuizzes / quizzesPerSitemap);
   const totalSubjectSitemaps = Math.ceil(totalSubjects / subjectsPerSitemap);
+
+  console.log(`Total quizzes: ${totalQuizzes}, Total quiz sitemaps: ${totalQuizSitemaps}`); // Debugging
+  console.log(`Total subjects: ${totalSubjects}, Total subject sitemaps: ${totalSubjectSitemaps}`); // Debugging
 
   // Static pages
   const staticPages = [

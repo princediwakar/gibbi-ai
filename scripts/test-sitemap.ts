@@ -1,8 +1,22 @@
+import { createBrowserClient } from '@supabase/ssr';
 import type { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabase/client';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+const NEXT_PUBLIC_SUPABASE_URL='https://ppbiycqjoravxsyebmfs.supabase.co'
+const NEXT_PUBLIC_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwYml5Y3Fqb3JhdnhzeWVibWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk4MjE4NTgsImV4cCI6MjA1NTM5Nzg1OH0.QMlPxVHQCxvUcbhF37pk7q421cvi1Wdzd00KtNCqR40'
+
+const supabase = createBrowserClient(
+  NEXT_PUBLIC_SUPABASE_URL!,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
 const subjectsPerSitemap = 50000; // Maximum allowed by sitemap standards
+
+
+console.log('Base URL:', baseUrl);
+console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 async function getSubjects(page: number) {
   const { data, error } = await supabase
@@ -18,7 +32,7 @@ async function getSubjects(page: number) {
 
   // Deduplicate subjects
   const uniqueSubjects = [...new Set(data.map((quiz) => quiz.subject))];
-    console.log(`Fetched unique subjects for page ${page}:`, uniqueSubjects); // Debugging
+    // console.log(`Fetched unique subjects for page ${page}:`, uniqueSubjects); // Debugging
   return uniqueSubjects;
 }
 
@@ -39,3 +53,8 @@ export default async function Sitemap({ params }: { params: Params }): Promise<M
 
   return subjectRoutes;
 }
+
+(async () => {
+  const sitemap = await Sitemap({ params: { id: '1' } });
+  console.log('Generated sitemap:', sitemap);
+})();
