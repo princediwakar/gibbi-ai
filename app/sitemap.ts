@@ -5,9 +5,6 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const quizzesPerSitemap = 50000; // Maximum allowed by sitemap standards
 const subjectsPerSitemap = 50000; // Maximum allowed by sitemap standards
 
-console.log('Base URL:', baseUrl);
-console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 async function getQuizCount() {
   const { error, count } = await supabase
