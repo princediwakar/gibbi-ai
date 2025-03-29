@@ -6,9 +6,9 @@ import { createClient } from "@supabase/supabase-js";
 
 // Supabase configuration
 const NEXT_PUBLIC_SUPABASE_URL =
-	"https://ppbiycqjoravxsyebmfs.supabase.co";
+	process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY =
-	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwYml5Y3Fqb3JhdnhzeWVibWZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczOTgyMTg1OCwiZXhwIjoyMDU1Mzk3ODU4fQ.mm0cKPTSqiZVyPx92gT6d8v7ZyXiIqDjes5G4zrh_zs";
+	process.env.PUBLIC_SUPABASE_SERVICE_ROLE_KEY as string;
 
 export const supabase = createClient(
 	NEXT_PUBLIC_SUPABASE_URL,
