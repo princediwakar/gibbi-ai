@@ -2,21 +2,9 @@
 import Cookies from "js-cookie";
 import { supabase } from "@/lib/supabase/client";
 
-async function logToServer(message: string) {
-  try {
-    await fetch("/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
-    });
-  } catch (e) {
-    console.log(e)
-  }
-}
 
 export async function signInWithGoogle() { 
-  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`;
-  logToServer(`Initiating Google sign-in, redirectTo: ${redirectTo}`);
+  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`;
 
   await supabase.auth.signInWithOAuth({
     provider: 'google',

@@ -7,9 +7,9 @@ import InfoLanding from "@/components/sections/info-landing";
 // import PreviewLanding from "@/components/sections/preview-landing";
 import Testimonials from "@/components/sections/testimonials";
 
-export default function IndexPage() {
+export default function LandingPage() {
   return (
-    <div className="mt-28">
+    <div className="">
       <HeroLanding />
       {/* <PreviewLanding /> */}
       {/* <Powered /> */}

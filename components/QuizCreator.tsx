@@ -1,7 +1,7 @@
 // components/QuizCreator.tsx
 "use client";
 
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import { Quiz } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
@@ -147,12 +147,23 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     }
   }, [prompt, user, questionCount, difficulty, language, checkQuizStatus]);
 
+
+  // Retrieve the prompt from localStorage on component mount
+  useEffect(() => {
+    const savedPrompt = localStorage.getItem("quizPrompt");
+    if (savedPrompt) {
+      setPrompt(savedPrompt);
+      localStorage.removeItem("quizPrompt"); // Clear the saved prompt
+    }
+  }, []);
+
   const handleNext = useCallback(() => {
     if (!prompt.trim()) {
       toast.warning("Please enter a prompt before proceeding");
       return;
     }
     if (!user) {
+      localStorage.setItem("quizPrompt", prompt); // Save the prompt to localStorage
       setIsSignInModalOpen(true);
       return;
     }
@@ -163,14 +174,13 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     try {
       await signInWithGoogle();
       setIsSignInModalOpen(false);
-    } catch (error: unknown) { // Explicitly type error as unknown
-      // Use the error message if available
+    } catch (error: unknown) {
       toast.error(error instanceof Error ? `Failed to sign in: ${error.message}` : "Failed to sign in with Google. Please try again.");
     }
   }, []);
 
   return (
-    <div className="max-w-2xl w-full mx-auto p-6">
+    <div className="max-w-2xl w-full mx-auto">
       <div className="min-h-[275px] flex flex-col space-y-6">
         <h2 className="text-5xl font-bold text-center">
           {step === 1 ? "What’s your quiz about?" : "Customize Your Quiz"}

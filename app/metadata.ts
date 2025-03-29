@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "QuizMasterAI - Test Your Knowledge",
+	title: "GibbiAI - Test Your Knowledge",
 	description:
-		"Create, share, and take quizzes on any topic. Join QuizMasterAI to challenge yourself and others!",
+		"Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
 	keywords: [
 		"quiz",
 		"trivia",
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 		"learning",
 	],
 	openGraph: {
-		title: "QuizMasterAI - Test Your Knowledge",
+		title: "GibbiAI - Test Your Knowledge",
 		description:
-			"Create, share, and take quizzes on any topic. Join QuizMaster to challenge yourself and others!",
+			"Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
 		url: process.env.NEXT_PUBLIC_BASE_URL,
-		siteName: "QuizmasterAI",
+		siteName: "GibbiAI",
 		images: [
 			{
 				url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
@@ -29,9 +29,9 @@ export const metadata: Metadata = {
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "QuizmasterAI - Test Your Knowledge",
+		title: "GibbiAI - Test Your Knowledge",
 		description:
-			"Create, share, and take quizzes on any topic. Join QuizmasterAI to challenge yourself and others!",
+			"Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
 		images: [
 			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 		],

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
         url: ogImageUrl,
         width: 1200,
         height: 630,
-        alt: "QuizMasterAI Public Quizzes",
+        alt: "GibbiAI Public Quizzes",
       },
     ],
   },

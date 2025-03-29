@@ -1,11 +1,12 @@
 // components/QuizQuestionsTab.tsx
 "use client";
 
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Quiz } from "@/types/quiz";
 import { QuestionEditor } from "./QuestionEditor";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+
 
 interface QuizQuestionsTabProps {
   quiz: Quiz;
@@ -16,8 +17,9 @@ interface QuizQuestionsTabProps {
     optionKey?: string
   ) => void;
   onRemoveQuestion: (questionId: number | undefined) => void;
-  onAddQuestion: () => void;
-  isEditing: boolean;
+  onAddQuestion: () => number | undefined; // Update the return type
+  onSave: () => void;
+  isSaving: boolean;
 }
 
 export function QuizQuestionsTab({
@@ -25,10 +27,29 @@ export function QuizQuestionsTab({
   onQuestionChange,
   onRemoveQuestion,
   onAddQuestion,
-  isEditing,
+  onSave,
+  isSaving,
 }: QuizQuestionsTabProps) {
+  const [editingQuestionId, setEditingQuestionId] = useState<number | undefined>(undefined);
+
+  const handleEditQuestion = useCallback((questionId: number | undefined) => {
+    setEditingQuestionId(questionId);
+  }, []);
+
+  const handleSaveQuestion = useCallback(() => {
+    onSave();
+    setEditingQuestionId(undefined);
+  }, [onSave]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingQuestionId(undefined);
+  }, []);
+
   const handleAddQuestion = useCallback(() => {
-    onAddQuestion();
+    const newQuestionId = onAddQuestion(); // Add a new question and get its ID
+    if (newQuestionId !== undefined) {
+      setEditingQuestionId(newQuestionId); // Set it to edit mode
+    }
   }, [onAddQuestion]);
 
   return (
@@ -38,23 +59,25 @@ export function QuizQuestionsTab({
           <QuestionEditor
             key={question.question_id ?? `new-${question.question_id}`}
             question={question}
-            questionIndex={index} // Pass the index (0-based)
+            questionIndex={index}
             onChange={onQuestionChange}
             onRemove={onRemoveQuestion}
-            isEditing={isEditing}
+            isEditing={editingQuestionId === question.question_id}
+            onEdit={() => handleEditQuestion(question.question_id)}
+            onSave={handleSaveQuestion}
+            onCancel={handleCancelEdit}
+            isSaving={isSaving}
           />
         ))
       ) : (
         <p className="text-muted-foreground text-center py-4">
-          {isEditing ? "Add a question to get started" : "No questions available"}
+          Add a question to get started
         </p>
       )}
-      {isEditing && (
-        <Button onClick={handleAddQuestion} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Question
-        </Button>
-      )}
+      <Button onClick={handleAddQuestion} className="w-full">
+        <Plus className="w-4 h-4 mr-2" />
+        Add Question
+      </Button>
     </div>
   );
 }

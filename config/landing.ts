@@ -4,7 +4,7 @@ export const infos: InfoLdg[] = [
   {
     title: "Create Quizzes Effortlessly",
     description:
-      "With QuizMaster AI, you can generate quizzes in seconds. Just provide a topic or paste text, and our AI will create engaging questions for you.",
+      "With GibbiAI, you can generate quizzes in seconds. Just provide a topic or paste text, and our AI will create engaging questions for you.",
     image: "/_static/illustrations/work-from-home.jpg", // Update the image path
     list: [
       {

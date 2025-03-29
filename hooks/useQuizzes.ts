@@ -47,7 +47,8 @@ export function useQuizzes({
         }
 
         if (subjectFilter) {
-          query = query.eq("subject", subjectFilter); // Filter by subject
+          // query = query.eq("subject", subjectFilter); 
+          query = query.or(`subject.eq.${subjectFilter}, topic.eq.${subjectFilter}`)// Filter by subject
         }
 
         if (searchQuery) {

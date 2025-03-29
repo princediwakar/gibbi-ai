@@ -9,7 +9,6 @@ import { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ edit?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -51,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function QuizEditPage({ params, searchParams }: PageProps) {
+export default async function QuizEditPage({ params }: PageProps) {
   const supabase = await createClient();
   let user = null;
 
@@ -67,7 +66,6 @@ export default async function QuizEditPage({ params, searchParams }: PageProps) 
   }
 
   const { slug } = await params;
-  const { edit } = await searchParams;
   const quizId = extractIdFromSlug(slug);
   if (!quizId) notFound();
 
@@ -75,10 +73,9 @@ export default async function QuizEditPage({ params, searchParams }: PageProps) 
   if (!quiz) notFound();
 
   const isCreator = user?.id === quiz.creator_id;
-  const initialEditMode = edit === "true"; // Optional: Use ?edit=true to force edit mode
 
   return isCreator ? (
-    <QuizEditor quiz={quiz} initialEditMode={initialEditMode} />
+    <QuizEditor quiz={quiz}  />
   ) : (
     <QuizPlayer quiz={quiz} isCreator={isCreator} />
   );

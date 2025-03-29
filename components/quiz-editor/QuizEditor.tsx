@@ -13,15 +13,14 @@ import { ArrowLeft } from "lucide-react";
 
 interface QuizEditorProps {
   quiz: Quiz;
-  initialEditMode?: boolean;
 }
 
-export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) => {
+
+export const QuizEditor = ({ quiz }: QuizEditorProps) => {
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedQuiz, setEditedQuiz] = useState<Quiz>(quiz);
   const [isSaving, setIsSaving] = useState(false);
-  const [deletedQuestionIds, setDeletedQuestionIds] = useState<(number | undefined)[]>([]); // Track deleted IDs
+  const [deletedQuestionIds, setDeletedQuestionIds] = useState<(number | undefined)[]>([]);
 
   const handleQuizChange = useCallback((field: keyof Quiz, value: string) => {
     setEditedQuiz((prev) => ({ ...prev, [field]: value }));
@@ -44,19 +43,18 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
   );
 
   const handleAddQuestion = useCallback(() => {
+    const newQuestion = {
+      question_id: generateTempId(),
+      question_text: "",
+      options: { A: "", B: "", C: "", D: "" },
+      correct_option: "A",
+      isNew: true,
+    };
     setEditedQuiz((prev) => ({
       ...prev,
-      questions: [
-        ...prev.questions,
-        {
-          question_id: generateTempId(),
-          question_text: "",
-          options: { A: "", B: "", C: "", D: "" },
-          correct_option: "A",
-          isNew: true,
-        },
-      ],
+      questions: [...prev.questions, newQuestion],
     }));
+    return newQuestion.question_id; // Return the ID of the newly added question
   }, []);
 
   const handleRemoveQuestion = useCallback((questionId: number | undefined) => {
@@ -64,7 +62,6 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
       ...prev,
       questions: prev.questions.filter((q) => q.question_id !== questionId),
     }));
-    // Only add to deletedQuestionIds if it’s an existing question (not a new, unsaved one)
     if (questionId && !quiz.questions.find((q) => q.question_id === questionId)?.isNew) {
       setDeletedQuestionIds((prev) => [...prev, questionId]);
     }
@@ -87,7 +84,7 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
       const response = await fetch("/api/quiz/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Send cookies
+        credentials: "include",
         body: JSON.stringify({
           quizId: editedQuiz.quiz_id,
           details: {
@@ -103,7 +100,7 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
             options: q.options,
             correct_option: q.correct_option,
           })),
-          deletedQuestionIds, // Send deleted IDs to API
+          deletedQuestionIds,
         }),
       });
 
@@ -111,9 +108,8 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
 
       const updatedQuiz = await response.json();
       toast.success("Quiz updated successfully");
-      setIsEditing(false);
       setEditedQuiz(updatedQuiz);
-      setDeletedQuestionIds([]); // Clear deleted IDs after successful save
+      setDeletedQuestionIds([]);
     } catch (error) {
       toast.error("Failed to update quiz");
       console.error("Error updating quiz:", error);
@@ -132,8 +128,8 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
+      <div className="space-y-4 lg:space-y-0 lg:flex justify-between">
+        <div className="flex gap-4">
           <Button
             variant="outline"
             size="icon"
@@ -141,33 +137,13 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
             disabled={isSaving}
             aria-label="Go back"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft />
           </Button>
-          <h2 className="text-2xl font-bold">{quiz.title.length > 40  ? `${quiz.title.slice(0, 40)}...` : quiz.title}</h2>
+          <h2 className="text-2xl font-bold">{quiz.title.length > 40 ? `${quiz.title.slice(0, 40)}...` : quiz.title}</h2>
         </div>
-        <div className="flex gap-4">
-          {isEditing ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(false)}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </>
-          ) : (
-            <Button variant="outline" onClick={() => setIsEditing(true)}>
-              Edit Quiz
-            </Button>
-          )}
-          <Button onClick={handleStart} disabled={isSaving}>
-            Start Quiz
-          </Button>
-        </div>
+        <Button onClick={handleStart} disabled={isSaving}>
+          Start Quiz
+        </Button>
       </div>
 
       <Tabs defaultValue="details" className="space-y-6">
@@ -183,7 +159,8 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
           <QuizDetailsTab
             quiz={editedQuiz}
             onQuizChange={handleQuizChange}
-            isEditing={isEditing}
+            onSave={handleSave}
+            isSaving={isSaving}
           />
         </TabsContent>
 
@@ -193,7 +170,8 @@ export const QuizEditor = ({ quiz, initialEditMode = false }: QuizEditorProps) =
             onQuestionChange={handleQuestionChange}
             onRemoveQuestion={handleRemoveQuestion}
             onAddQuestion={handleAddQuestion}
-            isEditing={isEditing}
+            onSave={handleSave}
+            isSaving={isSaving}
           />
         </TabsContent>
 

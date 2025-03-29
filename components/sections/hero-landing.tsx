@@ -14,7 +14,7 @@ export default function HeroLanding() {
         <h1 className="text-balance font-urban text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-[66px]">
           Create Engaging Quizzes with{" "}
           <span className="text-gradient_indigo-purple font-extrabold">
-            QuizmasterAI
+            GibbiAI
           </span>
         </h1>
 

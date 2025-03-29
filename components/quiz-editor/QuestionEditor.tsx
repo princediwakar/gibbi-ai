@@ -1,7 +1,7 @@
 // components/QuestionEditor.tsx
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 import { Question } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { X } from "lucide-react";
+
+
+// ... existing code ...
 
 interface QuestionEditorProps {
   question: Question;
@@ -27,23 +39,60 @@ interface QuestionEditorProps {
   ) => void;
   onRemove: (questionId: number | undefined) => void;
   isEditing: boolean;
+  onEdit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+  isSaving: boolean;
 }
 
+
 export const QuestionEditor = memo(
-  ({ question, questionIndex, onChange, onRemove, isEditing }: QuestionEditorProps) => {
+  ({
+    question,
+    questionIndex,
+    onChange,
+    onRemove,
+    isEditing,
+    onEdit,
+    onSave,
+    onCancel,
+    isSaving,
+  }: QuestionEditorProps) => {
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    const handleRemove = useCallback(() => {
+      onRemove(question.question_id);
+      setIsDeleteDialogOpen(false); // Close the dialog after deletion
+    }, [onRemove, question.question_id]);
+
     return (
       <div className="border p-4 rounded-lg space-y-4">
         <div className="flex justify-between items-center">
           <h4 className="font-medium text-muted-foreground">Question {questionIndex + 1}</h4>
-          {isEditing && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRemove(question.question_id)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
+          
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Question</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this question? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleRemove}>
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="space-y-2">
@@ -55,7 +104,7 @@ export const QuestionEditor = memo(
               placeholder="Enter question text"
             />
           ) : (
-            <p >{question.question_text || "No question text"}</p>
+            <p>{question.question_text || "No question text"}</p>
           )}
         </div>
 
@@ -70,7 +119,7 @@ export const QuestionEditor = memo(
                   placeholder={`Option ${key.toUpperCase()}`}
                 />
               ) : (
-                <p >{value || "Not specified"}</p>
+                <p>{value || "Not specified"}</p>
               )}
             </div>
           ))}
@@ -95,11 +144,24 @@ export const QuestionEditor = memo(
               </SelectContent>
             </Select>
           ) : (
-            <p >
-              Option {question.correct_option.toUpperCase()}
-            </p>
+            <p>Option {question.correct_option.toUpperCase()}</p>
           )}
         </div>
+
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button onClick={onCancel} variant="outline" className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={onSave} disabled={isSaving} className="flex-1">
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        ) : (
+          <Button onClick={onEdit} className="w-full" variant="outline">
+            Edit Question
+          </Button>
+        )}
       </div>
     );
   }

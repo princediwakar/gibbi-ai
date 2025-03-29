@@ -25,7 +25,7 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
   const router = useRouter();
 
   const handleEdit = () => {
-    router.push(`/quiz/${quiz.slug}/edit?edit=true`);
+    router.push(`/quiz/${quiz.slug}/edit`);
     // router.refresh(); // Ensure the page updates
   };
 

@@ -58,7 +58,7 @@ export function QuizDashboard() {
   }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
 
   return (
-    <div className="flex flex-col items-center mx-auto space-y-8 p-6">
+    <div className="flex flex-col items-center mx-auto space-y-20 p-6">
       <Image src="/Q.svg" alt="Quizmaster logo" height={60} width={60} priority />
       <QuizCreator onQuizCreated={onQuizCreated} />
       {isUserLoading || isInitialLoading ? ( // Show loading state only below QuizCreator
