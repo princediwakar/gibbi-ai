@@ -5,7 +5,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const ogImageUrl = `${baseUrl}/api/og?type=home`;
 
 export const metadata: Metadata = {
-  title: "Public Quizzes", // Will become "Public Quizzes - QuizMasterAI" via template
+  title: "Public Quizzes", // Will become "Public Quizzes - Gibbi" via template
   description:
     "Explore and take public quizzes on various topics. Test your knowledge and learn new things!",
   keywords: [

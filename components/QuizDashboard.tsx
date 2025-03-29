@@ -59,7 +59,7 @@ export function QuizDashboard() {
 
   return (
     <div className="flex flex-col items-center mx-auto space-y-20 p-6">
-      <Image src="/Q.svg" alt="Quizmaster logo" height={60} width={60} priority />
+      <Image src="/Q.svg" alt="GibbiAI logo" height={60} width={60} priority />
       <QuizCreator onQuizCreated={onQuizCreated} />
       {isUserLoading || isInitialLoading ? ( // Show loading state only below QuizCreator
         <div className="text-center py-4">
