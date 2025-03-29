@@ -1,11 +1,11 @@
 import type { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const quizzesPerSitemap = 50000; // Maximum allowed by sitemap standards
 
-
 export async function getQuizzes(page: number) {
+  const supabase = await createClient();
   console.log(`Fetching quizzes for page ${page}...`); // Debugging
   const { data, error } = await supabase
     .from('quizzes')

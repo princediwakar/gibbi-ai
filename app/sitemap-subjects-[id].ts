@@ -1,10 +1,11 @@
 import type { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const subjectsPerSitemap = 50000; // Maximum allowed by sitemap standards
 
 async function getSubjects(page: number) {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('quizzes')
     .select('subject')
@@ -18,7 +19,7 @@ async function getSubjects(page: number) {
 
   // Deduplicate subjects
   const uniqueSubjects = [...new Set(data.map((quiz) => quiz.subject))];
-    console.log(`Fetched unique subjects for page ${page}:`, uniqueSubjects); // Debugging
+  console.log(`Fetched unique subjects for page ${page}:`, uniqueSubjects); // Debugging
   return uniqueSubjects;
 }
 
@@ -35,7 +36,8 @@ export default async function Sitemap({ params }: { params: Params }): Promise<M
     url: `${baseUrl}/quizzes/${subject}`,
     lastmod: new Date().toISOString().split('T')[0],
   }));
-    console.log(`Subject routes for page ${page}:`, subjectRoutes); // Debugging
+
+  console.log(`Subject routes for page ${page}:`, subjectRoutes); // Debugging
 
   return subjectRoutes;
 }
