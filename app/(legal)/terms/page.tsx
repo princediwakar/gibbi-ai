@@ -16,8 +16,8 @@ export default function TermsOfService() {
       <section>
         <h2 className="text-2xl font-semibold">1. Acceptance of Terms</h2>
         <p>
-          By accessing or using GibbiAI ("the App"), you agree to be bound by these Terms of Service
-          ("Terms"). If you do not agree to these Terms, you may not use the App.
+          By accessing or using GibbiAI (`&quot;`the App`&quot;`), you agree to be bound by these Terms of Service
+          (`&quot;`Terms`&quot;`). If you do not agree to these Terms, you may not use the App.
         </p>
       </section>
 
@@ -48,7 +48,7 @@ export default function TermsOfService() {
       <section>
         <h2 className="text-2xl font-semibold">4. User Content</h2>
         <p>
-          You retain ownership of any content you create or upload to the App ("User Content").
+          You retain ownership of any content you create or upload to the App (`&quot;`User Content`&quot;`).
           However, by submitting User Content, you grant GibbiAI a worldwide, non-exclusive,
           royalty-free license to use, reproduce, and display your content for the purpose of
           operating and improving the App.
@@ -99,8 +99,7 @@ export default function TermsOfService() {
       <section>
         <h2 className="text-2xl font-semibold">9. Governing Law</h2>
         <p>
-          These Terms shall be governed by and construed in accordance with the laws of [Insert
-          Jurisdiction], without regard to its conflict of law principles.
+          These Terms shall be governed by and construed in accordance with the laws of New Delhi, without regard to its conflict of law principles.
         </p>
       </section>
 
@@ -109,7 +108,7 @@ export default function TermsOfService() {
         <p>
           If you have any questions about these Terms of Service, please contact us at:
         </p>
-        <p className="font-semibold">[Insert Contact Email]</p>
+        <p className="font-semibold">princediwakar25@gmail.com</p>
       </section>
     </div>
   );
