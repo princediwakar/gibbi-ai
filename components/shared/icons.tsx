@@ -56,6 +56,7 @@ export const Icons = {
   download: Download,
   chartBar: BarChart,
   eye: Eye,
+  linkedin: Briefcase,
   close: X,
   copy: Copy,
   dashboard: LayoutPanelLeft,
