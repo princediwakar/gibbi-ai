@@ -20,6 +20,7 @@ export interface Quiz {
 	difficulty: string;
 	slug: string;
 	status: string;
+	language: string;
 	creator_id: string;
 	created_at: string;
 	updated_at: string;

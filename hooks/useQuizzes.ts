@@ -24,7 +24,7 @@ export function useQuizzes({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const quizzesPerPage = 10;
+  const quizzesPerPage = 15;
 
   const fetchMoreQuizzes = useCallback(
     async (pageNum: number) => {
