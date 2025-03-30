@@ -1,4 +1,4 @@
-import { getQuizzes } from '@/app/sitemap-quizzes-[id]';
+import { getQuizzes } from '@/app/temp-sitemap-quizzes';
 
 export async function testGetQuizzes() {
   const page = 0; // Test with the first page
