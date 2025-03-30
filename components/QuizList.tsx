@@ -1,6 +1,4 @@
 // components/QuizList.tsx
-"use client";
-
 import { useMemo } from "react";
 import { Quiz } from "@/types/quiz";
 import {  Loader2 } from "lucide-react";
