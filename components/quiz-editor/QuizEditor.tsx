@@ -150,9 +150,9 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="questions">Questions</TabsTrigger>
-          <TabsTrigger value="settings" disabled>
+          {/* <TabsTrigger value="settings" disabled>
             Settings
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="details" className="space-y-6">

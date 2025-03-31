@@ -70,7 +70,7 @@ export const PDFUploader = memo(({ onUpload, onClear, disabled }: PDFUploaderPro
           ref={fileInputRef}
         />
         <Button
-          variant="link"
+          variant="outline"
           disabled={isLoading || disabled}
           className="w-full h-10 flex items-center justify-between"
           onClick={handleButtonClick}
