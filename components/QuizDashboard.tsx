@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { QuizCreator } from "./QuizCreator";
+import { QuizCreator } from "./quiz-creator/QuizCreator";
 import { QuizList } from "./QuizList";
 import { Quiz } from "@/types/quiz";
 import { useQuizzes } from "@/hooks/useQuizzes";

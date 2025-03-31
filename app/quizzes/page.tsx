@@ -13,6 +13,7 @@ export default function QuizzesPage() {
   const { quizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } = useQuizzes({
     publicOnly: true,
     searchQuery,
+    limitPerGroup: 6
   });
 
   const observerRef = useRef<HTMLDivElement | null>(null);

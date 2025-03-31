@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 
-const MAX_PENDING_TIME = Number(process.env.MAX_PENDING_TIME);
+const MAX_PENDING_TIME = 300000;
 
 export async function GET(req: NextRequest) {
 	try {

@@ -1,216 +1,225 @@
 import OpenAI from "openai";
-import { Quiz } from "../types/quiz";
 import { randomUUID } from "crypto";
 import { isCompleteResponse, cleanResponse, parseJSONSafely } from "./ai-utils";
 
-// Validate environment variables
-const REQUIRED_ENV_VARS = ["OPENAI_API_KEY",
-	"AI_BASE_URL"
-];
+// Define the type for what the AI generates (subset of Quiz)
+export interface GeneratedQuiz {
+  title: string;
+  description: string;
+  topic: string;
+  subject: string;
+  language: string;
+  difficulty: string;
+  questions: {
+    question_text: string;
+    options: { [key: string]: string };
+    correct_option: string;
+  }[];
+}
 
+const REQUIRED_ENV_VARS = ["OPENAI_API_KEY", "AI_BASE_URL"];
 REQUIRED_ENV_VARS.forEach((varName) => {
-	if (!process.env[varName]) {
-		throw new Error(
-			`Missing ${varName} in environment variables.`
-		);
-	}
+  if (!process.env[varName]) {
+    throw new Error(`Missing ${varName} in environment variables.`);
+  }
 });
 
-
-const AI_BASE_URL =
-	process.env.AI_BASE_URL;
+const AI_BASE_URL = process.env.AI_BASE_URL;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 5;
 
-
-// Create a singleton OpenAI instance
 const openai = new OpenAI({
-	apiKey: OPENAI_API_KEY,
-	baseURL: AI_BASE_URL,
+  apiKey: OPENAI_API_KEY,
+  baseURL: AI_BASE_URL,
 });
 
-
-
-// 🔥 NEW: Randomized tones for different engagement styles
 const quizTones = [
-	"Academic and serious",
-	"Challenging and competitive",
-	"Exam-oriented",
+  "Engaging and clear",
+  "Challenging and thought-provoking",
+  "Informative and concise",
 ];
 
-// 🔥 NEW: Creativity Modifiers - forces AI to think differently
 const creativityModifiers = [
-	"Ensure the questions have wide variety and perspective.",
-	"Ask questions of various sub-topics of the given topic.",
-	"Incorporate real-world scenarios and case studies.",
+  "Ensure questions cover a range of difficulty and question types.",
+  "Incorporate diverse perspectives and applications of the content.",
+  "Create questions that test both factual recall and critical thinking.",
 ];
 
-// Additional variability instructions - pick one at random for each generation
-const additionalVariabilityInstructions = [
-	"Use vivid, creative language and generate entirely new scenarios.",
-	"Incorporate unexpected twists and fresh perspectives in the questions.",
-	"Avoid formulaic phrasing and ensure the examples are never reused.",
-	"Adopt a dynamic tone that challenges conventional quiz formats.",
-	"Infuse the quiz with innovative wording and unique question angles.",
+const questionTypes = [
+  "Factual knowledge and recall questions.",
+  "Analytical questions requiring reasoning or problem-solving.",
+  "Application-based questions using real or hypothetical scenarios.",
+  "Conceptual understanding and comparison questions.",
 ];
 
-// Randomly selects an item from an array
-const pickRandom = (arr: string[]) =>
-	arr[Math.floor(Math.random() * arr.length)];
-
-
-
-
-
+const pickRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
 export async function createQuizWithAI(
-    prompt: string,
-    question_count: number, 
-    difficulty: string,
-    language: string
-): Promise<Quiz> {
+  content: string,
+  question_count: number,
+  difficulty: string,
+  language: string
+): Promise<GeneratedQuiz> {
+  const selectedTone = pickRandom(quizTones);
+  const selectedCreativityModifier = pickRandom(creativityModifiers);
+  const selectedQuestionType = pickRandom(questionTypes);
 
-    const selectedTone = pickRandom(quizTones);
-    const selectedCreativityModifier = pickRandom(creativityModifiers);
-    const additionalInstruction = pickRandom(additionalVariabilityInstructions)
-
-    // Assemble variability instructions with extra emphasis on uniqueness and randomness
-    const variabilityInstructions = `
-    1. The tone should be "${selectedTone}".
+  const variabilityInstructions = `
+    1. Tone: ${selectedTone}
     2. ${selectedCreativityModifier}
-    3. ${additionalInstruction}
-    `;
-    
-    // Calculate max tokens based on the number of questions
-    const tokensPerQuestion = 100; // Adjust this value based on your needs
-    const baseTokens = 500; // Base tokens for metadata and structure
-    const maxTokens = Math.min(baseTokens + (question_count * tokensPerQuestion), 4096);
+    3. ${selectedQuestionType}
+    4. Adapt questions to the content type (e.g., math problems for math, historical events for history, concepts for books).
+    5. Ensure questions are specific to the provided content or prompt.
+    6. Maintain variety and avoid repetitive or overly generic questions.
+  `;
 
-    const systemMessageContent = `You are an AI that generates quizzes. Extract metadata and generate questions based on a user prompt.
-    1. ${variabilityInstructions}
-    2. Language: ${language}. Auto-detect the language if needed.
-    3. Output must be a valid JSON object strictly matching this format:
+  const baseTokens = 500;
+  const tokensPerQuestion = 200;
+  const maxTokens = Math.min(baseTokens + question_count * tokensPerQuestion, 8000);
+
+  const systemMessageContent = (remaining: number) => `You are an AI that generates high-quality quizzes from provided content.
+    Instructions:
+    ${variabilityInstructions}
+    Language: ${language} (auto-detect if needed).
+    Difficulty: ${difficulty} (Easy, Medium, or Hard - adjust complexity accordingly).
+    Input is a text string containing the content to generate the quiz from.
+    Generate exactly ${remaining} concise, detailed questions and options.
+    Output must be a valid JSON object in this exact format:
     {
-        "title": string, //
-        "description": string, // Make it absolutely SEO-friendly.
-        "topic": string,
-        "subject": string, // Parent category of topic. Be consistent in naming. e.g. Use "Mathematics" for "Maths", "Math"
-        "language": string, // Default: English
-        "difficulty": string, // Difficulty can only be Easy, Medium or Hard.
-        "questions": [
-            {
-                "question_text": string,
-                "options": { [key: string]: string },
-                "correct_option": string
-            }
-        ]
-    }
-    IMPORTANT: Do not wrap your output in markdown formatting or triple backticks. Append the token "END_OF_JSON" at the very end of the output and nothing else.`;
-
-
-    const totalStart = performance.now();
-    let generationTime = 0;
-    let cleaningTime = 0;
-    let parsingTime = 0;
-    let validationTime = 0;
-
-    try {
-        console.log(`Generating quiz for prompt: "${prompt.slice(0, 60)}" with max tokens: ${maxTokens}`);
-
-        let fullResponse = "";
-        let attempts = 0;
-        let completed = false;
-        let quizData: Quiz | null = null;
-
-        const generationStart = performance.now();
-        while (attempts < MAX_ATTEMPTS && !completed) {
-            // Inject a new unique token each attempt
-            const currentUniqueToken = randomUUID();
-            const userContent =
-                attempts === 0
-                    ? `Generate a quiz for the following user prompt wrapped in ####. User prompt: ####${prompt}####. Number of questions: ${question_count}. Difficulty level: ${difficulty}. Include a unique variation marker: ${currentUniqueToken}.`
-                    : `The previous output was incomplete. Continue generating the remaining part of the JSON object without repeating previous content. Include a unique variation marker: ${currentUniqueToken}.`;
-
-            try {
-                const response = await openai.chat.completions.create({
-                    model: "deepseek-chat",
-                    messages: [
-                        {
-                            role: "system",
-                            content: systemMessageContent,
-                        },
-                        {
-                            role: "user",
-                            content: userContent,
-                        },
-                    ],
-                    temperature: 0.8, // increased randomness
-                    top_p: 0.9, // allow more diverse word choices
-                    max_tokens: maxTokens, // Use the dynamically calculated max tokens
-                });
-
-                const content = response?.choices?.[0]?.message?.content;
-                console.log(`Tokens used in this request: ${response?.usage?.total_tokens}`); // Log the number of tokens used
-
-                if (!content) {
-                    throw new Error("Received empty response from OpenAI.");
-                }
-                if (content.startsWith("An error") || content.startsWith("Error")) {
-                    throw new Error(content);
-                }
-
-                fullResponse += content;
-
-                if (isCompleteResponse(fullResponse)) {
-                    // Clean and parse the response
-                    const cleaningStart = performance.now();
-                    const cleanedOutput = cleanResponse(fullResponse);
-                    cleaningTime = performance.now() - cleaningStart;
-
-                    const parsingStart = performance.now();
-                    quizData = parseJSONSafely(cleanedOutput);
-                    parsingTime = performance.now() - parsingStart;
-
-                    // Validate the structure
-                    const validationStart = performance.now();
-                    if (!quizData.title || !Array.isArray(quizData.questions) || quizData.questions.length === 0) {
-                        throw new Error("Invalid quiz data structure received from OpenAI.");
-                    }
-                    validationTime = performance.now() - validationStart;
-
-                    completed = true;
-                } else {
-                    attempts++;
-                }
-            } catch (error) {
-                if (attempts < MAX_ATTEMPTS - 1) {
-                    console.warn(`Attempt ${attempts + 1} failed, retrying...`, error);
-                    attempts++;
-                    continue;
-                }
-                throw error;
-            }
+      "title": string,
+      "description": string,
+      "topic": string,
+      "subject": string,
+      "language": string,
+      "difficulty": string,
+      "questions": [
+        {
+          "question_text": string,
+          "options": { [key: string]: string },
+          "correct_option": string
         }
-        generationTime = performance.now() - generationStart;
-
-        const totalEnd = performance.now();
-        const totalTime = totalEnd - totalStart;
-
-        console.log(`\nAI Generation Performance Metrics:`);
-        console.log(`- Response Generation: ${generationTime.toFixed(2)}ms`);
-        console.log(`- Response Cleaning: ${cleaningTime.toFixed(2)}ms`);
-        console.log(`- JSON Parsing: ${parsingTime.toFixed(2)}ms`);
-        console.log(`- Data Validation: ${validationTime.toFixed(2)}ms`);
-        console.log(`- Total Time: ${totalTime.toFixed(2)}ms`);
-        console.log(`- Attempts: ${attempts + 1}`);
-        console.log(`- Response Length: ${fullResponse.length} characters`);
-
-        if (!quizData) {
-            throw new Error("Quiz data generation failed.");
-        }
-        return quizData;
-    } catch (error) {
-        console.error("Error in createQuizWithAI:", error);
-        throw new Error(error instanceof Error ? error.message : "Failed to generate quiz with AI");
+      ]
     }
+    IMPORTANT: After completing the JSON, append "END_OF_JSON" and stop generating further content. Do not produce additional quizzes, explanations, or any text beyond "END_OF_JSON". Ensure the output fits within ${maxTokens} tokens to avoid truncation. Do not wrap your output in markdown formatting or triple backticks.`;
+
+  const totalStart = performance.now();
+  let generationTime = 0;
+  let cleaningTime = 0;
+  let parsingTime = 0;
+  let validationTime = 0;
+
+  try {
+    console.log(`Generating quiz with text content - max tokens: ${maxTokens}`);
+
+    let attempts = 0;
+    const partialQuiz: Partial<GeneratedQuiz> = {
+      questions: [],
+      language,
+      difficulty,
+    };
+    let remainingQuestions = question_count;
+
+    const generationStart = performance.now();
+    while (attempts < MAX_ATTEMPTS && partialQuiz.questions!.length < question_count) {
+      const currentUniqueToken = randomUUID();
+      const userContent = `Generate a quiz from this content: ####${content}####. Number of questions: ${remainingQuestions}. Unique marker: ${currentUniqueToken}.`;
+
+      try {
+        const response = await openai.chat.completions.create({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: systemMessageContent(remainingQuestions) },
+            { role: "user", content: userContent },
+          ],
+          temperature: 0.75,
+          top_p: 0.9,
+          max_tokens: maxTokens,
+        });
+
+        const responseContent = response?.choices?.[0]?.message?.content;
+        console.log(`Attempt ${attempts + 1} - Tokens used: ${response?.usage?.total_tokens}`);
+        console.log(`Raw response: ${responseContent?.slice(0, 100)}...`);
+
+        if (!responseContent) throw new Error("Empty response from OpenAI.");
+        if (responseContent.startsWith("Error")) throw new Error(responseContent);
+
+        const cleaningStart = performance.now();
+        const cleanedOutput = cleanResponse(responseContent);
+        cleaningTime += performance.now() - cleaningStart;
+
+        const parsingStart = performance.now();
+        const quizData = parseJSONSafely(cleanedOutput);
+        parsingTime += performance.now() - parsingStart;
+
+        const validationStart = performance.now();
+        const validQuestions = quizData.questions?.filter(
+          (q) => q.question_text && q.options && q.correct_option
+        ) || [];
+        validationTime += performance.now() - validationStart;
+
+        // Merge metadata on first valid response
+        if (!partialQuiz.title && quizData.title) {
+          partialQuiz.title = quizData.title;
+          partialQuiz.description = quizData.description;
+          partialQuiz.topic = quizData.topic;
+          partialQuiz.subject = quizData.subject;
+        }
+
+        // Add valid questions
+        partialQuiz.questions!.push(...validQuestions);
+        remainingQuestions = question_count - partialQuiz.questions!.length;
+
+        console.log(`Attempt ${attempts + 1} added ${validQuestions.length} questions. Remaining: ${remainingQuestions}`);
+
+        if (!isCompleteResponse(responseContent) || validQuestions.length < quizData.questions.length) {
+          console.log(`Attempt ${attempts + 1} incomplete or invalid: ${responseContent.slice(0, 100)}...`);
+          attempts++;
+          continue;
+        }
+
+        // If we have all questions, break
+        if (partialQuiz.questions!.length >= question_count) break;
+      } catch (error) {
+        console.error(`Attempt ${attempts + 1} failed:`, error);
+        attempts++;
+        if (attempts >= MAX_ATTEMPTS) break; // Move to fallback
+      }
+    }
+    generationTime = performance.now() - generationStart;
+
+    const totalEnd = performance.now();
+    const totalTime = totalEnd - totalStart;
+
+    console.log(`\nAI Generation Performance Metrics:`);
+    console.log(`- Generation: ${generationTime.toFixed(2)}ms`);
+    console.log(`- Cleaning: ${cleaningTime.toFixed(2)}ms`);
+    console.log(`- Parsing: ${parsingTime.toFixed(2)}ms`);
+    console.log(`- Validation: ${validationTime.toFixed(2)}ms`);
+    console.log(`- Total Time: ${totalTime.toFixed(2)}ms`);
+
+    if (partialQuiz.questions!.length === 0) {
+      throw new Error("Quiz generation failed after all attempts.");
+    } else if (partialQuiz.questions!.length < question_count) {
+      console.warn(`Only generated ${partialQuiz.questions!.length}/${question_count} questions.`);
+    }
+
+    // Ensure we don’t exceed requested question count
+    partialQuiz.questions = partialQuiz.questions!.slice(0, question_count);
+
+    // Construct the final GeneratedQuiz object
+    const quiz: GeneratedQuiz = {
+      title: partialQuiz.title || "Generated Quiz",
+      description: partialQuiz.description || "A quiz generated from provided content",
+      topic: partialQuiz.topic || "General",
+      subject: partialQuiz.subject || "Miscellaneous",
+      language: partialQuiz.language!,
+      difficulty: partialQuiz.difficulty!,
+      questions: partialQuiz.questions!,
+    };
+
+    return quiz;
+  } catch (error) {
+    console.error("Error in createQuizWithAI:", error);
+    throw new Error(error instanceof Error ? error.message : "Failed to generate quiz");
+  }
 }
