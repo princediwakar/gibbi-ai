@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">Privacy Policy</h1>
       <p className="text-muted-foreground">
-        Last updated: [Insert Date]
+        Last updated: Mar 29, 2025
       </p>
 
       <section>
@@ -119,7 +119,7 @@ export default function PrivacyPolicy() {
         <p>
           If you have any questions about this Privacy Policy, please contact us at:
         </p>
-        <p className="font-semibold">[Insert Contact Email]</p>
+        <p className="font-semibold">princediwakar25@gmail.com</p>
       </section>
     </div>
   );
