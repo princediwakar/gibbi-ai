@@ -7,7 +7,6 @@ import { Metadata } from "next";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
-
 export const metadata: Metadata = {
 	title: {
 		default: "Gibbi AI",
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 	  },
 	  description: "Create and explore AI-powered quizzes.",
 	icons: {
-		icon: "/favicon.ico",
+		icon: "/icon.ico"
 	},
 };
 
