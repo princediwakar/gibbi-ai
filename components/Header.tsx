@@ -29,7 +29,7 @@ export const Header = memo(() => {
 
 
   return (
-    <div className="h-16"> {/* Set a fixed height for the header container */}
+    <div className="h-16 fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"> {/* Set a fixed height for the header container */}
       <header className="flex justify-between items-center max-w-5xl p-4 mx-auto">
         <nav className="flex items-center space-x-8">
           <Link href="/" className="flex gap-2 hover:opacity-80 transition-opacity">

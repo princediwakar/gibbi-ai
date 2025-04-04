@@ -37,7 +37,7 @@ export default function RootLayout({
 				{/* Include Header */}
 				<Header />
 				{/* Main Content */}
-				<div className="max-w-5xl mx-auto">
+				<div className="max-w-5xl mx-auto pt-16">
 					{children}
 					<FeedbackWidget />
 					<Toaster

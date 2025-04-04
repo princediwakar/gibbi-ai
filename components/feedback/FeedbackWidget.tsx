@@ -26,7 +26,7 @@ import { useUser } from "@/hooks/useUser";
 export function FeedbackWidget() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [feedback, setFeedback] = useState("");
-	const [category, setCategory] = useState("");
+	const [category, setCategory] = useState("feedback");
 	const [rating, setRating] = useState(0);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const {user} = useUser();

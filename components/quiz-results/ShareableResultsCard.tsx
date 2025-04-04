@@ -1,64 +1,118 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-// import { Button } from "@/components/ui/button";
-// import { Share2 } from "lucide-react";
-// import { toast } from "sonner";
-// import { useCopyToClipboard } from "usehooks-ts";
+import { Button } from "@/components/ui/button";
+import { Share2, Twitter, Facebook, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { useCopyToClipboard } from "usehooks-ts";
 import { useUser } from "@/hooks/useUser";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ShareableResultsCardProps {
-	quiz: Quiz;
-	score: number;
-	percentage: string;
+  quiz: Quiz;
+  score: number;
+  percentage: string;
 }
 
 export const ShareableResultsCard = ({
-	quiz,
-	score,
-	percentage,
+  quiz,
+  score,
+  percentage,
 }: ShareableResultsCardProps) => {
-	const {user} = useUser();
-	
+  const { user } = useUser();
+  const [, copy] = useCopyToClipboard();
 
-	return (
-		<div className="bg-gradient-to-br from-indigo-600 to-pink-500 rounded-xl p-6 text-white">
-			<div className="text-center space-y-4">
-				<h2 className="text-2xl font-bold">
-					{quiz.title}
-				</h2>
+  const handleShare = (platform: "twitter" | "facebook" | "whatsapp") => {
+    const quizUrl = window.location.href; // Get the current quiz URL
+    const shareText = `${user?.user_metadata?.name || "I"} scored ${score}/${
+      quiz.question_count
+    } (${percentage}%) on "${quiz.title}"! Topic: ${quiz.topic}
+    \n\nTake the quiz or create your own: ${quizUrl}`;
 
-				<div className="text-5xl font-bold">
-					{score}
-					<span className="text-2xl">
-						/{quiz.question_count}
-					</span>
-				</div>
+    // Copy to clipboard
+    copy(shareText)
+      .then(() => toast.success("Results copied to clipboard!"))
+      .catch(() => toast.error("Failed to copy results."));
 
-				<div className="text-lg">
-					<span className="font-bold">
-						{user?.user_metadata?.name || "You"}
-					</span>{" "}
-					scored {percentage}%
-				</div>
+    // Share on the selected platform
+    switch (platform) {
+      case "twitter":
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          `${user?.user_metadata?.name || "I"} scored ${score}/${
+            quiz.question_count
+          } (${percentage}%) on "${quiz.title}"! Topic: ${quiz.topic}${
+            quiz.difficulty ? `, Difficulty: ${quiz.difficulty}` : ""
+          }\n\nTake the quiz or create your own:`
+        )}&url=${encodeURIComponent(quizUrl)}`;
+        window.open(twitterUrl, "_blank");
+        break;
+      case "facebook":
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(quizUrl)}&quote=${encodeURIComponent(shareText)}`;
+        window.open(facebookUrl, "_blank");
+        break;
+      case "whatsapp":
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        window.open(whatsappUrl, "_blank");
+        break;
+    }
+  };
 
-				<div className="text-sm space-y-1">
-					<div>Topic: {quiz.topic}</div>
-					{quiz.difficulty && (
-						<div>
-							Difficulty: {quiz.difficulty}
-						</div>
-					)}
-				</div>
+  return (
+    <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
+      <div className="text-center space-y-4">
+        <h2 className="text-2xl font-bold text-foreground">
+          {quiz.title}
+        </h2>
 
-				{/* 				<Button
-					onClick={handleShare}
-					className="w-full mt-4 gap-2 bg-white text-indigo-600 hover:bg-gray-100"
-				>
-					<Share2 className="w-5 h-5" />
-					Share Results
-				</Button> */}
-			</div>
-		</div>
-	);
+        <div className="text-5xl font-bold text-primary">
+          {score}
+          <span className="text-2xl text-muted-foreground">
+            /{quiz.question_count}
+          </span>
+        </div>
+
+        <div className="text-lg text-foreground">
+          <span className="font-bold">
+            {user?.user_metadata?.name || "You"}
+          </span>{" "}
+          scored <span className="text-primary">{percentage}%</span>
+        </div>
+
+        <div className="text-sm text-muted-foreground space-y-1">
+          <div>Topic: {quiz.topic}</div>
+          {quiz.difficulty && (
+            <div>Difficulty: {quiz.difficulty}</div>
+          )}
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="w-full mt-4 gap-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground">
+              <Share2 className="w-5 h-5" />
+              Share Results
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-full">
+            <DropdownMenuItem onClick={() => handleShare("twitter")}>
+              <Twitter className="w-4 h-4 mr-2" />
+              Share on Twitter
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleShare("facebook")}>
+              <Facebook className="w-4 h-4 mr-2" />
+              Share on Facebook
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Share on WhatsApp
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
 };

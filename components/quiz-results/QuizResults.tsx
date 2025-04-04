@@ -35,9 +35,9 @@ export const QuizResults = ({
   }
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
+    <div className="space-y-8 max-w-2xl mx-auto bg-background">
       {/* Shareable Results Section */}
-      <div className="bg-gradient-to-br from-indigo-600 to-pink-500 rounded-xl p-6 text-white">
+      <div className="rounded-xl p-6 bg-card shadow-sm border border-border">
         <ShareableResultsCard
           quiz={quiz}
           score={score}
@@ -47,24 +47,24 @@ export const QuizResults = ({
 
       {/* Performance Breakdown */}
       <div className="space-y-4">
-        <h3 className="text-xl font-bold">Performance Breakdown</h3>
+        <h3 className="text-xl font-bold text-foreground">Performance Breakdown</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="text-green-600 font-bold text-2xl">{score}</div>
-            <div className="text-sm text-green-600">Correct Answers</div>
+          <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+            <div className="text-primary font-bold text-2xl">{score}</div>
+            <div className="text-sm text-primary">Correct Answers</div>
           </div>
-          <div className="bg-red-50 p-4 rounded-lg">
-            <div className="text-red-600 font-bold text-2xl">
+          <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+            <div className="text-destructive font-bold text-2xl">
               {quiz.question_count - score}
             </div>
-            <div className="text-sm text-red-600">Incorrect Answers</div>
+            <div className="text-sm text-destructive">Incorrect Answers</div>
           </div>
         </div>
       </div>
 
       {/* Question Review */}
       <div className="space-y-4">
-        <h3 className="text-xl font-bold">Question Review</h3>
+        <h3 className="text-xl font-bold text-foreground">Question Review</h3>
         <Accordion type="single" collapsible className="w-full">
           {quiz.questions.map((question, index) => {
             const userAnswer = userAnswers[index];
@@ -80,39 +80,38 @@ export const QuizResults = ({
             }));
 
             return (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="hover:no-underline w-full px-4 py-3 rounded-lg">
+              <AccordionItem key={index} value={`item-${index}`} className="border-border">
+                <AccordionTrigger className="hover:no-underline w-full px-4 py-3 rounded-lg bg-card hover:bg-muted/20">
                   <div className="flex items-start space-x-3 w-full">
                     {isCorrect ? (
-                      <Check className="w-5 h-5 text-green-600 shrink-0 mt-1" />
+                      <Check className="w-5 h-5 text-primary shrink-0 mt-1" />
                     ) : (
-                      <X className="w-5 h-5 text-red-600 shrink-0 mt-1" />
+                      <X className="w-5 h-5 text-destructive shrink-0 mt-1" />
                     )}
                     <div className="text-left flex-1 min-w-0">
-                      <span className="font-medium">Q{index + 1}: </span>
-                      <span className="whitespace-normal break-words">
+                      <span className="font-medium text-foreground">Q{index + 1}: </span>
+                      <span className="whitespace-normal break-words text-foreground">
                         {renderMathContent(question.question_text)}
                       </span>
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4">
+                <AccordionContent className="px-4 bg-card">
                   <div className="space-y-3 p-4 rounded-lg">
                     {options.map(({ key, value }) => {
                       const isUserAnswer = key === userAnswer;
                       const isCorrectOption = key === correctAnswer;
                       let variant: "default" | "outline" = "outline";
-                      let className = "w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left";
+                      let className = "w-full h-auto min-h-[3rem] py-2 px-4 whitespace-normal text-left pointer-events-none";
 
                       if (isCorrectOption) {
                         variant = "default";
-                        className += " bg-green-700 text-white";
+                        className += " bg-primary dark:primary-foreground";
                       } else if (isUserAnswer && !isCorrect) {
                         variant = "default";
-                        className += " bg-red-700 text-white";
+                        className += " bg-destructive text-destructive-foreground";
                       } else {
-                        // Unselected options: black in light mode, white in dark mode
-                        className += " text-foreground disabled:opacity-100";
+                        className += " text-foreground border-border hover:bg-muted/20";
                       }
 
                       return (
@@ -120,7 +119,6 @@ export const QuizResults = ({
                           key={key}
                           variant={variant}
                           className={className}
-                          disabled
                         >
                           <span className="w-full break-words">
                             {renderMathContent(value)}

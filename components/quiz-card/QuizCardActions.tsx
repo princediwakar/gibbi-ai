@@ -117,7 +117,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
     <>
       <div className="flex gap-2 mt-6">
         <Button asChild variant="default" className="flex-1">
-          <Link href={isCreator ? `/quiz/${quiz.slug}/edit` : `/quiz/${quiz.slug}`}>View Quiz</Link>
+          <Link href={isCreator ? `/edit/${quiz.slug}` : `/quiz/${quiz.slug}`}>View Quiz</Link>
         </Button>
 
         <DropdownMenu>
@@ -153,7 +153,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => router.push(`/quiz/${quiz.slug}/edit`)}
+                  onClick={() => router.push(`/edit/${quiz.slug}`)}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit

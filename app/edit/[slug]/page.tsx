@@ -1,4 +1,4 @@
-// app/quiz/[slug]/edit/page.tsx
+// app/edit/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { QuizPlayer } from "@/components/quiz-player/QuizPlayer";
 import { QuizEditor } from "@/components/quiz-editor/QuizEditor";

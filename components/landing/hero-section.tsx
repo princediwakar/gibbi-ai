@@ -4,6 +4,11 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function HeroLanding() {
+  const heroImages = [
+    "/_static/illustrations/hero-image-1.png",
+    "/_static/illustrations/hero-image-2.png"
+  ];
+  const randomHeroImage = heroImages[Math.floor(Math.random() * heroImages.length)];
   return (
     <section className="py-12 sm:py-16 lg:py-20">
       <div className="container flex max-w-5xl flex-col items-center gap-6 lg:flex-row lg:gap-8 lg:items-center">
@@ -45,7 +50,7 @@ export default function HeroLanding() {
         </div>
         <div className="w-full max-w-md lg:w-1/2 lg:max-w-none">
           <Image
-            src="/_static/illustrations/hero-image-2.png" // Placeholder—replace with AI-generated image
+            src={randomHeroImage}
             alt="Student transitioning from exam stress to confidence with GibbiAI quiz results"
             width={600}
             height={450}
