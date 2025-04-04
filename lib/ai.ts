@@ -131,7 +131,7 @@ export async function createQuizWithAI(
             { role: "system", content: systemMessageContent(remainingQuestions) },
             { role: "user", content: userContent },
           ],
-          temperature: 0.75,
+          temperature: 0.8,
           top_p: 0.9,
           max_tokens: maxTokens,
         });

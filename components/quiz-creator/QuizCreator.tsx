@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { LANGUAGES } from "@/lib/utils";
 import { PromptInput } from "./PromptInput";
 import { PDFUploader } from "./PDFUploader";
-import { SignInModal } from "./SignInModal";
+import { SignInModal } from "../SignInModal";
 
 // Constants
 const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 50;

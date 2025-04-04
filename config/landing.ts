@@ -20,7 +20,7 @@ export const infos: InfoLdg[] = [
       {
         icon: "clock",
         title: "Cramming failing you?",
-        description: "Simulate real exams with timed, custom tests—be ready when it matters.",
+        description: "Simulate real exams with timed, custom tests — Be ready when it matters.",
       },
     ],
   },

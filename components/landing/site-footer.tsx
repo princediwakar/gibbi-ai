@@ -2,7 +2,6 @@ import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggleButton";
-import { Icons } from "../shared/icons";
 
 export default function SiteFooter({ className }: React.HTMLAttributes<HTMLElement>) {
   const footerLinks = [
@@ -38,13 +37,13 @@ export default function SiteFooter({ className }: React.HTMLAttributes<HTMLEleme
     },
   ];
 
-  const siteConfig = {
-    name: "GibbiAI",
-    links: {
-      twitter: "https://twitter.com/gibbiai",
-      github: "https://github.com/GibbiAIteam/GibbiAI",
-    },
-  };
+  // const siteConfig = {
+  //   name: "GibbiAI",
+  //   links: {
+  //     twitter: "https://twitter.com/gibbiai",
+  //     github: "https://github.com/GibbiAIteam/GibbiAI",
+  //   },
+  // };
 
   return (
     <footer
