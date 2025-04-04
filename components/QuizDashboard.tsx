@@ -11,8 +11,8 @@ import { handleQuizCreated, handleQuizDeleted } from "./quiz-handlers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import IndexPage from "@/app/landing/page";
 import Image from "next/image";
+import StudentsLanding from "@/app/landing/students/page";
 
 export function QuizDashboard() {
   const { user, isUserLoading } = useUser();
@@ -58,9 +58,11 @@ export function QuizDashboard() {
   }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
 
   return (
-    <div className="flex flex-col items-center mx-auto space-y-20 p-6">
+    <div className="flex flex-col items-center mx-auto p-6">
+      <div className="flex flex-col items-center mb-32 space-y-20">
       <Image src="/Q.svg" alt="GibbiAI logo" height={60} width={60} priority />
       <QuizCreator onQuizCreated={onQuizCreated} />
+      </div>
       {isUserLoading || isInitialLoading ? ( // Show loading state only below QuizCreator
         <div className="text-center py-4">
           <span className="text-muted-foreground">Loading...</span>
@@ -106,7 +108,7 @@ export function QuizDashboard() {
             </div>
           )}
         </div>
-      ) : <IndexPage />}
+      ) : <StudentsLanding />}
     </div>
   );
 }

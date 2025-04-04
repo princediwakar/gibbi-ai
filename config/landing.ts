@@ -8,19 +8,19 @@ export const infos: InfoLdg[] = [
     image: "/_static/illustrations/work-from-home.jpg", // Update the image path
     list: [
       {
-        title: "AI-Powered",
-        description: "Leverage AI to generate quizzes instantly.",
-        icon: "brain",
+        title: "Drowning in study material?",
+        description: "Turn dense notes or textbooks into quick, bite-sized quizzes—automatically, in seconds.",
+        icon: "bookOpen",
       },
       {
-        title: "Customizable",
-        description: "Tailor quizzes to your specific needs.",
-        icon: "settings",
+        icon: "help",
+        title: "Unsure what you’ve mastered?",
+        description: "Get instant results with clear explanations to spot your strengths and gaps.",
       },
       {
-        title: "Shareable",
-        description: "Easily share quizzes with your audience.",
-        icon: "share",
+        icon: "clock",
+        title: "Cramming failing you?",
+        description: "Simulate real exams with timed, custom tests—be ready when it matters.",
       },
     ],
   },
@@ -49,46 +49,39 @@ export const infos: InfoLdg[] = [
   },
 ];
 
-
+// @/config/landing.ts
 export const features: FeatureLdg[] = [
   {
-    title: "AI-Powered Quiz Generation",
-    description:
-      "Generate quizzes effortlessly by simply providing a topic or prompt. Our AI handles the rest, creating engaging questions tailored to your needs.",
-    icon: 'brain',
+    title: "AI-Powered Quiz Creation",
+    description: "Generate tailored quizzes in seconds with our advanced AI, adapting to your subject and difficulty preferences.",
+    icon: "cpu",
   },
   {
-    title: "Customizable Difficulty Levels",
-    description:
-      "Choose from easy, medium, or hard levels to tailor quizzes for different audiences, ensuring an optimal learning experience.",
-    icon: 'star',
+    title: "Real-Time Customization",
+    description: "Edit questions, options, and answers on the fly with an intuitive interface—no delays, just results.",
+    icon: "edit",
   },
   {
-    title: "Data & Analytics",
-    description:
-      "Track quiz attempts, scores, and engagement metrics to understand user performance and improve your quizzes over time.",
-    icon: 'chartBar',
+    title: "Seamless Exports",
+    description: "Download quizzes as PDF or Excel files for offline use, perfect for classrooms or study groups.",
+    icon: "download",
   },
   {
-    title: "Shareable & Embeddable Quizzes",
-    description:
-      "Easily share quizzes via links or embed them on your website or blog to reach a wider audience.",
-    icon: 'share',
+    title: "Instant Sharing",
+    description: "Share quizzes via unique links or embeds, making collaboration effortless for teams and students.",
+    icon: "share",
   },
   {
-    title: "Multi-Industry Applications",
-    description:
-      "Utilize quizzes for education, training, marketing, and more, making them a versatile tool for various sectors.",
-    icon: 'briefcase',
+    title: "Performance Insights",
+    description: "Track scores and progress with detailed analytics to identify strengths and areas for improvement.",
+    icon: "chartBar",
   },
   {
-    title: "Downloadable Quizzes",
-    description:
-      "Easily download your quizzes in PDF or Excel formats for offline use or sharing with others.",
-    icon: 'download',
+    title: "Adaptive Learning",
+    description: "Personalize quiz difficulty and content dynamically based on user performance for optimal growth.",
+    icon: "user",
   },
 ];
-
 export const testimonials: TestimonialType[] = [
   {
     name: "Sofia Rossi",
@@ -153,5 +146,83 @@ export const testimonials: TestimonialType[] = [
     review:
       "I love how I can create quizzes on various topics quickly. It’s a great way to engage my audience and gather feedback on my writing.",
     location: "Milan, Italy",
+  },
+];
+
+
+
+
+export const studentTestimonials: TestimonialType[] = [
+  {
+    name: "Ethan Rivera",
+    job: "College Freshman",
+    image: "https://randomuser.me/api/portraits/men/15.jpg",
+    review:
+      "Exams used to stress me out so bad, but GibbiAI lets me tweak the quizzes to match my pace. The timed tests? Total game-changer for my prep.",
+    location: "North Carolina, USA",
+  },
+  {
+    name: "Luna Ortiz",
+    job: "University Sophomore",
+    image: "https://randomuser.me/api/portraits/women/18.jpg",
+    review:
+      "I love seeing where I’m at with the results breakdown. It’s like, ‘Oh, I nailed this, but I gotta work on that.’ Keeps me on track without the overwhelm.",
+    location: "Mexico City, Mexico",
+  },
+  {
+    name: "Anthony Davis",
+    job: "Coding Bootcamp Student",
+    image: "https://randomuser.me/api/portraits/men/28.jpg",
+    review:
+      "Learning code was brutal until I started quizzing myself with GibbiAI. The questions push me just right, and I’m finally getting the hang of it.",
+    location: "San Diego, US",
+  },
+  {
+    name: "Lena Dubois",
+    job: "University Senior",
+    image: "https://randomuser.me/api/portraits/women/30.jpg",
+    review:
+      "Cramming wasn’t working, so I tried GibbiAI’s timed quizzes. Now I’m way less panicked for exams—feels like I’ve got this under control.",
+    location: "Paris, France",
+  },
+  {
+    name: "Jasper Silva",
+    job: "High School Sophomore",
+    image: "https://randomuser.me/api/portraits/men/33.jpg",
+    review:
+      "I was drowning in bio homework, but GibbiAI made it chill. I quiz myself on the bus with the offline exports—super easy and I’m actually learning!",
+    location: "São Paulo, Brazil",
+  },
+  {
+    name: "Emma Johnson",
+    job: "High School Senior",
+    image: "https://randomuser.me/api/portraits/women/35.jpg",
+    review:
+      "GibbiAI has been a lifesaver for my AP classes. I can create quizzes from my notes in minutes and track my progress effortlessly.",
+    location: "Chicago, USA",
+  },
+  {
+    name: "Maya Patel",
+    job: "High School Junior",
+    image: "https://randomuser.me/api/portraits/women/12.jpg",
+    review:
+      "I was freaking out about finals, but GibbiAI saved me! I turned my messy notes into quizzes in like two seconds, and now I actually feel ready.",
+    location: "Mumbai, India",
+  },
+  {
+    name: "Sophia Müller",
+    job: "University Junior",
+    image: "https://randomuser.me/api/portraits/women/37.jpg",
+    review:
+      "I love how GibbiAI helps me focus on my weak areas. The detailed results are incredibly helpful for improving my grades.",
+    location: "Berlin, Germany",
+  },
+  {
+    name: "Oliver Brown",
+    job: "High School Junior",
+    image: "https://randomuser.me/api/portraits/men/38.jpg",
+    review:
+      "GibbiAI makes studying fun and efficient. I can create quizzes on any topic and share them with my friends for group study sessions.",
+    location: "London, UK",
   },
 ];

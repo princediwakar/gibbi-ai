@@ -112,7 +112,7 @@ export const QuizResults = ({
                         className += " bg-red-700 text-white";
                       } else {
                         // Unselected options: black in light mode, white in dark mode
-                        className += " text-black dark:text-white disabled:opacity-100";
+                        className += " text-foreground disabled:opacity-100";
                       }
 
                       return (
