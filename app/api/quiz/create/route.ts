@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createQuizWithAI, GeneratedQuiz } from "@/lib/ai";
 import { supabase } from "@/lib/supabase/client";
+import { setTimeout } from "timers/promises";
 // import { Quiz } from "@/types/quiz";
 
 const MAX_PENDING_TIME = Number(process.env.MAX_PENDING_TIME) || 120000; // 120s
@@ -97,9 +98,9 @@ async function processQuizInBackground(
     const aiStart = performance.now();
     const quizData: GeneratedQuiz = await Promise.race([
       createQuizWithAI(content, questionCount, difficulty, language),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Processing timeout")), MAX_PENDING_TIME)
-      ),
+      setTimeout(MAX_PENDING_TIME).then(() => {
+        throw new Error("Processing timeout");
+      }),
     ]);
     metrics.aiGeneration = performance.now() - aiStart;
 
