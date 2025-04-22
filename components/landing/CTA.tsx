@@ -13,7 +13,7 @@ export default function CTA() {
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Link
-            href="/create"
+            href="/"
             className="inline-block rounded-lg bg-primary px-6 py-3 text-primary-foreground font-semibold transition-all hover:bg-primary/90"
           >
             Get Started Now

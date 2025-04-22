@@ -27,7 +27,7 @@ export default function HeroLanding() {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Link
-              href="/create"
+              href="/"
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "bg-primary px-5 text-primary-foreground transition-all hover:bg-primary/90"
