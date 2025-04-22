@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider"
+import { ClarityProvider } from '@/components/ClarityProvider';
 
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner"
@@ -27,21 +28,6 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<head>
-				{/* Microsoft Clarity Analytics */}
-				 <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(c,l,a,r,i,t,y){
-                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;
-                t.src="https://www.clarity.ms/tag/"+i;
-                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-              })(window, document, "clarity", "script", "${process.env.NEXT_PUBLIC_CLARITY_ID || 'r812jm9i2g'}");
-            `,
-          }}
-        />
-			</head>
 			<body>
 				<ThemeProvider
 					attribute="class"
@@ -49,6 +35,7 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
+					<ClarityProvider />
 					{/* Include Header */}
 					<Header />
 					{/* Main Content */}
