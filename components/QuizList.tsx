@@ -32,9 +32,13 @@ export const QuizList = ({
 }: QuizListProps) => {
 
   const formatDate = (date: Date | string | undefined): string => {
-    if (!date) return "Unknown date";
+    // If no date provided, default to "Recently Created" for better UX
+    if (!date) return "Recently Created";
+    
     const quizDate = new Date(date);
-    if (isNaN(quizDate.getTime())) return "Unknown date";
+    // If invalid date, also default to "Recently Created"  
+    if (isNaN(quizDate.getTime())) return "Recently Created";
+    
     if (isToday(quizDate)) return 'Today';
     if (isYesterday(quizDate)) return 'Yesterday';
     if (isThisWeek(quizDate)) return 'This Week';
@@ -47,7 +51,7 @@ export const QuizList = ({
     if (!quizzes) return null;
     if (groupBy === "date") {
       return quizzes.reduce((acc, quiz) => {
-        const dateKey = formatDate(quiz.created_at as any);
+        const dateKey = formatDate(quiz.created_at as string);
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(quiz);
         return acc;

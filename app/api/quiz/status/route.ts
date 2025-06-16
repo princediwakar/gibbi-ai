@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: quizError?.message || 'Not found' }, { status: 500 });
     }
 
-    const result: Record<string, any> = {
+    const result: Record<string, unknown> = {
       status: quizRow.status,
     };
 
@@ -45,13 +45,13 @@ export async function GET(req: NextRequest) {
       // Assemble grouped questions
       const question_groups = groups.map((g) => {
         const contentRaw = g.supporting_content;
-        let content: string | Record<string, any> = contentRaw;
+        let content: string | Record<string, unknown> = contentRaw;
         try { content = JSON.parse(contentRaw as string); } catch {}
 
         const groupQuestions = (questions || [])
           .filter((q) => q.group_id === g.group_id)
           .map((q) => {
-            let opts: any = q.options;
+            let opts: Record<string, string> | string = q.options;
             try { opts = typeof opts === 'string' ? JSON.parse(opts) : opts; } catch {}
             return {
               question_text: q.question_text,
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       const questionsStandalone = (questions || [])
         .filter((q) => q.group_id === null)
         .map((q) => {
-          let opts: any = q.options;
+          let opts: Record<string, string> | string = q.options;
           try { opts = typeof opts === 'string' ? JSON.parse(opts) : opts; } catch {}
           return {
             question_text: q.question_text,

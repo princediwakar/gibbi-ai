@@ -1,7 +1,7 @@
 // lib/quiz-utils.ts
 import React from "react";
 import Katex from "@matejmazur/react-katex";
-import { FlattenedQuestion, Quiz, Question, QuestionGroup } from "@/types/quiz";
+import { FlattenedQuestion, Quiz, Question, QuestionGroup, StructuredContent } from "@/types/quiz";
 import { OptionSchema } from "@/lib/ai-utils";
 
 // ======================== Type Definitions ========================
@@ -116,11 +116,11 @@ export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
 // ======================== Graph Parsing ========================
 export const parseGraphData = (content: string): GraphDataset | null => {
   try {
-    const jsonData = JSON.parse(content) as Record<string, any>;
+    const jsonData = JSON.parse(content) as Record<string, unknown>;
     if (jsonData && jsonData.type && Array.isArray(jsonData.labels) && Array.isArray(jsonData.datasets)) {
       const base = {
         type: jsonData.type as "bar" | "line" | "pie",
-        title: jsonData.title || "Graph Data",
+        title: (jsonData.title as string) || "Graph Data",
         labels: jsonData.labels.map(String),
       };
 
@@ -129,8 +129,8 @@ export const parseGraphData = (content: string): GraphDataset | null => {
           ...base,
           datasets: [
             {
-              label: jsonData.datasets[0]?.label || "Value",
-              values: (jsonData.datasets[0]?.values || []).map(Number),
+              label: (jsonData.datasets[0] as Record<string, unknown>)?.label as string || "Value",
+              values: ((jsonData.datasets[0] as Record<string, unknown>)?.values as number[] || []).map(Number),
             },
           ],
         };
@@ -138,9 +138,9 @@ export const parseGraphData = (content: string): GraphDataset | null => {
 
       return {
         ...base,
-        datasets: jsonData.datasets.map((d: any) => ({
-          label: d.label || "Series",
-          values: (d.values || []).map(Number),
+        datasets: (jsonData.datasets as Record<string, unknown>[]).map((d: Record<string, unknown>) => ({
+          label: d.label as string || "Series",
+          values: (d.values as number[] || []).map(Number),
         })),
       };
     }
@@ -174,7 +174,7 @@ const parseGraphDataFromText = (content: string): GraphDataset | null => {
 // ======================== Table Parsing ========================
 export const parseTableData = (content: string): TableData | null => {
   try {
-    const jsonData = JSON.parse(content) as { headers: string[]; rows: any[][] };
+    const jsonData = JSON.parse(content) as { headers: string[]; rows: unknown[][] };
     if (Array.isArray(jsonData.headers) && Array.isArray(jsonData.rows)) {
       return {
         headers: jsonData.headers.map(String),
@@ -223,6 +223,32 @@ const isValidQuestionGroup = (g: QuestionGroup): boolean =>
   g.questions.every(isValidQuestion) &&
   (!g.supporting_content ||
     (typeof g.supporting_content.content === "string" || typeof g.supporting_content.content === "object"));
+
+const isValidGraphContent = (content: string | StructuredContent): boolean => {
+  if (typeof content === 'string') {
+    try {
+      const parsed = JSON.parse(content);
+      return parsed && typeof parsed.type === 'string' && Array.isArray(parsed.labels) && Array.isArray(parsed.datasets);
+    } catch {
+      return false;
+    }
+  }
+  return content && 'type' in content && 'labels' in content && 'datasets' in content && 
+         typeof content.type === 'string' && Array.isArray(content.labels) && Array.isArray(content.datasets);
+};
+
+const isValidTableContent = (content: string | StructuredContent): boolean => {
+  if (typeof content === 'string') {
+    try {
+      const parsed = JSON.parse(content);
+      return parsed && Array.isArray(parsed.headers) && Array.isArray(parsed.rows);
+    } catch {
+      return false;
+    }
+  }
+  return content && 'headers' in content && 'rows' in content && 
+         Array.isArray(content.headers) && Array.isArray(content.rows);
+};
 
 // ======================== Math Rendering ========================
 export const renderMathContent = (text: string): React.ReactNode[] => {

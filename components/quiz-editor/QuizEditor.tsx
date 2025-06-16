@@ -29,13 +29,20 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
   const handleQuestionChange = useCallback(
     (questionId: number | undefined, field: string, value: string, optionKey?: string) => {
       setEditedQuiz((prev) => {
-        const newQuestions = prev.questions.map((q) =>
-          q.question_id === questionId
-            ? field === "options" && optionKey
-              ? { ...q, options: { ...q.options, [optionKey]: value } }
-              : { ...q, [field]: value }
-            : q
-        );
+        const newQuestions = prev.questions.map((q) => {
+          if (q.question_id === questionId) {
+            if (field === "options" && optionKey) {
+              // Ensure options is always an object, not a string
+              const currentOptions = typeof q.options === 'string' 
+                ? JSON.parse(q.options) 
+                : q.options;
+              return { ...q, options: { ...currentOptions, [optionKey]: value } };
+            } else {
+              return { ...q, [field]: value };
+            }
+          }
+          return q;
+        });
         return { ...prev, questions: newQuestions };
       });
     },

@@ -9,7 +9,10 @@ export function cn(...inputs: ClassValue[]) {
 
 
 export const extractIdFromSlug = (slug: string) => {
-	return slug.split("_").pop(); // Extract the last part as ID
+	const parts = slug.split("_");
+	const id = parts.pop();
+	// Return null if no ID found instead of undefined to prevent string "undefined"
+	return id && id !== "undefined" ? id : null;
 };
 
 export function generateSlug(title: string, quizId: string) {

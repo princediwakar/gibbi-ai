@@ -107,7 +107,6 @@ export function getVariabilityInstructions(rng: () => number = Math.random): str
     `9. For each theme, create 2-5 related questions.`,
   ].join("\n");
 }
-// lib/ai-utils.ts
 
 export function buildSystemMessage(
   variability: string,
@@ -152,7 +151,7 @@ Output **must** be a single valid JSON object (no markdown, no extra text) in ex
   ]
 }
 
-Append the literal marker `END_OF_JSON` immediately after the closing brace.
+Append the literal marker END_OF_JSON immediately after the closing brace.
 `;
 
   const RULES = [

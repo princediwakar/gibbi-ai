@@ -1,5 +1,6 @@
 // File: components/quiz-player/SupportingContentDisplay.tsx
 "use client";
+import Image from 'next/image';
 import { renderMathContent } from "@/lib/quiz-utils";
 import { SupportingContent } from "@/types/quiz";
 import { parseGraphData, parseTableData } from "@/lib/quiz-utils";
@@ -145,9 +146,11 @@ export const SupportingContentDisplay: React.FC<SupportingContent> = ({
     switch (type) {
       case 'image':
         return (
-          <img
+          <Image
             src={normalized}
             alt={caption || 'Supporting image'}
+            width={800}
+            height={600}
             className="max-w-full h-auto rounded-md shadow-md my-4"
           />
         );

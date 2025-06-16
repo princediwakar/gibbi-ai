@@ -153,7 +153,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => router.push(`/edit/${quiz.slug}`)}
+                  onClick={() => router.push(`/quiz/${quiz.slug}`)}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit

@@ -1,6 +1,6 @@
 "use client";
 
-import { Quiz, Question } from "@/types/quiz";
+import { Quiz } from "@/types/quiz";
 import { Check, X } from "lucide-react";
 import {
   Accordion,
@@ -20,16 +20,7 @@ interface QuizResultsProps {
   score: number;
 }
 
-interface FlattenedQuestion {
-  question: Question;
-  supportingContent: {
-    type: string;
-    content: string;
-    caption?: string;
-  } | null;
-  source: string;
-  originalIndex: number;
-}
+
 
 export const QuizResults = ({
   quiz,
