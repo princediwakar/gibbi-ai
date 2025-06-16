@@ -1,19 +1,16 @@
-// app/quiz/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { QuizPlayer } from "@/components/quiz-player/QuizPlayer";
-import { getQuizWithQuestions, getQuizMetadata } from "@/lib/queries";
 import { extractIdFromSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Metadata } from "next";
+import { Quiz } from "@/types/quiz";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  // searchParams: Promise<{ edit?: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
@@ -26,15 +23,23 @@ export async function generateMetadata({
   }
 
   try {
-    const quiz = await getQuizMetadata(quizId);
-    if (!quiz) {
+    const supabase = await createClient();
+    const { data: quiz, error } = await supabase
+      .from("quizzes")
+      .select("*")
+      .eq("quiz_id", quizId)
+      .single();
+
+    if (error || !quiz) {
       return {
         title: "Quiz Not Found",
         description: "The requested quiz could not be found",
       };
     }
 
-    const ogImageUrl = `${baseUrl}/api/og?type=quiz&title=${encodeURIComponent(quiz.title)}&topic=${encodeURIComponent(quiz.topic || "General")}`;
+    const ogImageUrl = `${baseUrl}/api/og?type=quiz&title=${encodeURIComponent(
+      quiz.title
+    )}&topic=${encodeURIComponent(quiz.topic || "General")}`;
 
     return {
       title: quiz.title,
@@ -76,8 +81,8 @@ export async function generateMetadata({
   }
 }
 
-// app/quiz/[slug]/page.tsx
 export default async function QuizPage({ params }: PageProps) {
+  const { slug } = await params;
   const supabase = await createClient();
   let user = null;
 
@@ -94,12 +99,105 @@ export default async function QuizPage({ params }: PageProps) {
     console.error("[QuizPage] Failed to fetch user session:", e);
   }
 
-  const { slug } = await params;
   const quizId = extractIdFromSlug(slug);
   if (!quizId) notFound();
 
-  const quiz = await getQuizWithQuestions(quizId);
-  if (!quiz) notFound();
+  // Fetch quiz details
+  const { data: quizData, error: quizError } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq("quiz_id", quizId)
+    .single();
+
+  if (quizError || !quizData) {
+    console.error("Error fetching quiz:", quizError?.message);
+    notFound();
+  }
+
+  // Fetch standalone questions (group_id is null)
+  const { data: standaloneQuestions, error: standaloneError } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("quiz_id", quizId)
+    .is("group_id", null);
+
+  if (standaloneError) {
+    console.error("Error fetching standalone questions:", standaloneError.message);
+  }
+
+  // Fetch question groups with their supporting content
+  const { data: questionGroups, error: groupsError } = await supabase
+    .from("question_groups")
+    .select("group_id, supporting_content_type, supporting_content, caption, group_order")
+    .eq("quiz_id", quizId)
+    .order("group_order", { ascending: true });
+
+  if (groupsError) {
+    console.error("Error fetching question groups:", groupsError.message);
+  }
+
+  // Fetch questions for each group
+  const questionGroupsWithQuestions = questionGroups?.length
+    ? await Promise.all(
+        questionGroups.map(async (group) => {
+          const { data: groupQuestions, error: groupQuestionsError } = await supabase
+            .from("questions")
+            .select("*")
+            .eq("group_id", group.group_id);
+
+          if (groupQuestionsError) {
+            console.error(`Error fetching questions for group ${group.group_id}:`, groupQuestionsError.message);
+            return { ...group, questions: [] };
+          }
+
+          return {
+            ...group,
+            supporting_content: {
+              type: group.supporting_content_type,
+              content: group.supporting_content,
+              caption: group.caption || "",
+            },
+            questions: groupQuestions || [],
+          };
+        })
+      )
+    : [];
+
+  // Calculate total question count (standalone + grouped questions)
+  const standaloneCount = standaloneQuestions?.length || 0;
+  const groupedCount = questionGroupsWithQuestions.reduce(
+    (sum, group) => sum + group.questions.length,
+    0
+  );
+  const totalQuestionCount = standaloneCount + groupedCount;
+
+  // Fetch creator name (if not already in quizData)
+  let creatorName = "Unknown";
+  try {
+    const { data: creatorData, error: creatorError } = await supabaseAdmin.auth.admin.getUserById(
+      quizData.creator_id
+    );
+    if (creatorError || !creatorData) {
+      console.error("Error fetching creator data:", creatorError?.message);
+    } else {
+      creatorName =
+        creatorData.user.user_metadata?.full_name ||
+        creatorData.user.user_metadata?.name ||
+        creatorData.user.email?.split("@")[0] ||
+        "Unknown";
+    }
+  } catch (error) {
+    console.error("Error fetching creator name:", error);
+  }
+
+  // Construct the quiz object
+  const quiz: Quiz = {
+    ...quizData,
+    questions: standaloneQuestions || [],
+    question_groups: questionGroupsWithQuestions || [],
+    creator_name: creatorName,
+    question_count: totalQuestionCount,
+  };
 
   const isCreator = user?.id === quiz.creator_id;
   return <QuizPlayer quiz={quiz} isCreator={isCreator} />;

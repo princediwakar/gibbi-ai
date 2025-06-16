@@ -117,7 +117,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
     <>
       <div className="flex gap-2 mt-6">
         <Button asChild variant="default" className="flex-1">
-          <Link href={isCreator ? `/edit/${quiz.slug}` : `/quiz/${quiz.slug}`}>View Quiz</Link>
+          <Link href={isCreator ? `/quiz/${quiz.slug}` : `/quiz/${quiz.slug}`}>View Quiz</Link>
         </Button>
 
         <DropdownMenu>

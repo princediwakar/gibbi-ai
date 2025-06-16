@@ -1,10 +1,16 @@
-// components/QuizList.tsx
 "use client"
 import { useMemo } from "react";
 import { Quiz } from "@/types/quiz";
-import {  Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { QuizCard } from "./quiz-card/QuizCard";
-import { format, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear } from 'date-fns';
+import {
+  format,
+  isToday,
+  isYesterday,
+  isThisWeek,
+  isThisMonth,
+  isThisYear,
+} from 'date-fns';
 import Link from "next/link";
 
 interface QuizListProps {
@@ -13,9 +19,7 @@ interface QuizListProps {
   onQuizDeleted?: (quizId: string) => void;
   emptyMessage?: string;
   groupBy?: "date" | "subject";
-
-  showViewMore?: boolean; // Optional prop, only for public quizzes
-
+  showViewMore?: boolean;
 }
 
 export const QuizList = ({
@@ -24,40 +28,31 @@ export const QuizList = ({
   onQuizDeleted,
   emptyMessage = "No quizzes available",
   groupBy = "subject",
-  
-  showViewMore = false, // Default to false
-
+  showViewMore = false,
 }: QuizListProps) => {
 
-  
-  const formatDate = (date: Date | string): string => {
+  const formatDate = (date: Date | string | undefined): string => {
+    if (!date) return "Unknown date";
     const quizDate = new Date(date);
-    if (isToday(quizDate)) {
-      return 'Today';
-    } else if (isYesterday(quizDate)) {
-      return 'Yesterday';
-    } else if (isThisWeek(quizDate)) {
-      return 'This Week';
-    } else if (isThisMonth(quizDate)) {
-      return 'This Month';
-    } else if (isThisYear(quizDate)) {
-      return format(quizDate, 'LLLL'); // Full month name
-    } else {
-      return format(quizDate, 'LLLL yyyy'); // Full month name and year
-    }
+    if (isNaN(quizDate.getTime())) return "Unknown date";
+    if (isToday(quizDate)) return 'Today';
+    if (isYesterday(quizDate)) return 'Yesterday';
+    if (isThisWeek(quizDate)) return 'This Week';
+    if (isThisMonth(quizDate)) return 'This Month';
+    if (isThisYear(quizDate)) return format(quizDate, 'LLLL');
+    return format(quizDate, 'LLLL yyyy');
   };
 
   const groupedQuizzes = useMemo(() => {
     if (!quizzes) return null;
-
     if (groupBy === "date") {
       return quizzes.reduce((acc, quiz) => {
-        const date = formatDate(quiz.created_at);
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(quiz);
+        const dateKey = formatDate(quiz.created_at as any);
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(quiz);
         return acc;
       }, {} as Record<string, Quiz[]>);
-    } else { // groupBy === "subject"
+    } else {
       return quizzes.reduce((acc, quiz) => {
         const subject = quiz.subject || "General";
         if (!acc[subject]) acc[subject] = [];
@@ -81,32 +76,25 @@ export const QuizList = ({
       <div className="text-center text-muted-foreground py-6">{emptyMessage}</div>
     );
   }
-  
+
   return (
     <div className="space-y-8">
       {groupedQuizzes && Object.keys(groupedQuizzes).length ? (
-        Object.entries(groupedQuizzes).map(([group, quizzes]) => (
+        Object.entries(groupedQuizzes).map(([group, groupQuizzes]) => (
           <div key={group} className="space-y-4">
             <div className="flex justify-between items-center border-b">
-            <h3 className="text-lg font-semibold text-muted-foreground  pb-2">
-              {group}
-            </h3>
-            {showViewMore && (
-                <Link
-                  href={`/quizzes/${encodeURIComponent(group)}`}
-                  className="text-primary hover:underline"
-                >
+              <h3 className="text-lg font-semibold text-muted-foreground pb-2">
+                {group}
+              </h3>
+              {showViewMore && (
+                <Link href={`/quizzes/${encodeURIComponent(group)}`} className="text-primary hover:underline">
                   View More
                 </Link>
               )}
-              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {quizzes.map((quiz) => (
-                <QuizCard
-                  key={quiz.quiz_id}
-                  quiz={quiz}
-                  onDelete={onQuizDeleted}
-                />
+              {groupQuizzes.map((quiz) => (
+                <QuizCard key={quiz.quiz_id} quiz={quiz} onDelete={onQuizDeleted} />
               ))}
             </div>
           </div>
@@ -117,5 +105,3 @@ export const QuizList = ({
     </div>
   );
 };
-
-

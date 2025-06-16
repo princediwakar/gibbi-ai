@@ -1,5 +1,6 @@
+// components/quiz-player/QuizPlayer.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Quiz } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,9 @@ import { QuizResults } from "../quiz-results/QuizResults";
 import { GoBackOrHome } from "../GoBackOrHome";
 import { QuizProgress } from "./QuizProgress";
 import { QuizQuestion } from "./QuizQuestion";
-import { parseOptions } from "@/lib/quiz-utils";
+import { SupportingContentDisplay } from "./SupportingContentDisplay";
+import { parseOptions, flattenQuizQuestions } from "@/lib/quiz-utils";
+import { FlattenedQuestion } from "@/types/quiz";
 
 interface QuizPlayerProps {
   quiz: Quiz;
@@ -16,39 +19,82 @@ interface QuizPlayerProps {
 }
 
 export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [completed, setCompleted] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
-
   const router = useRouter();
 
-  const handleEdit = () => {
-    router.push(`/edit/${quiz.slug}`);
-    // router.refresh(); // Ensure the page updates
-  };
+  // Flattened questions state
+  const [flattenedQuestions, setFlattenedQuestions] = useState<FlattenedQuestion[]>([]);
 
-  if (!quiz) {
+  // Quiz progress state
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
+  const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+  const [completed, setCompleted] = useState<boolean>(false);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+
+  // Reset state on quiz change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setScore(0);
+    setUserAnswers({});
+    setCompleted(false);
+    setHasStarted(false);
+
+    try {
+      const flat = flattenQuizQuestions(quiz);
+      setFlattenedQuestions(flat);
+    } catch (err) {
+      console.error("Failed to flatten quiz:", err);
+      setFlattenedQuestions([]);
+    }
+  }, [quiz]);
+
+  const total = flattenedQuestions.length;
+
+  if (!quiz || total === 0) {
     return (
-      <div className="text-center">
-        <p>Quiz not found</p>
+      <div className="text-center p-8">
+        <p>{!quiz ? "Quiz not found" : "No questions available."}</p>
         <GoBackOrHome />
       </div>
     );
   }
 
+  const current = flattenedQuestions[currentIndex];
+  const { question, supportingContent, source } = current;
+  const isGroup = source.startsWith("group-");
+
+  const handleAnswer = (optionKey: string) => {
+    if (!question) return;
+    setUserAnswers((prev) => ({ ...prev, [currentIndex]: optionKey }));
+
+    if (question.correct_option === optionKey) {
+      setScore((prev) => prev + 1);
+    }
+
+    const next = currentIndex + 1;
+    if (next < total) {
+      setCurrentIndex(next);
+    } else {
+      setCompleted(true);
+    }
+  };
+
+  // Before starting quiz
   if (!hasStarted) {
     return (
-      <div className="max-w-2xl mx-auto p-4 space-y-6">
+      <div className="max-w-2xl mx-auto p-6 space-y-6">
         <QuizDetails quiz={quiz} />
-        <div className="flex justify-between gap-4">
+        <div className="flex gap-4">
           {isCreator && (
-            <Button variant="outline" className="w-full" onClick={handleEdit}>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => router.push(`/edit/${quiz.slug}`)}
+            >
               Edit Quiz
             </Button>
           )}
-          <Button className="w-full" onClick={() => setHasStarted(true)}>
+          <Button className="flex-1" onClick={() => setHasStarted(true)}>
             Start Quiz
           </Button>
         </div>
@@ -56,48 +102,40 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
     );
   }
 
-  if (!quiz.questions || quiz.questions.length === 0) {
-    return (
-      <div className="text-center">
-        <p>No questions available for this quiz.</p>
-        <GoBackOrHome />
-      </div>
-    );
-  }
-
-  const handleAnswer = (option: string) => {
-    setUserAnswers((prev) => ({ ...prev, [currentIndex]: option }));
-
-    if (option === quiz.questions[currentIndex].correct_option) {
-      setScore(score + 1);
-    }
-
-    if (currentIndex + 1 < quiz.questions.length) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCompleted(true);
-    }
-  };
-
-  const currentQuestion = quiz.questions[currentIndex];
-  const options = parseOptions(currentQuestion.options);
-
+  // After starting quiz
   return (
-    <div className="max-w-xl mt-10 mx-auto">
-      {!completed && <QuizProgress current={currentIndex} total={quiz.questions.length} />}
+    <div className="max-w-5xl mx-auto mt-8 px-4">
+      {!completed && (
+        <QuizProgress current={currentIndex + 1} total={total} />
+      )}
 
       {completed ? (
-        <QuizResults
-          quiz={quiz}
-          userAnswers={userAnswers}
-          score={score}
-        />
+        <QuizResults quiz={quiz} userAnswers={userAnswers} score={score} />
       ) : (
-        <QuizQuestion
-          question={currentQuestion.question_text}
-          options={options}
-          onAnswer={handleAnswer}
-        />
+        <div className="space-y-6 md:flex md:space-x-6">
+          {isGroup && supportingContent && (
+            <div className="md:w-1/2 md:max-h-[70vh] md:overflow-y-auto">
+              <SupportingContentDisplay
+                content={supportingContent.content}
+                type={supportingContent.type}
+                caption={supportingContent.caption}
+              />
+            </div>
+          )}
+          <div className={isGroup ? "md:w-1/2" : "w-full"}>
+            {question ? (
+              <QuizQuestion
+                question={question.question_text}
+                options={parseOptions(question.options)}
+                onAnswer={handleAnswer}
+              />
+            ) : (
+              <p className="text-center text-muted-foreground">
+                Error loading question {currentIndex + 1} of {total}.
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

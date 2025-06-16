@@ -27,4 +27,4 @@ export const QuizQuestion = ({ question, options, onAnswer }: QuizQuestionProps)
       ))}
     </div>
   </div>
-); 
+);

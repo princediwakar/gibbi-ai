@@ -1,0 +1,190 @@
+{
+  "exams": [
+    {
+      "name": "SAT",
+      "country": "United States",
+      "purpose": "College admissions for undergraduate programs",
+      "structure": {
+        "sections": [
+          {"name": "Reading and Writing", "duration": "64 minutes", "questions": 54, "type": "Multiple-choice"},
+          {"name": "Math", "duration": "70 minutes", "questions": 44, "type": "Multiple-choice and Grid-in"}
+        ],
+        "total_duration": "2 hours 14 minutes",
+        "scoring": "400-1600 (200-800 per section)"
+      }
+    },
+    {
+      "name": "ACT",
+      "country": "United States",
+      "purpose": "College admissions for undergraduate programs",
+      "structure": {
+        "sections": [
+          {"name": "English", "duration": "45 minutes", "questions": 75, "type": "Multiple-choice"},
+          {"name": "Math", "duration": "60 minutes", "questions": 60, "type": "Multiple-choice"},
+          {"name": "Reading", "duration": "35 minutes", "questions": 40, "type": "Multiple-choice"},
+          {"name": "Science", "duration": "35 minutes", "questions": 40, "type": "Multiple-choice"},
+          {"name": "Writing (optional)", "duration": "40 minutes", "questions": 1, "type": "Essay"}
+        ],
+        "total_duration": "2 hours 55 minutes (plus 40 minutes if writing)",
+        "scoring": "1-36 (average of section scores)"
+      }
+    },
+    {
+      "name": "GRE",
+      "country": "United States",
+      "purpose": "Graduate school admissions",
+      "structure": {
+        "sections": [
+          {"name": "Analytical Writing", "duration": "30 minutes", "questions": 1, "type": "Essay"},
+          {"name": "Verbal Reasoning", "duration": "41 minutes", "questions": 27, "type": "Multiple-choice"},
+          {"name": "Quantitative Reasoning", "duration": "47 minutes", "questions": 27, "type": "Multiple-choice and Numeric Entry"}
+        ],
+        "total_duration": "1 hour 58 minutes",
+        "scoring": "130-170 (Verbal and Quantitative), 0-6 (Writing)"
+      }
+    },
+    {
+      "name": "GMAT",
+      "country": "United States",
+      "purpose": "Business school admissions",
+      "structure": {
+        "sections": [
+          {"name": "Quantitative Reasoning", "duration": "45 minutes", "questions": 21, "type": "Multiple-choice"},
+          {"name": "Verbal Reasoning", "duration": "45 minutes", "questions": 23, "type": "Multiple-choice"},
+          {"name": "Data Insights", "duration": "45 minutes", "questions": 20, "type": "Multiple-choice and Multi-part"}
+        ],
+        "total_duration": "2 hours 15 minutes",
+        "scoring": "205-805"
+      }
+    },
+    {
+      "name": "MCAT",
+      "country": "United States",
+      "purpose": "Medical school admissions",
+      "structure": {
+        "sections": [
+          {"name": "Biological and Biochemical Foundations", "duration": "95 minutes", "questions": 59, "type": "Multiple-choice"},
+          {"name": "Chemical and Physical Foundations", "duration": "95 minutes", "questions": 59, "type": "Multiple-choice"},
+          {"name": "Psychological, Social, and Biological Foundations", "duration": "95 minutes", "questions": 59, "type": "Multiple-choice"},
+          {"name": "Critical Analysis and Reasoning Skills", "duration": "90 minutes", "questions": 53, "type": "Multiple-choice"}
+        ],
+        "total_duration": "7 hours 30 minutes",
+        "scoring": "472-528"
+      }
+    },
+    {
+      "name": "LSAT",
+      "country": "United States",
+      "purpose": "Law school admissions",
+      "structure": {
+        "sections": [
+          {"name": "Reading Comprehension", "duration": "35 minutes", "questions": "26-28", "type": "Multiple-choice"},
+          {"name": "Analytical Reasoning", "duration": "35 minutes", "questions": "22-24", "type": "Multiple-choice"},
+          {"name": "Logical Reasoning (2 sections)", "duration": "70 minutes", "questions": "48-52", "type": "Multiple-choice"},
+          {"name": "Writing Sample (unscored)", "duration": "35 minutes", "questions": 1, "type": "Essay"}
+        ],
+        "total_duration": "3 hours 30 minutes",
+        "scoring": "120-180"
+      }
+    },
+    {
+      "name": "JEE Main",
+      "country": "India",
+      "purpose": "Engineering college admissions",
+      "structure": {
+        "sections": [
+          {"name": "Physics", "duration": "Shared", "questions": 25, "type": "Multiple-choice and Numerical"},
+          {"name": "Chemistry", "duration": "Shared", "questions": 25, "type": "Multiple-choice and Numerical"},
+          {"name": "Mathematics", "duration": "Shared", "questions": 25, "type": "Multiple-choice and Numerical"}
+        ],
+        "total_duration": "3 hours",
+        "scoring": "300 (100 per section)"
+      }
+    },
+    {
+      "name": "JEE Advanced",
+      "country": "India",
+      "purpose": "Admission to IITs",
+      "structure": {
+        "sections": [
+          {"name": "Paper 1 (Physics, Chemistry, Math)", "duration": "3 hours", "questions": "Varies (around 54 total)", "type": "Multiple-choice, Numerical, Matching"},
+          {"name": "Paper 2 (Physics, Chemistry, Math)", "duration": "3 hours", "questions": "Varies (around 54 total)", "type": "Multiple-choice, Numerical, Matching"}
+        ],
+        "total_duration": "6 hours (two papers)",
+        "scoring": "Varies (typically 360 total)"
+      }
+    },
+    {
+      "name": "NEET",
+      "country": "India",
+      "purpose": "Medical and dental college admissions",
+      "structure": {
+        "sections": [
+          {"name": "Physics", "duration": "Shared", "questions": 50, "type": "Multiple-choice"},
+          {"name": "Chemistry", "duration": "Shared", "questions": 50, "type": "Multiple-choice"},
+          {"name": "Biology", "duration": "Shared", "questions": 100, "type": "Multiple-choice"}
+        ],
+        "total_duration": "3 hours 20 minutes",
+        "scoring": "720"
+      }
+    },
+    {
+      "name": "UPSC Civil Services",
+      "country": "India",
+      "purpose": "Recruitment for civil services (IAS, IPS, etc.)",
+      "structure": {
+        "stages": [
+          {
+            "name": "Prelims",
+            "sections": [
+              {"name": "General Studies Paper I", "duration": "2 hours", "questions": 100, "type": "Multiple-choice"},
+              {"name": "General Studies Paper II (CSAT)", "duration": "2 hours", "questions": 80, "type": "Multiple-choice"}
+            ]
+          },
+          {
+            "name": "Mains",
+            "sections": [
+              {"name": "Essay", "duration": "3 hours", "questions": 2, "type": "Descriptive"},
+              {"name": "General Studies (4 papers)", "duration": "12 hours total", "questions": "Varies", "type": "Descriptive"},
+              {"name": "Optional Subject (2 papers)", "duration": "6 hours total", "questions": "Varies", "type": "Descriptive"},
+              {"name": "Language Papers (2)", "duration": "6 hours total", "questions": "Varies", "type": "Descriptive"}
+            ]
+          },
+          {"name": "Interview", "duration": "Varies", "type": "Personality Test"}
+        ],
+        "total_duration": "Multi-day process",
+        "scoring": "2025 (Mains + Interview)"
+      }
+    },
+    {
+      "name": "CAT",
+      "country": "India",
+      "purpose": "Business school admissions",
+      "structure": {
+        "sections": [
+          {"name": "Verbal Ability and Reading Comprehension", "duration": "40 minutes", "questions": 24, "type": "Multiple-choice and Non-MCQs"},
+          {"name": "Data Interpretation and Logical Reasoning", "duration": "40 minutes", "questions": 20, "type": "Multiple-choice and Non-MCQs"},
+          {"name": "Quantitative Ability", "duration": "40 minutes", "questions": 22, "type": "Multiple-choice and Non-MCQs"}
+        ],
+        "total_duration": "2 hours",
+        "scoring": "198 (scaled)"
+      }
+    },
+    {
+      "name": "CLAT",
+      "country": "India",
+      "purpose": "Law school admissions",
+      "structure": {
+        "sections": [
+          {"name": "English Language", "duration": "Shared", "questions": 22-26, "type": "Multiple-choice"},
+          {"name": "Current Affairs and GK", "duration": "Shared", "questions": 28-32, "type": "Multiple-choice"},
+          {"name": "Legal Reasoning", "duration": "Shared", "questions": 28-32, "type": "Multiple-choice"},
+          {"name": "Logical Reasoning", "duration": "Shared", "questions": 22-26, "type": "Multiple-choice"},
+          {"name": "Quantitative Techniques", "duration": "Shared", "questions": 10-14, "type": "Multiple-choice"}
+        ],
+        "total_duration": "2 hours",
+        "scoring": "120"
+      }
+    }
+  ]
+}

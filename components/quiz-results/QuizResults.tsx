@@ -1,6 +1,6 @@
 "use client";
 
-import { Quiz } from "@/types/quiz";
+import { Quiz, Question } from "@/types/quiz";
 import { Check, X } from "lucide-react";
 import {
   Accordion,
@@ -11,12 +11,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShareableResultsCard } from "./ShareableResultsCard";
 import { GoBackOrHome } from "../GoBackOrHome";
-import { renderMathContent } from "@/lib/quiz-utils";
+import { flattenQuizQuestions, renderMathContent } from "@/lib/quiz-utils";
+import { SupportingContentDisplay } from "../quiz-player/SupportingContentDisplay";
 
 interface QuizResultsProps {
   quiz: Quiz;
   userAnswers: { [key: number]: string };
   score: number;
+}
+
+interface FlattenedQuestion {
+  question: Question;
+  supportingContent: {
+    type: string;
+    content: string;
+    caption?: string;
+  } | null;
+  source: string;
+  originalIndex: number;
 }
 
 export const QuizResults = ({
@@ -26,7 +38,38 @@ export const QuizResults = ({
 }: QuizResultsProps) => {
   const percentage = ((score / quiz.question_count) * 100).toFixed(1);
 
-  if (!quiz.questions) {
+  // Flatten all questions with their context (standalone or from groups)
+  const flattenedQuestions = flattenQuizQuestions(quiz);
+  
+  // Add standalone questions first
+  (quiz.questions || []).forEach((q, index) => {
+    if (q?.question_text) {
+      flattenedQuestions.push({
+        question: q,
+        supportingContent: null,
+        source: 'standalone',
+        originalIndex: index
+      });
+    }
+  });
+
+  // Add questions from groups with their supporting content
+  (quiz.question_groups || []).forEach((group, groupIndex) => {
+    if (group?.questions?.length) {
+      group.questions.forEach((q, qIndex) => {
+        if (q?.question_text) {
+          flattenedQuestions.push({
+            question: q,
+            supportingContent: group.supporting_content || null,
+            source: `group-${groupIndex}`,
+            originalIndex: qIndex
+          });
+        }
+      });
+    }
+  });
+
+  if (flattenedQuestions.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-6">
         No questions available for review.
@@ -66,14 +109,14 @@ export const QuizResults = ({
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-foreground">Question Review</h3>
         <Accordion type="single" collapsible className="w-full">
-          {quiz.questions.map((question, index) => {
+          {flattenedQuestions.map((flattened, index) => {
+            const { question, supportingContent } = flattened;
             const userAnswer = userAnswers[index];
             const correctAnswer = question.correct_option;
             const isCorrect = userAnswer === correctAnswer;
-            const optionsMap =
-              typeof question.options === "string"
-                ? JSON.parse(question.options)
-                : question.options;
+            const optionsMap = typeof question.options === "string"
+              ? JSON.parse(question.options)
+              : question.options;
             const options = Object.entries(optionsMap).map(([key, value]) => ({
               key,
               value: value as string,
@@ -96,8 +139,20 @@ export const QuizResults = ({
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 bg-card">
-                  <div className="space-y-3 p-4 rounded-lg">
+                <AccordionContent className="px-4 py-4 bg-card">
+                  {/* Render supporting content if available */}
+                  {supportingContent && (
+                    <div className="mb-6">
+                      <SupportingContentDisplay
+                        content={supportingContent.content}
+                        type={supportingContent.type}
+                        caption={supportingContent.caption}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Question options */}
+                  <div className="space-y-3 p-4 rounded-lg bg-card">
                     {options.map(({ key, value }) => {
                       const isUserAnswer = key === userAnswer;
                       const isCorrectOption = key === correctAnswer;

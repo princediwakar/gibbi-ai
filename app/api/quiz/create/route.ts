@@ -1,163 +1,144 @@
+// api/quiz/create/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createQuizWithAI, GeneratedQuiz } from "@/lib/ai";
+import { createQuizWithAI } from "@/lib/ai";
+import type { GeneratedQuiz } from "@/lib/ai-utils";
 import { supabase } from "@/lib/supabase/client";
-import { setTimeout } from "timers/promises";
-// import { Quiz } from "@/types/quiz";
-
-const MAX_PENDING_TIME = Number(process.env.MAX_PENDING_TIME) || 120000; // 120s
 
 export async function POST(req: NextRequest) {
   const startTime = performance.now();
   const metrics: Record<string, number> = {};
 
   try {
-    const parseStart = performance.now();
-    const formData = await req.formData();
-    const content = formData.get("content") as string;
-    const creator_id = formData.get("creator_id") as string;
-    const question_count = parseInt(formData.get("question_count") as string, 10);
-    const difficulty = formData.get("difficulty") as string;
-    const language = formData.get("language") as string;
+    // Parse form data
+    const form = await req.formData();
+    const content = form.get("content") as string | null;
+    const creator_id = form.get("creator_id") as string | null;
+    const countRaw = form.get("question_count") as string | null;
+    const difficulty = form.get("difficulty") as string | null;
+    const language = form.get("language") as string | null;
 
-    metrics.parseRequest = performance.now() - parseStart;
-
-    // Validation
-    if (!content) {
-      return NextResponse.json({ error: "Content is required" }, { status: 400 });
-    }
-    if (!creator_id) {
-      return NextResponse.json({ error: "User authentication required" }, { status: 401 });
-    }
+    // Validate inputs
+    if (!content) return NextResponse.json({ error: "Content is required" }, { status: 400 });
+    if (!creator_id) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    const question_count = countRaw ? parseInt(countRaw, 10) : NaN;
     if (isNaN(question_count) || question_count < 1 || question_count > 50) {
-      return NextResponse.json({ error: "Invalid question count (must be 1-50)" }, { status: 400 });
+      return NextResponse.json({ error: "question_count must be between 1 and 50" }, { status: 400 });
     }
-    if (!["Easy", "Medium", "Hard"].includes(difficulty)) {
+    if (!difficulty || !["Easy", "Medium", "Hard"].includes(difficulty)) {
       return NextResponse.json({ error: "Invalid difficulty level" }, { status: 400 });
     }
-    if (!language) {
-      return NextResponse.json({ error: "Language is required" }, { status: 400 });
-    }
-    metrics.validation = performance.now() - parseStart;
+    if (!language) return NextResponse.json({ error: "Language is required" }, { status: 400 });
 
-    const quizInsertStart = performance.now();
-    const { data: quiz, error: quizError } = await supabase
+    // Insert pending quiz row
+    const { data: quizRow, error: insertError } = await supabase
       .from("quizzes")
       .insert({
         title: "Generating...",
         description: "Your quiz is being generated",
         status: "pending",
         creator_id,
-        topic: "Generating...",
-        subject: "...Generating...",
+        topic: "...",
+        subject: "...",
         difficulty,
         language,
       })
       .select("quiz_id")
       .single();
-    metrics.quizInsert = performance.now() - quizInsertStart;
+    if (insertError || !quizRow) {
+      throw new Error(`Failed to create quiz: ${insertError?.message}`);
+    }
 
-    if (quizError) throw new Error(`Quiz insert failed: ${quizError.message}`);
+    // Generate quiz synchronously
+    let quizData: GeneratedQuiz;
+    try {
+      const aiStart = performance.now();
+      quizData = await createQuizWithAI(content, question_count, difficulty, language);
+      metrics.aiGeneration = performance.now() - aiStart;
+    } catch (err) {
+      // Mark as failed
+      await supabase
+        .from("quizzes")
+        .update({ status: "failed", error_message: String(err) })
+        .eq("quiz_id", quizRow.quiz_id);
+      throw err;
+    }
 
-    const bgProcessStart = performance.now();
-    processQuizInBackground(quiz.quiz_id, content, question_count, difficulty, language);
-    metrics.bgProcessStart = performance.now() - bgProcessStart;
-
-    metrics.totalTime = performance.now() - startTime;
-    console.log("API Performance Metrics:", metrics);
-
-    return NextResponse.json({
-      quiz_id: quiz.quiz_id,
-      status: "pending",
-      metrics,
-    });
-  } catch (error) {
-    console.error("API error:", error);
-    metrics.totalTime = performance.now() - startTime;
-    console.log("Failed Request Metrics:", metrics);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Internal Server Error",
-        metrics,
-      },
-      { status: 500 }
-    );
-  }
-}
-
-async function processQuizInBackground(
-  quizId: string,
-  content: string,
-  questionCount: number,
-  difficulty: string,
-  language: string
-) {
-  const startTime = performance.now();
-  const metrics: Record<string, number> = {};
-
-  try {
-    const aiStart = performance.now();
-    const quizData: GeneratedQuiz = await Promise.race([
-      createQuizWithAI(content, questionCount, difficulty, language),
-      setTimeout(MAX_PENDING_TIME).then(() => {
-        throw new Error("Processing timeout");
-      }),
-    ]);
-    metrics.aiGeneration = performance.now() - aiStart;
-
-    console.log("Generated quiz data:", {
-      title: quizData.title,
-      questionCount: quizData.questions.length,
-    });
-
-    const updateStart = performance.now();
+    // Update quiz metadata
     const { error: updateError } = await supabase
       .from("quizzes")
       .update({
         title: quizData.title,
         description: quizData.description,
-        subject: quizData.subject,
         topic: quizData.topic,
+        subject: quizData.subject,
         difficulty: quizData.difficulty,
         status: "ready",
       })
-      .eq("quiz_id", quizId);
-    metrics.quizUpdate = performance.now() - updateStart;
-
+      .eq("quiz_id", quizRow.quiz_id);
     if (updateError) throw new Error(`Quiz update failed: ${updateError.message}`);
 
-    const questionsPrepStart = performance.now();
-    const questionsInsert = quizData.questions.map((q) => ({
-      quiz_id: quizId,
-      question_text: q.question_text,
-      options: q.options,
-      correct_option: q.correct_option,
-    }));
-    metrics.questionsPrep = performance.now() - questionsPrepStart;
+    // Insert standalone questions
+    if (quizData.questions.length) {
+      const { error: qError } = await supabase
+        .from("questions")
+        .insert(
+          quizData.questions.map((q) => ({
+            quiz_id: quizRow.quiz_id,
+            question_text: q.question_text,
+            options: q.options,
+            correct_option: q.correct_option,
+          }))
+        );
+      if (qError) throw new Error(`Standalone questions insert failed: ${qError.message}`);
+    }
 
-    const questionsInsertStart = performance.now();
-    const { error: questionsError } = await supabase
-      .from("questions")
-      .insert(questionsInsert);
-    metrics.questionsInsert = performance.now() - questionsInsertStart;
+    // Insert question groups and their questions
+    for (let idx = 0; idx < (quizData.question_groups || []).length; idx++) {
+      const group = quizData.question_groups![idx];
+      const { data: grpRow, error: grpError } = await supabase
+        .from("question_groups")
+        .insert({
+          quiz_id: quizRow.quiz_id,
+          supporting_content_type: group.supporting_content.type,
+          supporting_content:
+            typeof group.supporting_content.content === "string"
+              ? group.supporting_content.content
+              : JSON.stringify(group.supporting_content.content),
+          group_order: idx,
+        })
+        .select("group_id")
+        .single();
+      if (grpError || !grpRow) throw new Error(`Group insert failed: ${grpError?.message}`);
 
-    if (questionsError) throw new Error(`Questions insert failed: ${questionsError.message}`);
+      if (group.questions.length) {
+        const { error: gqError } = await supabase
+          .from("questions")
+          .insert(
+            group.questions.map((q) => ({
+              quiz_id: quizRow.quiz_id,
+              question_text: q.question_text,
+              options: q.options,
+              correct_option: q.correct_option,
+              group_id: grpRow.group_id,
+            }))
+          );
+        if (gqError) throw new Error(`Group questions insert failed: ${gqError.message}`);
+      }
+    }
 
     metrics.totalTime = performance.now() - startTime;
-    console.log(`Quiz processed successfully for content: "${content.slice(0, 60)}..."`, metrics);
+    console.log(
+      `Quiz ${quizRow.quiz_id} generated in ${Math.round(metrics.totalTime)}ms`,
+      metrics
+    );
+
+    return NextResponse.json({ quiz_id: quizRow.quiz_id, status: "ready", metrics });
   } catch (error) {
-    const errorStart = performance.now();
-    console.error(`Error processing quiz ${quizId}:`, error);
-
-    await supabase
-      .from("quizzes")
-      .update({
-        status: "failed",
-        error_message: error instanceof Error ? error.message : "Unknown error",
-      })
-      .eq("quiz_id", quizId);
-    metrics.errorHandling = performance.now() - errorStart;
-
+    console.error("Quiz creation route error:", error);
     metrics.totalTime = performance.now() - startTime;
-    console.log(`Quiz ${quizId} failed`, metrics);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal Server Error", metrics },
+      { status: 500 }
+    );
   }
 }

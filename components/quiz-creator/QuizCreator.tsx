@@ -21,7 +21,7 @@ import { PDFUploader } from "./PDFUploader";
 import { SignInModal } from "../SignInModal";
 
 // Constants
-const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 50;
+const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 100;
 const DEFAULT_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_DEFAULT_QUESTION_COUNT) || 10;
 const DEFAULT_DIFFICULTY = process.env.NEXT_PUBLIC_DEFAULT_DIFFICULTY || "Medium";
 const STATUS_CHECK_FREQUENCY = Number(process.env.NEXT_PUBLIC_STATUS_CHECK_FREQUENCY) || 5000;
@@ -123,7 +123,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       localStorage.setItem("quizPrompt", prompt); // Save the prompt to localStorage
       setIsSignInModalOpen(true);
       return;
-    }  setStep(2);
+    } setStep(2);
   }, [prompt, pdfText, user]);
 
   return (
