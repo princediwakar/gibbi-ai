@@ -38,7 +38,7 @@ export function useQuizzes({
       try {
         const from = pageNum * quizzesPerPage;
         const to = from + quizzesPerPage - 1;
-        let query = supabase.from("quiz_with_counts").select("*");
+        let query = supabase.from("quiz_with_counts").select("*").eq("status", "ready");
 
         if (userId && !publicOnly) {
           query = query.eq("creator_id", userId); // User quizzes

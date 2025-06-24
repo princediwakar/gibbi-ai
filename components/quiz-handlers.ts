@@ -1,17 +1,15 @@
 // components/quiz-handlers.ts
 import { Quiz } from "@/types/quiz";
 
-export const handleQuizCreated = (
-  quiz: Quiz,
-  setQuizzes: React.Dispatch<React.SetStateAction<Quiz[]>>
-) => {
-  setQuizzes((prev) => {
-    if (quiz.status === "failed") {
-      return prev.filter((q) => q.quiz_id !== quiz.quiz_id);
-    }
-    return [quiz, ...prev];
-  });
-};
+export function handleQuizCreated(quiz: Quiz, setQuizzes: (quizzes: Quiz[]) => void) {
+  // Only add the quiz to the list if it has a slug
+  if (quiz.slug) {
+    setQuizzes((prevQuizzes) => {
+      const updatedQuizzes = [quiz, ...prevQuizzes];
+      return Array.from(new Map(updatedQuizzes.map((q) => [q.quiz_id, q])).values());
+    });
+  }
+}
 
 export const handleQuizDeleted = (
   deletedQuizId: string,

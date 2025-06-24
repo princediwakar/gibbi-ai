@@ -15,14 +15,14 @@ export const extractIdFromSlug = (slug: string) => {
 	return id && id !== "undefined" ? id : null;
 };
 
-export function generateSlug(title: string, quizId: string) {
-	// Generate the slug using underscore as a separator
-	const slug = `${title
-		.replace(/\s+/g, "-")
-		.toLowerCase()}_${quizId}`;
+// export function generateSlug(title: string, quizId: string) {
+// 	// Generate the slug using underscore as a separator
+// 	const slug = `${title
+// 		.replace(/\s+/g, "-")
+// 		.toLowerCase()}_${quizId}`;
 
-	return slug;
-}
+// 	return slug;
+// }
 
 
 

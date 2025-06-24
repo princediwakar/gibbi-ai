@@ -45,9 +45,12 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     try {
       const response = await fetch(`/api/quiz/status?id=${quizId}`);
       const data = await response.json();
-      if (data.status === "ready") {
+      
+      if (data.status === "ready" && data.quiz) {
         toast.success("Quiz generated successfully!", { id: toastId });
         onQuizCreated(data.quiz);
+        // Navigate to the quiz page
+        window.location.href = `/quiz/${data.quiz.slug}`;
       } else if (data.status === "failed") {
         toast.error(data.error || "Quiz generation failed", { id: toastId });
         onQuizCreated({ quiz_id: quizId, status: "failed" } as Quiz);
@@ -118,13 +121,38 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   }, []);
 
   const handleNext = useCallback(() => {
-    if (!prompt.trim() && !pdfText) return toast.warning("Please enter a prompt or upload a PDF file");
+    if (!prompt.trim() && !pdfText) {
+      toast.warning("Please enter a prompt or upload a PDF file");
+      return;
+    }
+    
     if (!user) {
       localStorage.setItem("quizPrompt", prompt); // Save the prompt to localStorage
       setIsSignInModalOpen(true);
       return;
-    } setStep(2);
+    }
+    
+    try {
+      setStep(2);
+      // Log successful transition
+      console.log("Moved to step 2: Quiz customization");
+    } catch (error) {
+      console.error("Error transitioning to step 2:", error);
+      toast.error("Failed to proceed to next step. Please try again.");
+    }
   }, [prompt, pdfText, user]);
+
+  // Add step change effect for debugging
+  useEffect(() => {
+    console.log("Current step:", step);
+  }, [step]);
+
+  // Reset loading state if error occurs
+  useEffect(() => {
+    if (isLoading && step === 1) {
+      setIsLoading(false);
+    }
+  }, [step, isLoading]);
 
   return (
     <div className="max-w-2xl w-full mx-auto">

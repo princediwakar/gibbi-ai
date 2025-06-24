@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider"
-import { ClarityProvider } from '@/components/ClarityProvider';
+// import { ClarityProvider } from '@/components/ClarityProvider';
 
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner"
@@ -35,7 +35,7 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					<ClarityProvider />
+					{/* <ClarityProvider /> */}
 					{/* Include Header */}
 					<Header />
 					{/* Main Content */}

@@ -50,6 +50,7 @@ export const parseOptions = (options: string | Record<string, string>): Option[]
 export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
   const flattened: FlattenedQuestion[] = [];
 
+  // Process standalone questions first
   quiz.questions?.forEach((question, index) => {
     if (isValidQuestion(question)) {
       flattened.push({
@@ -61,6 +62,7 @@ export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
     }
   });
 
+  // Process question groups
   quiz.question_groups?.forEach((group, groupIndex) => {
     if (!isValidQuestionGroup(group)) {
       console.warn(`Invalid question group at index ${groupIndex}`);
@@ -74,7 +76,8 @@ export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
     }
 
     const { content, type, caption } = supporting;
-    // Validate graph/table content
+    
+    // Validate content based on type
     if (type === "graph" && !isValidGraphContent(content)) {
       console.error(`Invalid graph content in group ${group.group_id ?? groupIndex}`);
       return;
@@ -84,22 +87,9 @@ export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
       return;
     }
 
-    const contentText =
-      typeof content === "string" ? content.toLowerCase() : JSON.stringify(content).toLowerCase();
-
+    // Process questions in the group - all questions should stay with their supporting content
     group.questions.forEach((question, questionIndex) => {
       if (!isValidQuestion(question)) return;
-
-      const qText = question.question_text.toLowerCase();
-      const isRelevant = contentText
-        .split(/\s+/)
-        .some((word) => word.length > 3 && qText.includes(word));
-
-      if (!isRelevant) {
-        console.warn(
-          `Question in group ${group.group_id ?? groupIndex} may not align with content: "${question.question_text}"`
-        );
-      }
 
       flattened.push({
         question,

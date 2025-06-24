@@ -1,7 +1,20 @@
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { Database } from './supabase';
 
 // Core Content Types
-export type ContentType = "text" | "image" | "graph" | "table";
+export type ContentType = 'text' | 'graph' | 'table' | 'image';
+
+// Quiz Generation Parameters
+export interface GeneratedQuiz {
+  title: string;
+  description: string;
+  topic: string;
+  subject: string;
+  language: string;
+  difficulty: string;
+  questions: Question[];
+  question_groups: QuestionGroup[];
+}
 
 // Specific types for structured content
 export interface GraphContent {
@@ -28,13 +41,19 @@ export interface SupportingContent {
 
 // Question Structures
 export interface Question {
-  question_id?: number;
   question_text: string;
-  // Options may be stored as an object or raw JSON string
-  options: Record<string, string> | string;
+  options: Record<string, string>;
   correct_option: string;
-  isNew?: boolean;
+  explanation?: string;
+  type?: string;
+  content?: {
+    type: ContentType;
+    data: string;
+  };
   group_id?: number;
+  created_at?: string;
+  question_id?: number;
+  quiz_id?: string;
 }
 
 export interface QuestionGroup {
@@ -44,24 +63,9 @@ export interface QuestionGroup {
 }
 
 // Quiz Structure
-export interface Quiz {
-  quiz_id: string;
-  title: string;
-  description: string;
-  topic: string;
-  subject: string;
-  difficulty: string;
-  slug: string;
-  status: string;
-  language: string;
-  creator_id: string;
-  created_at: string;
-  updated_at: string;
-  question_count: number;
-  creator_name?: string;
+export type Quiz = Database['public']['Tables']['quizzes']['Row'] & {
   questions: Question[];
-  question_groups?: QuestionGroup[];
-}
+};
 
 // Helper Types
 export interface FlattenedQuestion {
@@ -76,4 +80,25 @@ export type User = SupabaseUser;
 // Utility
 export function generateTempId(): number {
   return -Math.floor(Math.random() * 1000000);
+}
+
+export interface QuizMetadata {
+  format: string;
+  topicFocus: string[];
+  sections: string[];
+  questionDistribution: {
+    standaloneCount: number;
+    groups: Array<{
+      title: string;
+      questionCount: number;
+      contentType: ContentType;
+    }>;
+  };
+}
+
+export interface QuizCreationResponse {
+  success: boolean;
+  message: string;
+  quiz?: Quiz;
+  error?: string;
 }

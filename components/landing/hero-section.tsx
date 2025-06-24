@@ -2,8 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { SignInButton } from "../SignInButton";
 
-export default function HeroLanding() {
+export default function HeroSection() {
   const heroImages = [
     "/_static/illustrations/hero-image-1.png",
     "/_static/illustrations/hero-image-2.png"
@@ -11,52 +12,39 @@ export default function HeroLanding() {
   const randomHeroImage = heroImages[Math.floor(Math.random() * heroImages.length)];
   return (
     <section className="py-12 sm:py-16 lg:py-20">
-      <div className="container flex max-w-5xl flex-col items-center gap-6 lg:flex-row lg:gap-8 lg:items-center">
-        <div className="space-y-4 lg:w-1/2">
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
-            Overwhelmed by Exams? Take Charge with{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              GibbiAI
-            </span>
+      <div className="container flex max-w-5xl flex-col items-center gap-6 text-center lg:gap-12">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+            Ace Your Exams with AI-Powered Quizzes
           </h1>
-          <p className="max-w-lg text-base text-muted-foreground sm:text-lg">
-            Create custom quizzes from topics, PDFs, or text—assess your knowledge and track progress effortlessly.
+          <p className="max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
+            Stop cramming. Start learning. GibbiAI transforms your study materials into custom quizzes, so you can master any subject and track your progress.
           </p>
-          <p className="max-w-lg text-sm text-foreground sm:text-base">
-            Say goodbye to endless notes & flashcards. GibbiAI crafts tailored quizzes fast, preps you for the real thing, and shows your strengths.
-          </p>
+        </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-            <Link
-              href="/"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "bg-primary px-5 text-primary-foreground transition-all hover:bg-primary/90"
-              )}
-            >
-              Create Your First Quiz
-            </Link>
+          <SignInButton buttonText="Start Learning for Free" icon={false} />
             <Link
               href="/quizzes"
-              target="_blank"
-              rel="noreferrer"
               className={cn(
-                buttonVariants({ variant: "secondary", size: "lg" }),
-                " transition-all"
+              buttonVariants({ variant: "outline" }),
+              "transition-all"
               )}
             >
-              Try a Sample Quiz
+            Browse Public Quizzes
             </Link>
-          </div>
         </div>
-        <div className="w-full max-w-md lg:w-1/2 lg:max-w-none">
+        <div className="w-full max-w-4xl">
+          <div className="relative rounded-xl shadow-2xl">
           <Image
             src={randomHeroImage}
-            alt="Student transitioning from exam stress to confidence with GibbiAI quiz results"
-            width={600}
-            height={450}
-            className="rounded-xl shadow-lg"
+              alt="A student confidently reviewing AI-generated quiz results on a tablet"
+              width={1200}
+              height={675}
+              className="rounded-xl"
             priority
           />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent rounded-xl" />
+          </div>
         </div>
       </div>
     </section>

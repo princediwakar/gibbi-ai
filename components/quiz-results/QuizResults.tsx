@@ -20,45 +20,16 @@ interface QuizResultsProps {
   score: number;
 }
 
-
-
 export const QuizResults = ({
   quiz,
   userAnswers,
   score,
 }: QuizResultsProps) => {
-  const percentage = ((score / quiz.question_count) * 100).toFixed(1);
-
-  // Flatten all questions with their context (standalone or from groups)
+  // Get the actual number of questions by flattening them
   const flattenedQuestions = flattenQuizQuestions(quiz);
+  const actualQuestionCount = flattenedQuestions.length;
   
-  // Add standalone questions first
-  (quiz.questions || []).forEach((q, index) => {
-    if (q?.question_text) {
-      flattenedQuestions.push({
-        question: q,
-        supportingContent: null,
-        source: 'standalone',
-        originalIndex: index
-      });
-    }
-  });
-
-  // Add questions from groups with their supporting content
-  (quiz.question_groups || []).forEach((group, groupIndex) => {
-    if (group?.questions?.length) {
-      group.questions.forEach((q, qIndex) => {
-        if (q?.question_text) {
-          flattenedQuestions.push({
-            question: q,
-            supportingContent: group.supporting_content || null,
-            source: `group-${groupIndex}`,
-            originalIndex: qIndex
-          });
-        }
-      });
-    }
-  });
+  const percentage = ((score / actualQuestionCount) * 100).toFixed(1);
 
   if (flattenedQuestions.length === 0) {
     return (
@@ -89,7 +60,7 @@ export const QuizResults = ({
           </div>
           <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
             <div className="text-destructive font-bold text-2xl">
-              {quiz.question_count - score}
+              {actualQuestionCount - score}
             </div>
             <div className="text-sm text-destructive">Incorrect Answers</div>
           </div>
@@ -181,7 +152,7 @@ export const QuizResults = ({
       </div>
 
       {/* Navigation */}
-      <div className="space-y-8">
+      <div className="flex justify-center pt-6">
         <GoBackOrHome />
       </div>
     </div>

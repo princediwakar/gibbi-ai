@@ -28,7 +28,7 @@ import {
   MessageCircle,
   Loader2,
   Trash2,
-  Share2,
+  MoreVertical,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -115,15 +115,15 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
 
   return (
     <>
-      <div className="flex gap-2 mt-6">
+      <div className="mt-6 flex gap-2">
         <Button asChild variant="default" className="flex-1">
-          <Link href={isCreator ? `/quiz/${quiz.slug}` : `/quiz/${quiz.slug}`}>View Quiz</Link>
+          <Link href={`/quiz/${quiz.slug}`}>View Quiz</Link>
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
-              <Share2 className="h-4 w-4" />
+              <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More options</span>
             </Button>
           </DropdownMenuTrigger>
@@ -153,7 +153,7 @@ export const QuizCardActions: FC<QuizCardActionsProps> = ({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => router.push(`/quiz/${quiz.slug}`)}
+                  onClick={() => router.push(`/edit/${quiz.slug}`)}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit

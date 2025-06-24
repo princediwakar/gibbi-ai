@@ -1,28 +1,27 @@
 import Link from "next/link";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { buttonVariants } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { SignInButton } from "../SignInButton";
 
 export default function CTA() {
   return (
-    <section className="py-20">
-      <MaxWidthWrapper className="text-center space-y-6">
-        <h2 className="text-3xl font-heading text-foreground md:text-4xl">
-          Ready to Ace Your Exams?
+    <section className="relative py-24">
+      <MaxWidthWrapper className="relative z-10 text-center space-y-6">
+        <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-full max-w-2xl rounded-full bg-primary/20 blur-3xl" />
+        <h2 className="text-4xl font-heading text-foreground md:text-5xl">
+          Stop Cramming, Start Mastering
         </h2>
-        <p className="text-lg text-muted-foreground">
-          Take the reins—craft quizzes that match your goals, test your skills, and track your rise. GibbiAI is your study edge, every step of the way.
+        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          Transform your notes into powerful quizzes and take control of your learning today. Your path to better grades starts here.
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/"
-            className="inline-block rounded-lg bg-primary px-6 py-3 text-primary-foreground font-semibold transition-all hover:bg-primary/90"
-          >
-            Get Started Now
-          </Link>
+            <SignInButton buttonText="Get Started for Free" />
           <Link
             href="/quizzes"
-            className="inline-block rounded-lg border bg-secondary px-6 py-3 text-secondary-foreground font-semibold transition-all hover:bg-secondary/90"
+            className={cn(buttonVariants({ variant: "outline" }), "transition-all")}
           >
-            Explore Public Quizzes
+            Explore Quizzes
           </Link>
         </div>
       </MaxWidthWrapper>

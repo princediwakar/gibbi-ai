@@ -23,6 +23,7 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
 
   // Flattened questions state
   const [flattenedQuestions, setFlattenedQuestions] = useState<FlattenedQuestion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Quiz progress state
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -33,6 +34,7 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
 
   // Reset state on quiz change
   useEffect(() => {
+    setIsLoading(true);
     setCurrentIndex(0);
     setScore(0);
     setUserAnswers({});
@@ -45,10 +47,24 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
     } catch (err) {
       console.error("Failed to flatten quiz:", err);
       setFlattenedQuestions([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [quiz]);
 
   const total = flattenedQuestions.length;
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+          <div className="h-32 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!quiz || total === 0) {
     return (

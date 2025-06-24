@@ -2,25 +2,25 @@ import { FeatureLdg, InfoLdg, TestimonialType } from "@/types";
 
 export const infos: InfoLdg[] = [
   {
-    title: "Create Quizzes Effortlessly",
+    title: "From Overwhelmed to Prepared",
     description:
-      "With GibbiAI, you can generate quizzes in seconds. Just provide a topic or paste text, and our AI will create engaging questions for you.",
-    image: "/_static/illustrations/work-from-home.jpg", // Update the image path
+      "Turn your study materials into powerful, custom quizzes. GibbiAI helps you conquer any subject by identifying your strengths and weaknesses.",
+    image: "/_static/illustrations/work-from-home.jpg",
     list: [
       {
-        title: "Drowning in study material?",
-        description: "Turn dense notes or textbooks into quick, bite-sized quizzes—automatically, in seconds.",
+        title: "Endless notes?",
+        description: "Transform dense study materials into focused quizzes in seconds.",
         icon: "bookOpen",
       },
       {
-        icon: "help",
-        title: "Unsure what you’ve mastered?",
-        description: "Get instant results with clear explanations to spot your strengths and gaps.",
+        icon: "target",
+        title: "Uncertain progress?",
+        description: "Get immediate, clear feedback to see what you know and where to improve.",
       },
       {
-        icon: "clock",
-        title: "Cramming failing you?",
-        description: "Simulate real exams with timed, custom tests — Be ready when it matters.",
+        icon: "award",
+        title: "Exam anxiety?",
+        description: "Build confidence with realistic, timed practice tests that prepare you for success.",
       },
     ],
   },
@@ -144,7 +144,7 @@ export const testimonials: TestimonialType[] = [
     job: "Freelance Writer",
     image: "https://randomuser.me/api/portraits/men/6.jpg", // Keeping this name as it is
     review:
-      "I love how I can create quizzes on various topics quickly. It’s a great way to engage my audience and gather feedback on my writing.",
+      "I love how I can create quizzes on various topics quickly. It's a great way to engage my audience and gather feedback on my writing.",
     location: "Milan, Italy",
   },
 ];
@@ -166,7 +166,7 @@ export const studentTestimonials: TestimonialType[] = [
     job: "University Sophomore",
     image: "https://randomuser.me/api/portraits/women/18.jpg",
     review:
-      "I love seeing where I’m at with the results breakdown. It’s like, ‘Oh, I nailed this, but I gotta work on that.’ Keeps me on track without the overwhelm.",
+      "I love seeing where I'm at with the results breakdown. It's like, 'Oh, I nailed this, but I gotta work on that.' Keeps me on track without the overwhelm.",
     location: "Mexico City, Mexico",
   },
   {
@@ -174,7 +174,7 @@ export const studentTestimonials: TestimonialType[] = [
     job: "Coding Bootcamp Student",
     image: "https://randomuser.me/api/portraits/men/28.jpg",
     review:
-      "Learning code was brutal until I started quizzing myself with GibbiAI. The questions push me just right, and I’m finally getting the hang of it.",
+      "Learning code was brutal until I started quizzing myself with GibbiAI. The questions push me just right, and I'm finally getting the hang of it.",
     location: "San Diego, US",
   },
   {
@@ -182,7 +182,7 @@ export const studentTestimonials: TestimonialType[] = [
     job: "University Senior",
     image: "https://randomuser.me/api/portraits/women/30.jpg",
     review:
-      "Cramming wasn’t working, so I tried GibbiAI’s timed quizzes. Now I’m way less panicked for exams—feels like I’ve got this under control.",
+      "Cramming wasn't working, so I tried GibbiAI's timed quizzes. Now I'm way less panicked for exams—feels like I've got this under control.",
     location: "Paris, France",
   },
   {
@@ -190,7 +190,7 @@ export const studentTestimonials: TestimonialType[] = [
     job: "High School Sophomore",
     image: "https://randomuser.me/api/portraits/men/33.jpg",
     review:
-      "I was drowning in bio homework, but GibbiAI made it chill. I quiz myself on the bus with the offline exports—super easy and I’m actually learning!",
+      "I was drowning in bio homework, but GibbiAI made it chill. I quiz myself on the bus with the offline exports—super easy and I'm actually learning!",
     location: "São Paulo, Brazil",
   },
   {

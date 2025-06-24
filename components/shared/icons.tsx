@@ -40,6 +40,7 @@ import {
   User,
   X,
   Briefcase,
+  Award,
 } from "lucide-react";
 
 export type Icon = LucideIcon;
@@ -49,6 +50,7 @@ export const Icons = {
   add: Plus,
   arrowRight: ArrowRight,
   arrowUpRight: ArrowUpRight,
+  award: Award,
   briefcase: Briefcase,
   cpu: Cpu,
   edit: Edit,

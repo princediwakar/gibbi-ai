@@ -1,67 +1,46 @@
 import Image from "next/image";
 import { HeaderSection } from "@/components/shared/header-section";
 import { studentTestimonials } from "@/config/landing";
+import MaxWidthWrapper from "../shared/max-width-wrapper";
 
 export default function Testimonials() {
 
   return (
-    <section>
-      <div className="container flex max-w-6xl flex-col gap-10 py-32 sm:gap-y-16">
+    <section className="relative">
+      <MaxWidthWrapper className="py-24">
+      <div className="absolute -z-10 top-0 left-0 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
         <HeaderSection
-          label="Success Stories"
-          title="Real Wins with GibbiAI"
-          subtitle="See how students like you are crushing it with GibbiAI."
+          label="Testimonials"
+          title="What Our Students Say"
+          subtitle="Real stories from students who have transformed their study habits with GibbiAI."
         />
-        <div className="flex flex-col gap-6 mb-6">
-          <div className="grid gap-4 sm:grid-cols-3 text-center">
-            <div>
-              <p className="text-2xl font-semibold text-foreground">20,000+</p>
-              <p className="text-muted-foreground">Students Boosted</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-foreground">50,000+</p>
-              <p className="text-muted-foreground">Quizzes Crafted</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-foreground">1M+</p>
-              <p className="text-muted-foreground">Questions Conquered</p>
-            </div>
-          </div>
-        </div>
-        <div className="column-1 gap-6 space-y-6 md:columns-2 lg:columns-3">
-          {studentTestimonials.map((item) => (
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12 lg:px-6">
+          {studentTestimonials.slice(0, 6).map((item) => (
             <div className="break-inside-avoid" key={item.name}>
-              <div className="group relative rounded-xl border bg-card p-6 transition-all hover:shadow-md hover:border-primary/50">
-                <div className="flex flex-col">
-                  <div className="relative mb-4 flex items-center gap-3">
-                    <span className="relative inline-flex size-10 shrink-0 items-center justify-center rounded-full transition-all group-hover:scale-105">
-                      <Image
-                        width={100}
-                        height={100}
-                        className="size-full rounded-full border border-border ring-2 ring-background transition-all group-hover:ring-primary"
-                        src={item.image}
-                        alt={item.name}
-                      />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {item.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.job}
-                      </p>
-                    </div>
+              <div className="group relative flex flex-col gap-6 rounded-xl border bg-card p-6 transition-all hover:shadow-lg">
+                <div className="flex items-center gap-4">
+                  <Image
+                    width={40}
+                    height={40}
+                    className="size-10 rounded-full border border-border object-cover"
+                    src={item.image}
+                    alt={item.name}
+                  />
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-foreground">
+                      {item.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.job}
+                    </p>
                   </div>
-                  <q className="text-muted-foreground italic transition-all group-hover:text-foreground">{item.review}</q>
-                  <p className="mt-2 text-xs text-muted-foreground opacity-75">
-                    {item.location}
-                  </p>
                 </div>
+                <q className="text-muted-foreground">{item.review}</q>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </MaxWidthWrapper>
     </section>
   );
 }

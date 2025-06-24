@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     // Fetch quiz metadata
     const { data: quizRow, error: quizError } = await supabase
       .from('quizzes')
-      .select('quiz_id, title, description, topic, subject, difficulty, language, status')
+      .select('quiz_id, title, description, topic, subject, difficulty, language, status, slug')
       .eq('quiz_id', quizId)
       .single();
     if (quizError || !quizRow) {
@@ -91,6 +91,7 @@ export async function GET(req: NextRequest) {
         subject: quizRow.subject,
         difficulty: quizRow.difficulty,
         language: quizRow.language,
+        slug: quizRow.slug,
         questions: questionsStandalone,
         question_groups,
       };
