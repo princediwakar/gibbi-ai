@@ -98,11 +98,11 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              quizId: quiz.quiz_id,
+              quiz_id: quiz.quiz_id,
               score,
-              totalQuestions: flattenedQuestions.length,
+              total_questions: flattenedQuestions.length,
               answers: answersMap,
-              timeTaken,
+              time_taken: timeTaken,
             }),
           });
           
