@@ -5,7 +5,7 @@ export const infos: InfoLdg[] = [
     title: "From Overwhelmed to Prepared",
     description:
       "Turn your study materials into powerful, custom quizzes. GibbiAI helps you conquer any subject by identifying your strengths and weaknesses.",
-    image: "/_static/illustrations/work-from-home.jpg",
+    image: "/_static/illustrations/feature.png",
     list: [
       {
         title: "Endless notes?",
@@ -28,7 +28,7 @@ export const infos: InfoLdg[] = [
     title: "Track and Analyze Quiz Performance",
     description:
       "Get detailed analytics on quiz attempts, scores, and engagement. Use these insights to improve your quizzes and better understand your audience.",
-    image: "/_static/illustrations/work-from-home.jpg", // Update the image path
+    image: "/_static/illustrations/feature.png", // Update the image path
     list: [
       {
         title: "Data-Driven",
