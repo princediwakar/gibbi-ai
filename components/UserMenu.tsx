@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, History, User as UserIcon } from "lucide-react";
+import { LogOut, History } from "lucide-react";
 import { User } from "@/types/quiz";
 import { useRouter } from "next/navigation";
 

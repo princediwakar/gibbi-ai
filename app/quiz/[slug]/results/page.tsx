@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { QuizResults } from "@/components/quiz-results/QuizResults";
 import { flattenQuizQuestions } from "@/lib/quiz-utils";
+import { Quiz } from "@/types/quiz";
 
 export const metadata = {
   title: "Quiz Results | GibbiAI",
@@ -96,11 +97,11 @@ export default async function QuizResultsPage({ params }: { params: Promise<{ sl
     : [];
 
   // Assemble quiz object matching Quiz type expected by components
-  const quiz = {
+  const quiz: Quiz = {
     ...quizData,
     questions: standaloneQuestions,
     question_groups: questionGroupsWithQuestions,
-  } as any; // cast to satisfy type
+  };
   
   // Fetch the latest quiz result for this user and quiz
   const { data: result } = await supabase
@@ -125,7 +126,7 @@ export default async function QuizResultsPage({ params }: { params: Promise<{ sl
   }
   
   // Convert answers from question_id-based to index-based for QuizResults component
-  const flattenedQuestions = flattenQuizQuestions(quiz as any);
+  const flattenedQuestions = flattenQuizQuestions(quiz);
   const indexBasedAnswers: Record<number, string> = {};
   
   // Map from question_id-based answers to index-based answers
@@ -144,8 +145,6 @@ export default async function QuizResultsPage({ params }: { params: Promise<{ sl
         quiz={quiz}
         userAnswers={indexBasedAnswers}
         score={result.score}
-        timeTaken={result.time_taken}
-        resultSaved={true}
         showBackToHistoryLink={true}
       />
     </div>

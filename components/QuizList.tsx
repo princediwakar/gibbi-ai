@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { Quiz } from "@/types/quiz";
 import { Loader2 } from "lucide-react";
 import { QuizCard } from "./quiz-card/QuizCard";
@@ -24,6 +24,7 @@ interface QuizListProps {
   groupBy?: "subject" | "date";
   showViewMore?: boolean;
   searchQuery?: string;
+  quizzes?: Quiz[];
 }
 
 export const QuizList = ({
@@ -34,14 +35,22 @@ export const QuizList = ({
   groupBy = "subject",
   showViewMore = false,
   searchQuery = "",
+  quizzes,
 }: QuizListProps) => {
-  const { quizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } = useQuizzes({
+  const {
+    quizzes: externalQuizzes,
+    isInitialLoading,
+    isLoadingMore,
+    loadMore,
+    hasMore,
+  } = useQuizzes({
     userId,
     publicOnly,
     searchQuery,
     limitPerGroup: publicOnly && !searchQuery ? 6 : undefined
   });
 
+  const quizData = externalQuizzes ?? quizzes;
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -83,23 +92,23 @@ export const QuizList = ({
   };
 
   const groupedQuizzes = useMemo(() => {
-    if (!quizzes) return null;
+    if (!quizData) return null;
     if (groupBy === "date") {
-      return quizzes.reduce((acc, quiz) => {
+      return quizData.reduce((acc, quiz) => {
         const dateKey = formatDate(quiz.created_at as string);
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(quiz);
         return acc;
       }, {} as Record<string, Quiz[]>);
     } else {
-      return quizzes.reduce((acc, quiz) => {
+      return quizData.reduce((acc, quiz) => {
         const subject = quiz.subject || "General";
         if (!acc[subject]) acc[subject] = [];
         acc[subject].push(quiz);
         return acc;
       }, {} as Record<string, Quiz[]>);
     }
-  }, [quizzes, groupBy]);
+  }, [quizData, groupBy]);
 
   if (isInitialLoading) {
     return (
@@ -111,7 +120,7 @@ export const QuizList = ({
     );
   }
 
-  if (!quizzes || quizzes.length === 0) {
+  if (!quizData || quizData.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-6">{emptyMessage}</div>
     );

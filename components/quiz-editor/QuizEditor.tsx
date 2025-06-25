@@ -3,7 +3,8 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Quiz, generateTempId } from "@/types/quiz";
+import { Quiz, Question, generateTempId } from "@/types/quiz";
+import { Json } from "@/types/supabase";
 import { QuizDetailsTab } from "./QuizDetailsTab";
 import { QuizQuestionsTab } from "./QuizQuestionsTab";
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,40 @@ interface QuizEditorProps {
   quiz: Quiz;
 }
 
+type QuizEditorState = Omit<Quiz, "questions"> & { questions: Question[] };
+
+// Type guard for Question
+const isQuestion = (q: unknown): q is Question => {
+  if (typeof q !== "object" || q === null) return false;
+  const obj = q as { question_text?: unknown; options?: unknown; correct_option?: unknown };
+  return (
+    typeof obj.question_text === "string" &&
+    typeof obj.options === "object" &&
+    typeof obj.correct_option === "string"
+  );
+};
+
+function sanitizeQuestions(qs: unknown): Question[] {
+  return Array.isArray(qs) ? qs.filter(isQuestion) : [];
+}
+
+// Utility to strip isNew property from a question
+function stripIsNew(q: Question | (Question & { isNew?: boolean })): Question {
+  if ('isNew' in q) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { isNew, ...rest } = q;
+    return rest as Question;
+  }
+  return q;
+}
 
 export const QuizEditor = ({ quiz }: QuizEditorProps) => {
   const router = useRouter();
-  const [editedQuiz, setEditedQuiz] = useState<Quiz>(quiz);
+  // Always sanitize questions for editor state
+  const [editedQuiz, setEditedQuiz] = useState<QuizEditorState>({
+    ...quiz,
+    questions: sanitizeQuestions(quiz.questions),
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState<(number | undefined)[]>([]);
 
@@ -30,11 +61,10 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
     (questionId: number | undefined, field: string, value: string, optionKey?: string) => {
       setEditedQuiz((prev) => {
         const newQuestions = prev.questions.map((q) => {
-          if (q.question_id === questionId) {
+          if (q && q.question_id === questionId) {
             if (field === "options" && optionKey) {
-              // Ensure options is always an object, not a string
-              const currentOptions = typeof q.options === 'string' 
-                ? JSON.parse(q.options) 
+              const currentOptions = typeof q.options === 'string'
+                ? JSON.parse(q.options)
                 : q.options;
               return { ...q, options: { ...currentOptions, [optionKey]: value } };
             } else {
@@ -49,8 +79,11 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
     []
   );
 
+  // Local type for new questions (with isNew flag)
+  type NewQuestion = Question & { isNew?: boolean };
+
   const handleAddQuestion = useCallback(() => {
-    const newQuestion = {
+    const newQuestion: NewQuestion = {
       question_id: generateTempId(),
       question_text: "",
       options: { A: "", B: "", C: "", D: "" },
@@ -61,15 +94,17 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
       ...prev,
       questions: [...prev.questions, newQuestion],
     }));
-    return newQuestion.question_id; // Return the ID of the newly added question
+    return newQuestion.question_id;
   }, []);
 
   const handleRemoveQuestion = useCallback((questionId: number | undefined) => {
     setEditedQuiz((prev) => ({
       ...prev,
-      questions: prev.questions.filter((q) => q.question_id !== questionId),
+      questions: prev.questions.filter((q) => q && q.question_id !== questionId),
     }));
-    if (questionId && !quiz.questions.find((q) => q.question_id === questionId)?.isNew) {
+    // Only mark for deletion if not a new question
+    const origQuestions = sanitizeQuestions(quiz.questions);
+    if (questionId && !origQuestions.find((q) => q && q.question_id === questionId)) {
       setDeletedQuestionIds((prev) => [...prev, questionId]);
     }
   }, [quiz.questions]);
@@ -78,7 +113,7 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
     const invalidQuestions = editedQuiz.questions.filter(
       (q) =>
         !q.question_text.trim() ||
-        Object.values(q.options).every((opt) => !opt.trim()) ||
+        Object.values(q.options).every((opt) => typeof opt === 'string' ? !opt.trim() : true) ||
         !q.correct_option
     );
     if (invalidQuestions.length > 0) {
@@ -101,12 +136,7 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
             topic: editedQuiz.topic,
             difficulty: editedQuiz.difficulty,
           },
-          questions: editedQuiz.questions.map((q) => ({
-            ...(q.isNew ? {} : { question_id: q.question_id }),
-            question_text: q.question_text,
-            options: q.options,
-            correct_option: q.correct_option,
-          })),
+          questions: editedQuiz.questions.map(stripIsNew) as unknown as Json[],
           deletedQuestionIds,
         }),
       });
@@ -115,7 +145,10 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
 
       const updatedQuiz = await response.json();
       toast.success("Quiz updated successfully");
-      setEditedQuiz(updatedQuiz);
+      setEditedQuiz({
+        ...updatedQuiz,
+        questions: sanitizeQuestions(updatedQuiz.questions),
+      });
       setDeletedQuestionIds([]);
     } catch (error) {
       toast.error("Failed to update quiz");
@@ -164,7 +197,7 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
 
         <TabsContent value="details" className="space-y-6">
           <QuizDetailsTab
-            quiz={editedQuiz}
+            quiz={{ ...editedQuiz, questions: sanitizeQuestions(editedQuiz.questions) } as unknown as Quiz}
             onQuizChange={handleQuizChange}
             onSave={handleSave}
             isSaving={isSaving}
@@ -173,7 +206,7 @@ export const QuizEditor = ({ quiz }: QuizEditorProps) => {
 
         <TabsContent value="questions" className="space-y-6">
           <QuizQuestionsTab
-            quiz={editedQuiz}
+            quiz={{ ...editedQuiz, questions: sanitizeQuestions(editedQuiz.questions) } as unknown as Quiz}
             onQuestionChange={handleQuestionChange}
             onRemoveQuestion={handleRemoveQuestion}
             onAddQuestion={handleAddQuestion}

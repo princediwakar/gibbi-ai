@@ -61,7 +61,7 @@ export const QuizCompletion = ({
           </div>
         </div>
 
-        <h1 className="text-4xl font-extrabold tracking-tight">Congratulations, you've finished the quiz!</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight">Congratulations, you&apos;ve finished the quiz!</h1>
 
         <QuizDetails quiz={quiz} />
 

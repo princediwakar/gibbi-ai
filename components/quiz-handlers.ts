@@ -3,7 +3,7 @@ import { Quiz } from "@/types/quiz";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 
-export async function handleQuizCreated(quiz: Quiz) {
+export async function handleQuizCreated() {
   try {
     // Notify about quiz creation
     toast.success("Quiz created successfully!");
@@ -17,7 +17,7 @@ export async function handleQuizCreated(quiz: Quiz) {
   }
 }
 
-export async function handleQuizDeleted(quizId: string) {
+export async function handleQuizDeleted() {
   try {
     // Notify about quiz deletion
     toast.success("Quiz deleted successfully!");

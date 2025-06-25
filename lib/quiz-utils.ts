@@ -71,7 +71,7 @@ export const flattenQuizQuestions = (quiz: Quiz): FlattenedQuestion[] => {
 
   // Process standalone questions first
   quiz.questions?.forEach((question, index) => {
-    if (isValidQuestion(question)) {
+    if (isQuestion(question) && isValidQuestion(question)) {
       flattened.push({
         question,
         supportingContent: null,
@@ -284,3 +284,14 @@ export const renderMathContent = (text: string): React.ReactNode[] => {
     }
   });
 };
+
+// Type guard for Question
+function isQuestion(q: unknown): q is Question {
+  if (typeof q !== "object" || q === null) return false;
+  const obj = q as { question_text?: unknown; options?: unknown; correct_option?: unknown };
+  return (
+    typeof obj.question_text === "string" &&
+    typeof obj.options === "object" &&
+    typeof obj.correct_option === "string"
+  );
+}

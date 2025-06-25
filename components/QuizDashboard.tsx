@@ -4,7 +4,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { QuizCreator } from "./quiz-creator/QuizCreator";
 import { QuizList } from "./QuizList";
-import { Quiz } from "@/types/quiz";
 import { useUser } from "@/hooks/useUser";
 import { handleQuizCreated } from "./quiz-handlers";
 import { Input } from "@/components/ui/input";
@@ -26,8 +25,8 @@ export function QuizDashboard() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const onQuizCreated = useCallback((quiz: Quiz) => {
-    handleQuizCreated(quiz);
+  const onQuizCreated = useCallback(() => {
+    handleQuizCreated();
   }, []);
 
   return (

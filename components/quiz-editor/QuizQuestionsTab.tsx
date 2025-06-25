@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Quiz } from "@/types/quiz";
+import { Quiz, Question } from "@/types/quiz";
 import { QuestionEditor } from "./QuestionEditor";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -20,6 +20,17 @@ interface QuizQuestionsTabProps {
   onAddQuestion: () => number | undefined; // Update the return type
   onSave: () => void;
   isSaving: boolean;
+}
+
+// Local type guard for Question
+function isQuestion(q: unknown): q is Question {
+  if (typeof q !== "object" || q === null) return false;
+  const obj = q as { question_text?: unknown; options?: unknown; correct_option?: unknown };
+  return (
+    typeof obj.question_text === "string" &&
+    typeof obj.options === "object" &&
+    typeof obj.correct_option === "string"
+  );
 }
 
 export function QuizQuestionsTab({
@@ -55,7 +66,7 @@ export function QuizQuestionsTab({
   return (
     <div className="space-y-4">
       {quiz.questions.length > 0 ? (
-        quiz.questions.map((question, index) => (
+        (quiz.questions.filter(q => q != null).filter(isQuestion) as unknown as Question[]).map((question, index) => (
           <QuestionEditor
             key={question.question_id ?? `new-${question.question_id}`}
             question={question}

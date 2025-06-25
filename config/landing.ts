@@ -13,7 +13,7 @@ export const infos: InfoLdg[] = [
         icon: "bookOpen",
       },
       {
-        icon: "target",
+        icon: "star",
         title: "Uncertain progress?",
         description: "Get immediate, clear feedback to see what you know and where to improve.",
       },

@@ -65,6 +65,9 @@ export interface QuestionGroup {
 // Quiz Structure
 export type Quiz = Database['public']['Tables']['quizzes']['Row'] & {
   questions: Question[];
+  question_groups?: QuestionGroup[];
+  creator_name?: string;
+  question_count?: number;
 };
 
 // Quiz Result Structure

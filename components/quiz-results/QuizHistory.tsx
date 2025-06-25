@@ -118,7 +118,7 @@ export const QuizHistory = () => {
                       </span>
                     </div>
                     
-                    {result.time_taken > 0 && (
+                    {typeof result.time_taken === 'number' && result.time_taken > 0 && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4" />
                         <span>{formatTime(result.time_taken)}</span>

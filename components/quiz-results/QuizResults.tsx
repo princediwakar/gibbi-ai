@@ -1,7 +1,7 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-import { Check, X, Save, Clock, History } from "lucide-react";
+import { Check, X, History } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -11,16 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShareableResultsCard } from "./ShareableResultsCard";
 import { GoBackOrHome } from "../GoBackOrHome";
-import { flattenQuizQuestions, renderMathContent, formatTime } from "@/lib/quiz-utils";
+import { flattenQuizQuestions, renderMathContent } from "@/lib/quiz-utils";
 import { SupportingContentDisplay } from "../quiz-player/SupportingContentDisplay";
 import { useRouter } from "next/navigation";
+import { ContentType } from "@/types/quiz";
 
 interface QuizResultsProps {
   quiz: Quiz;
   userAnswers: { [key: number]: string };
   score: number;
-  timeTaken?: number;
-  resultSaved?: boolean;
   showBackToHistoryLink?: boolean;
 }
 
@@ -28,8 +27,6 @@ export const QuizResults = ({
   quiz,
   userAnswers,
   score,
-  timeTaken = 0,
-  resultSaved = false,
   showBackToHistoryLink = false,
 }: QuizResultsProps) => {
   const router = useRouter();
@@ -125,7 +122,7 @@ export const QuizResults = ({
                     <div className="mb-6">
                       <SupportingContentDisplay
                         content={typeof question.content === 'string' ? question.content : question.content.data}
-                        type={typeof question.content === 'string' ? (question.type as any) || 'text' : question.content.type}
+                        type={typeof question.content === 'string' ? (question.type as ContentType) || 'text' : question.content.type}
                       />
                     </div>
                   ) : null}
