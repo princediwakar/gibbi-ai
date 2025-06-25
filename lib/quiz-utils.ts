@@ -28,6 +28,25 @@ interface TableData {
   rows: string[][];
 }
 
+// ======================== Time Formatting ========================
+export const formatTime = (seconds: number): string => {
+  if (seconds < 60) {
+    return `${seconds} sec`;
+  }
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  
+  if (minutes < 60) {
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  return `${hours}h ${remainingMinutes}m ${remainingSeconds}s`;
+};
+
 // ======================== Option Parsing ========================
 export const parseOptions = (options: string | Record<string, string>): Option[] => {
   let obj: unknown;

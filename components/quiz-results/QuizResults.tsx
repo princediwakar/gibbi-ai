@@ -1,7 +1,7 @@
 "use client";
 
 import { Quiz } from "@/types/quiz";
-import { Check, X } from "lucide-react";
+import { Check, X, Save, Clock, History } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -11,20 +11,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShareableResultsCard } from "./ShareableResultsCard";
 import { GoBackOrHome } from "../GoBackOrHome";
-import { flattenQuizQuestions, renderMathContent } from "@/lib/quiz-utils";
+import { flattenQuizQuestions, renderMathContent, formatTime } from "@/lib/quiz-utils";
 import { SupportingContentDisplay } from "../quiz-player/SupportingContentDisplay";
+import { useRouter } from "next/navigation";
 
 interface QuizResultsProps {
   quiz: Quiz;
   userAnswers: { [key: number]: string };
   score: number;
+  timeTaken?: number;
+  resultSaved?: boolean;
+  showBackToHistoryLink?: boolean;
 }
 
 export const QuizResults = ({
   quiz,
   userAnswers,
   score,
+  timeTaken = 0,
+  resultSaved = false,
+  showBackToHistoryLink = false,
 }: QuizResultsProps) => {
+  const router = useRouter();
+  
   // Get the actual number of questions by flattening them
   const flattenedQuestions = flattenQuizQuestions(quiz);
   const actualQuestionCount = flattenedQuestions.length;
@@ -48,6 +57,7 @@ export const QuizResults = ({
           score={score}
           percentage={percentage}
         />
+        
       </div>
 
       {/* Performance Breakdown */}
@@ -102,16 +112,23 @@ export const QuizResults = ({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 py-4 bg-card">
-                  {/* Render supporting content if available */}
-                  {supportingContent && (
-                    <div className="mb-6">
+                  {/* Render any supporting or inline content (graph, table, image, etc.) */}
+                  {supportingContent ? (
+                    <div className="p-4">
                       <SupportingContentDisplay
                         content={supportingContent.content}
                         type={supportingContent.type}
                         caption={supportingContent.caption}
                       />
                     </div>
-                  )}
+                  ) : question.content ? (
+                    <div className="mb-6">
+                      <SupportingContentDisplay
+                        content={typeof question.content === 'string' ? question.content : question.content.data}
+                        type={typeof question.content === 'string' ? (question.type as any) || 'text' : question.content.type}
+                      />
+                    </div>
+                  ) : null}
                   
                   {/* Question options */}
                   <div className="space-y-3 p-4 rounded-lg bg-card">
@@ -152,7 +169,17 @@ export const QuizResults = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-center pt-6">
+      <div className="flex justify-center pt-6 gap-4">
+        {showBackToHistoryLink && (
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/history")}
+            className="flex items-center gap-2"
+          >
+            <History className="w-4 h-4" />
+            Back to History
+          </Button>
+        )}
         <GoBackOrHome />
       </div>
     </div>

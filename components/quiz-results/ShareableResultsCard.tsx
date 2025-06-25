@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { flattenQuizQuestions } from "@/lib/quiz-utils";
 
 interface ShareableResultsCardProps {
   quiz: Quiz;
@@ -27,10 +28,13 @@ export const ShareableResultsCard = ({
   const { user } = useUser();
   const [, copy] = useCopyToClipboard();
 
+  // Determine total number of questions (fallback to flattening if field missing)
+  const questionTotal = quiz.question_count ?? flattenQuizQuestions(quiz).length;
+
   const handleShare = (platform: "twitter" | "facebook" | "whatsapp") => {
     const quizUrl = window.location.href; // Get the current quiz URL
     const shareText = `${user?.user_metadata?.name || "I"} scored ${score}/${
-      quiz.question_count
+      questionTotal
     } (${percentage}%) on "${quiz.title}"! Topic: ${quiz.topic}
     \n\nTake the quiz or create your own: ${quizUrl}`;
 
@@ -44,7 +48,7 @@ export const ShareableResultsCard = ({
       case "twitter":
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
           `${user?.user_metadata?.name || "I"} scored ${score}/${
-            quiz.question_count
+            questionTotal
           } (${percentage}%) on "${quiz.title}"! Topic: ${quiz.topic}${
             quiz.difficulty ? `, Difficulty: ${quiz.difficulty}` : ""
           }\n\nTake the quiz or create your own:`
@@ -71,9 +75,7 @@ export const ShareableResultsCard = ({
 
         <div className="text-5xl font-bold text-primary">
           {score}
-          <span className="text-2xl text-muted-foreground">
-            /{quiz.question_count}
-          </span>
+          <span className="text-2xl text-muted-foreground">/{questionTotal}</span>
         </div>
 
         <div className="text-lg text-foreground">

@@ -67,6 +67,24 @@ export type Quiz = Database['public']['Tables']['quizzes']['Row'] & {
   questions: Question[];
 };
 
+// Quiz Result Structure
+export interface QuizResult {
+  result_id?: string;
+  quiz_id: string;
+  user_id?: string;
+  score: number;
+  total_questions: number;
+  answers: Record<string, string>; // Map of question_id to selected answer
+  time_taken?: number; // Time taken in seconds
+  completed_at?: string;
+  created_at?: string;
+  quizzes?: {
+    title: string;
+    description: string;
+    slug?: string;
+  };
+}
+
 // Helper Types
 export interface FlattenedQuestion {
   question: Question;

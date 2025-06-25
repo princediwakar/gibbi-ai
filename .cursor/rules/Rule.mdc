@@ -115,7 +115,6 @@ Required variables:
      await page.goto('http://localhost:3000');
      await page.getByRole('button', { name: 'Create Quiz' }).click();
      await page.getByRole('textbox', { name: 'Topic' }).fill('GMAT Reading Comprehension');
-     await page.getByRole('combobox', { name: 'Difficulty' }).selectOption('Hard');
      await page.getByRole('button', { name: 'Generate' }).click();
      
      // Wait for quiz generation
@@ -139,14 +138,7 @@ Required variables:
    # Install browsers
    npx playwright install
    ```
-
-2. **Test Structure**
-   - Place tests in `tests` directory
-   - Use descriptive test names
-   - Group related tests in test files
-   - Add appropriate timeouts for AI operations
-
-3. **Critical Test Cases**
+2. **Critical Test Cases**
    - Quiz Creation Flow
      - Topic input validation
      - Difficulty selection
@@ -162,17 +154,11 @@ Required variables:
      - Protected routes
      - User session handling
 
-4. **Test Data Management**
+3. **Test Data Management**
    - Use test-specific topics
    - Clean up generated quizzes
    - Reset user state between tests
    - Mock long-running operations
-
-5. **CI/CD Integration**
-   - Run tests in CI pipeline
-   - Capture test artifacts
-   - Generate test reports
-   - Track test coverage
 
 ## Deployment Process
 1. **Development**
@@ -180,12 +166,7 @@ Required variables:
    - Code review
    - Linting and type checking
 
-2. **Staging**
-   - Integration testing
-   - Performance testing
-   - Security checks
-
-3. **Production**
+2. **Production**
    - Vercel deployment
    - Environment variable verification
    - Post-deployment checks

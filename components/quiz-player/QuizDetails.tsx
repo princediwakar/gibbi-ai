@@ -15,7 +15,7 @@ export function QuizDetails({
 				{quiz.title}
 			</h1>
 			<p className="text-muted-foreground">
-				Created by: {quiz.creator_name || "Unknown"}
+				Created by: {(quiz as any)?.creator_name ?? "Unknown"}
 			</p>
 
 			{quiz.description && (

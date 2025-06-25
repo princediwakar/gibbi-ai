@@ -142,8 +142,33 @@ export const SupportingContentDisplay: React.FC<SupportingContent> = ({
   const normalized =
     typeof content === 'string' ? content : JSON.stringify(content);
 
+  // Detect content type if unknown or not among expected ones
+  const detectType = (): "image" | "graph" | "table" | "text" => {
+    if (type === "image" || type === "graph" || type === "table" || type === "text") {
+      return type;
+    }
+    // Try to infer from JSON structure
+    try {
+      const parsed = JSON.parse(normalized);
+      if (parsed && typeof parsed === "object") {
+        if ("datasets" in parsed && "labels" in parsed) {
+          return "graph";
+        }
+        if ("headers" in parsed && "rows" in parsed) {
+          return "table";
+        }
+      }
+    } catch {
+      // not JSON
+    }
+    // Fallback to text
+    return "text";
+  };
+
+  const resolvedType = detectType();
+
   const renderContent = () => {
-    switch (type) {
+    switch (resolvedType) {
       case 'image':
         return (
           <Image
