@@ -41,7 +41,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [pdfText, setPdfText] = useState<string>("");
   const { user } = useUser();
 
-  const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number) => {
+  const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number, currentQuestion = 1, totalQuestions = questionCount) => {
     try {
       const response = await fetch(`/api/quiz/status?id=${quizId}`);
       const data = await response.json();
@@ -55,14 +55,16 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
         toast.error(data.error || "Quiz generation failed", { id: toastId });
         onQuizCreated({ quiz_id: quizId, status: "failed" } as Quiz);
       } else {
-        toast.loading("Generating quiz...", { id: toastId });
-        setTimeout(() => checkQuizStatus(quizId, toastId), STATUS_CHECK_FREQUENCY);
+        // Simulate progress by incrementing question count
+        const nextQuestion = Math.min(currentQuestion + 1, totalQuestions);
+        toast.loading(`Generating questions - ${currentQuestion} of ${totalQuestions}`, { id: toastId });
+        setTimeout(() => checkQuizStatus(quizId, toastId, nextQuestion, totalQuestions), STATUS_CHECK_FREQUENCY);
       }
     } catch (error) {
       console.error("Polling error:", error);
       toast.error("Failed to check quiz status", { id: toastId });
     }
-  }, [onQuizCreated]);
+  }, [onQuizCreated, questionCount]);
 
   const handleQuestionCount = useCallback((value: string) => {
     const num = parseInt(value, 10);

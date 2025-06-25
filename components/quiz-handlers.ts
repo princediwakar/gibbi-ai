@@ -1,22 +1,35 @@
 // components/quiz-handlers.ts
 import { Quiz } from "@/types/quiz";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase/client";
 
-export function handleQuizCreated(quiz: Quiz, setQuizzes: (quizzes: Quiz[]) => void) {
-  // Only add the quiz to the list if it has a slug
-  if (quiz.slug) {
-    setQuizzes((prevQuizzes) => {
-      const updatedQuizzes = [quiz, ...prevQuizzes];
-      return Array.from(new Map(updatedQuizzes.map((q) => [q.quiz_id, q])).values());
-    });
+export async function handleQuizCreated(quiz: Quiz) {
+  try {
+    // Notify about quiz creation
+    toast.success("Quiz created successfully!");
+    
+    // Trigger a refetch in useQuizzes hook by invalidating the cache
+    await supabase.auth.refreshSession();
+    
+  } catch (error) {
+    console.error("Error handling quiz creation:", error);
+    toast.error("Failed to update quiz list");
   }
 }
 
-export const handleQuizDeleted = (
-  deletedQuizId: string,
-  setQuizzes: React.Dispatch<React.SetStateAction<Quiz[]>>
-) => {
-  setQuizzes((prev) => prev.filter((quiz) => quiz.quiz_id !== deletedQuizId));
-};
+export async function handleQuizDeleted(quizId: string) {
+  try {
+    // Notify about quiz deletion
+    toast.success("Quiz deleted successfully!");
+    
+    // Trigger a refetch in useQuizzes hook by invalidating the cache
+    await supabase.auth.refreshSession();
+    
+  } catch (error) {
+    console.error("Error handling quiz deletion:", error);
+    toast.error("Failed to update quiz list");
+  }
+}
 
 export const handleQuizUpdated = (
   updatedQuiz: Quiz,

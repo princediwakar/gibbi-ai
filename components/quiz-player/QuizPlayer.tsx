@@ -128,7 +128,7 @@ export const QuizPlayer = ({ quiz, isCreator }: QuizPlayerProps) => {
       {completed ? (
         <QuizResults quiz={quiz} userAnswers={userAnswers} score={score} />
       ) : (
-        <div className="space-y-6 md:flex md:space-x-6">
+        <div className="space-y-6 md:space-y-0 md:flex md:space-x-6">
           {isGroup && supportingContent && (
             <div className="md:w-1/2 md:max-h-[70vh] md:overflow-y-auto">
               <SupportingContentDisplay

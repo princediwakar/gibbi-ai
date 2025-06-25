@@ -1,45 +1,23 @@
 // app/quizzes/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { QuizList } from "@/components/QuizList";
-import { useQuizzes } from "@/hooks/useQuizzes";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function QuizzesPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { quizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } = useQuizzes({
-    publicOnly: true,
-    searchQuery,
-    limitPerGroup: 6
-  });
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-  const observerRef = useRef<HTMLDivElement | null>(null);
-
+  // Debounce search query
   useEffect(() => {
-    if (!hasMore || isLoadingMore || isInitialLoading) return;
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchInput);
+    }, 300); // 300ms delay
 
-    const sentinel = observerRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          console.log("Bottom of public quizzes reached, loading more");
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.unobserve(sentinel);
-    };
-  }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -55,37 +33,22 @@ export default function QuizzesPage() {
           type="search"
           placeholder="Search public quizzes..."
           className="pl-10 flex-1 max-w-md"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           aria-label="Search public quizzes"
         />
       </div>
       <QuizList
-        quizzes={quizzes}
+        publicOnly={true}
+        searchQuery={debouncedSearchQuery}
         groupBy="subject"
-        isLoading={isInitialLoading}
         emptyMessage={
-          searchQuery
+          debouncedSearchQuery
             ? "No matching quizzes found."
             : "No public quizzes available. Why not create one?"
         }
         showViewMore={true}
       />
-      {isLoadingMore && (
-        <div className="text-center py-4">
-          <span className="text-muted-foreground">Loading more quizzes...</span>
-        </div>
-      )}
-      {!isInitialLoading && hasMore && (
-        <div ref={observerRef} className="h-10" />
-      )}
-      {!isInitialLoading && hasMore && !isLoadingMore && (
-        <div className="text-center">
-          <Button onClick={loadMore} disabled={isLoadingMore}>
-            Load More
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

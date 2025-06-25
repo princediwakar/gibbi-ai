@@ -37,7 +37,7 @@ export function QuizCard({ quiz, onDelete, className }: QuizCardProps) {
     }
     // Only navigate if slug is available
     if (quiz.slug) {
-      router.push(`/quiz/${quiz.slug}`);
+    router.push(`/quiz/${quiz.slug}`);
     }
   };
 

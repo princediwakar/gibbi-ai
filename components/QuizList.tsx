@@ -1,5 +1,5 @@
 "use client"
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Quiz } from "@/types/quiz";
 import { Loader2 } from "lucide-react";
 import { QuizCard } from "./quiz-card/QuizCard";
@@ -12,24 +12,59 @@ import {
   isThisYear,
 } from 'date-fns';
 import Link from "next/link";
+import { useQuizzes } from "@/hooks/useQuizzes";
+import { Button } from "@/components/ui/button";
 
 interface QuizListProps {
-  quizzes: Quiz[] | null;
+  userId?: string;
+  publicOnly?: boolean;
   isLoading?: boolean;
   onQuizDeleted?: (quizId: string) => void;
   emptyMessage?: string;
-  groupBy?: "date" | "subject";
+  groupBy?: "subject" | "date";
   showViewMore?: boolean;
+  searchQuery?: string;
 }
 
 export const QuizList = ({
-  quizzes,
-  isLoading = false,
+  userId,
+  publicOnly = false,
   onQuizDeleted,
   emptyMessage = "No quizzes available",
   groupBy = "subject",
   showViewMore = false,
+  searchQuery = "",
 }: QuizListProps) => {
+  const { quizzes, isInitialLoading, isLoadingMore, loadMore, hasMore } = useQuizzes({
+    userId,
+    publicOnly,
+    searchQuery,
+    limitPerGroup: publicOnly && !searchQuery ? 6 : undefined
+  });
+
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!hasMore || isLoadingMore || isInitialLoading) return;
+
+    const sentinel = observerRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.unobserve(sentinel);
+    };
+  }, [hasMore, isLoadingMore, isInitialLoading, loadMore]);
 
   const formatDate = (date: Date | string | undefined): string => {
     // If no date provided, default to "Recently Created" for better UX
@@ -66,11 +101,12 @@ export const QuizList = ({
     }
   }, [quizzes, groupBy]);
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
-      <div className="text-center">
-        <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-        <p className="text-sm text-muted-foreground mt-2">Loading quizzes...</p>
+      <div className="relative min-h-[200px] flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/50" />
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p className="text-sm text-muted-foreground ml-2">Loading quizzes...</p>
       </div>
     );
   }
@@ -82,7 +118,13 @@ export const QuizList = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {isLoadingMore && (
+        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <p className="text-sm text-muted-foreground ml-2">Loading more...</p>
+        </div>
+      )}
       {groupedQuizzes && Object.keys(groupedQuizzes).length ? (
         Object.entries(groupedQuizzes).map(([group, groupQuizzes]) => (
           <div key={group} className="space-y-4">
@@ -105,6 +147,16 @@ export const QuizList = ({
         ))
       ) : (
         <p className="text-center text-muted-foreground py-6">{emptyMessage}</p>
+      )}
+      {!isInitialLoading && hasMore && (
+        <div ref={observerRef} className="h-10" />
+      )}
+      {!isInitialLoading && hasMore && !isLoadingMore && (
+        <div className="text-center">
+          <Button onClick={loadMore} disabled={isLoadingMore}>
+            Load More
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import {
   buildSystemMessage,
   buildUserMessage,
   GeneratedQuiz,
-  GeneratedQuizSchema,
+  generateSessionFingerprint,
 } from "./ai-utils";
 
 const REQUIRED_ENV_VARS = [
@@ -23,30 +23,41 @@ const openai = new OpenAI({
   baseURL: process.env.AI_BASE_URL,
 });
 
-const TOKENS_PER_Q = 200;
-const MODEL_TOKEN_LIMIT = 8000;
-
-function calculateMaxTokens(questionCount: number): number {
-  return Math.min(MODEL_TOKEN_LIMIT, questionCount * TOKENS_PER_Q);
-}
+// Note: These constants are kept for future token management features
+// const TOKENS_PER_Q = 200;
+// const MODEL_TOKEN_LIMIT = 8000;
 
 export async function createQuizWithAI(
   content: string,
   questionCount: number,
   difficulty: string = "Medium",
   language: string = "Auto",
-  maxAttempts: number = 3
+  maxAttempts: number = 3,
+  userId?: string
 ): Promise<GeneratedQuiz> {
   let attempts = 0;
+  
+  // Generate unique session fingerprint for this quiz generation
+  const sessionFingerprint = generateSessionFingerprint(content, userId);
+  console.log(`🎯 Session Fingerprint: ${sessionFingerprint}`);
   
   while (attempts < maxAttempts) {
     attempts++;
     try {
       const uniqueToken = crypto.randomUUID();
-      const temperature = attempts === 1 ? 0.9 : 0.5; // Start creative, get more focused in retries
+      // Higher temperature for more creative, varied outputs
+      const temperature = 0.95;
       const maxTokens = 4000;
       
-      const variabilityInstructions = getVariabilityInstructions();
+      // Get session-aware variability instructions
+      const variabilityInstructions = getVariabilityInstructions(
+        sessionFingerprint, 
+        difficulty,
+        userId
+      );
+      
+      console.log(`📋 Variability Context:\n${variabilityInstructions.split('\n').slice(0, 6).join('\n')}...`);
+      
       const systemMessage = buildSystemMessage(
         variabilityInstructions,
         language,
@@ -57,26 +68,29 @@ export async function createQuizWithAI(
 
       const messages = [
         {
-          role: "system",
+          role: "system" as const,
           content: systemMessage
         },
         {
-          role: "user",
+          role: "user" as const,
           content: buildUserMessage(content, questionCount, uniqueToken)
         }
       ];
 
       const response = await openai.chat.completions.create({
         model: "deepseek-chat",
-        messages: messages as any,
+        messages,
         temperature,
         max_tokens: maxTokens,
       });
 
       const rawResponse = response.choices[0]?.message?.content || "";
-      return parseQuiz(rawResponse);
+      const quiz = parseQuiz(rawResponse, questionCount);
+      
+      console.log(`✅ Quiz generated successfully with fingerprint: ${sessionFingerprint}`);
+      return quiz;
     } catch (error) {
-      console.error(`Retry attempt ${attempts} failed:`, error);
+      console.error(`❌ Retry attempt ${attempts} failed:`, error);
       
       if (attempts === maxAttempts) {
         throw new Error(`Failed to generate quiz with correct number of questions after ${maxAttempts} attempts`);

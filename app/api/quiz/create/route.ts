@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Start async generation
-    generateQuizAsync(quiz.quiz_id, content, question_count, difficulty, language, supabase);
+    generateQuizAsync(quiz.quiz_id, content, question_count, difficulty, language, user.id, supabase);
 
     // Return immediately with quiz ID
     return NextResponse.json({ 
@@ -73,11 +73,16 @@ async function generateQuizAsync(
   questionCount: number, 
   difficulty: string, 
   language: string,
-  supabase: any
+  userId: string,
+  supabase: Awaited<ReturnType<typeof createClient>>
 ) {
   try {
-    // Generate quiz with AI
-    const generatedQuiz = await createQuizWithAI(content, questionCount, difficulty, language);
+    console.log(`[GenerateQuizAsync] Starting generation for user ${userId} with content: "${content.slice(0, 50)}..."`);
+    
+    // Generate quiz with AI using session-based variability
+    const generatedQuiz = await createQuizWithAI(content, questionCount, difficulty, language, 3, userId);
+
+    console.log(`[GenerateQuizAsync] Generated quiz: "${generatedQuiz.title}" with ${generatedQuiz.questions?.length || 0} standalone + ${generatedQuiz.question_groups?.reduce((sum, g) => sum + g.questions.length, 0) || 0} grouped questions`);
 
     // Update quiz with generated content
     const { error: updateError } = await supabase

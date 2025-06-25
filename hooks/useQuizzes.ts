@@ -68,8 +68,8 @@ export function useQuizzes({
 
         let newQuizzes = data as Quiz[];
 
-        // Apply limitPerGroup for public quizzes without subject filter
-        if (limitPerGroup && publicOnly && !subjectFilter) {
+        // Apply limitPerGroup for public quizzes without subject filter and only when not searching
+        if (limitPerGroup && publicOnly && !subjectFilter && !searchQuery) {
           const grouped = newQuizzes.reduce((acc: Record<string, Quiz[]>, quiz: Quiz) => {
             const subject = quiz.subject || "Uncategorized";
             acc[subject] = acc[subject] || [];

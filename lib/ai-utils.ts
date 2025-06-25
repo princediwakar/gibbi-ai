@@ -1,5 +1,6 @@
 // lib/ai-utils.ts
 import { z } from "zod";
+import * as crypto from "crypto";
 
 // ----- Schemas and Types -----
 
@@ -21,7 +22,7 @@ export const QuestionSchema = z.object({
 export type Question = z.infer<typeof QuestionSchema>;
 
 // Allow both string and number in table cells, convert numbers to strings
-const TableCellSchema = z.union([z.string(), z.number()]).transform(val => String(val));
+// const TableCellSchema = z.union([z.string(), z.number()]).transform(val => String(val));
 
 // Supporting content schemas for different types
 const GraphContentSchema = z.object({
@@ -45,30 +46,31 @@ type TableContent = z.infer<typeof TableContentSchema>;
 // Type guards for content validation
 function isGraphContent(content: unknown): content is GraphContent {
   if (!content || typeof content !== 'object') return false;
-  const c = content as any;
+  const c = content as Record<string, unknown>;
   return (
-    ['bar', 'line', 'pie'].includes(c.type) &&
+    ['bar', 'line', 'pie'].includes(c.type as string) &&
     Array.isArray(c.labels) &&
     Array.isArray(c.datasets) &&
-    c.datasets.every((ds: any) => 
+    c.datasets.every((ds: unknown) => 
       typeof ds === 'object' &&
-      typeof ds.label === 'string' &&
-      Array.isArray(ds.values) &&
-      ds.values.every((v: any) => typeof v === 'number')
+      ds !== null &&
+      typeof (ds as Record<string, unknown>).label === 'string' &&
+      Array.isArray((ds as Record<string, unknown>).values) &&
+      ((ds as Record<string, unknown>).values as unknown[]).every((v: unknown) => typeof v === 'number')
     )
   );
 }
 
 function isTableContent(content: unknown): content is TableContent {
   if (!content || typeof content !== 'object') return false;
-  const c = content as any;
+  const c = content as Record<string, unknown>;
   return (
     Array.isArray(c.headers) &&
-    c.headers.every((h: any) => typeof h === 'string') &&
+    c.headers.every((h: unknown) => typeof h === 'string') &&
     Array.isArray(c.rows) &&
-    c.rows.every((row: any) => 
+    c.rows.every((row: unknown) => 
       Array.isArray(row) &&
-      row.every((cell: any) => 
+      (row as unknown[]).every((cell: unknown) => 
         typeof cell === 'string' || typeof cell === 'number'
       )
     )
@@ -145,6 +147,245 @@ export const GeneratedQuizSchema = z.object({
 
 export type GeneratedQuiz = z.infer<typeof GeneratedQuizSchema>;
 
+// ----- Session-Based Variability Engine -----
+// Simplified approach using intelligent prompting instead of complex programmatic logic
+
+// Session fingerprint generation
+export function generateSessionFingerprint(content: string, userId?: string): string {
+  const timestamp = Date.now();
+  const contentHash = crypto.createHash('sha256').update(content.toLowerCase().trim()).digest('hex').slice(0, 8);
+  const userComponent = userId ? crypto.createHash('sha256').update(userId).digest('hex').slice(0, 4) : 'anon';
+  const randomComponent = crypto.randomBytes(4).toString('hex');
+  
+  return `${timestamp}_${contentHash}_${userComponent}_${randomComponent}`;
+}
+
+// Helper function for difficulty calibration descriptions
+function getDifficultyCalibration(difficulty: string): string {
+  switch (difficulty.toLowerCase()) {
+    case 'easy':
+      return 'Focus on fundamental understanding and basic application. Questions should test core concepts clearly without overly complex scenarios.';
+    case 'medium':
+      return 'Require application of knowledge in new contexts. Include multi-step reasoning processes while balancing conceptual and practical elements.';
+    case 'hard':
+      return 'Demand sophisticated analysis and synthesis. Include counterintuitive or complex scenarios requiring expert-level reasoning and insight.';
+    default:
+      return 'Adjust complexity to match the implied sophistication level of the request.';
+  }
+}
+
+// ----- INTELLIGENT PROMPT ENGINEERING SYSTEM -----
+
+// Core intelligence principles for question generation
+const QUESTION_INTELLIGENCE_PRINCIPLES = [
+  "Study the user's request deeply - if they mention 'GMAT', 'SAT', 'GRE', etc., understand they want authentic exam-level questions",
+  "Recognize difficulty levels: 'Easy' = conceptual understanding, 'Medium' = application skills, 'Hard' = advanced analysis and synthesis",
+  "If the request mentions 'reading comprehension', create substantial passages that require actual comprehension, not just vocabulary",
+  "If the request mentions 'data analysis' or 'data insights', create meaningful datasets that require real analytical thinking",
+  "If the request mentions 'math', create problems that require multi-step reasoning, not just formula recall",
+  "Match the sophistication level to the context - business school prep should have business scenarios, college prep should be academic"
+];
+
+// Universal quality standards that apply to any quiz
+const UNIVERSAL_QUALITY_STANDARDS = [
+  "Every question must require genuine thinking - no trivial recall or obvious answers",
+  "Wrong answer choices (distractors) should be plausible and test common misconceptions",
+  "Questions should prepare learners for real-world applications of the knowledge",
+  "Avoid repetitive patterns in question stems or answer formats",
+  "Each question should add unique value to the overall learning experience"
+];
+
+// Session-based variability prompts
+function generateIntelligentVariabilityPrompt(sessionFingerprint: string, difficulty: string): string {
+  const seed = sessionFingerprint.split('_')[0] || '0';
+  const sessionNumber = parseInt(seed) % 100;
+  
+  // Create variety through different cognitive approaches
+  const approaches = [
+    {
+      focus: "analytical reasoning",
+      style: "break down complex information systematically",
+      examples: "cause-and-effect analysis, data interpretation, logical reasoning"
+    },
+    {
+      focus: "practical application", 
+      style: "connect theory to real-world scenarios",
+      examples: "case studies, problem-solving, decision-making"
+    },
+    {
+      focus: "conceptual synthesis",
+      style: "combine multiple ideas into coherent understanding",
+      examples: "comparative analysis, relationship mapping, pattern recognition"
+    },
+    {
+      focus: "critical evaluation",
+      style: "assess, judge, and critique information",
+      examples: "argument analysis, evidence evaluation, quality assessment"
+    }
+  ];
+  
+  const selectedApproach = approaches[sessionNumber % approaches.length];
+  
+  const contentStyles = [
+    "academic research and scholarly analysis",
+    "business scenarios and professional contexts", 
+    "current events and contemporary issues",
+    "historical examples and case studies",
+    "scientific discoveries and technical concepts"
+  ];
+  
+  const selectedStyle = contentStyles[(sessionNumber + 1) % contentStyles.length];
+  
+  return `
+SESSION INTELLIGENCE DIRECTIVE:
+Your primary cognitive approach for this session: ${selectedApproach.focus}
+Content style emphasis: ${selectedStyle}
+Question creation method: ${selectedApproach.style}
+Key question types to include: ${selectedApproach.examples}
+
+DIFFICULTY CALIBRATION FOR ${difficulty.toUpperCase()}:
+${getDifficultyCalibration(difficulty)}
+
+CONTENT SOPHISTICATION REQUIREMENTS:
+- Match the intellectual level appropriate to the subject matter
+- Use authentic, professional-quality content
+- Ensure questions would be valuable for serious test preparation
+- Create supporting materials (passages, data, graphs) that are substantial and meaningful
+  `;
+}
+
+// Enhanced system message builder with intelligent prompting
+export function buildSystemMessage(
+  variability: string,
+  language: string,
+  difficulty: string,
+  remaining: number,
+  maxTokens: number,
+  customInstructions: string = ''
+): string {
+  
+  const ROLE = `You are an elite Test Creation Specialist with expertise in creating high-quality educational assessments. Your questions are used by serious students preparing for important exams and academic challenges.`;
+  
+  const CORE_INTELLIGENCE = `
+FUNDAMENTAL UNDERSTANDING:
+${QUESTION_INTELLIGENCE_PRINCIPLES.map(p => `• ${p}`).join('\n')}
+
+UNIVERSAL QUALITY STANDARDS:
+${UNIVERSAL_QUALITY_STANDARDS.map(s => `• ${s}`).join('\n')}
+
+YOUR MISSION: Create ${remaining} questions that truly challenge and educate learners at the ${difficulty} level.
+  `;
+
+  const CONTENT_CREATION_MASTERY = `
+CONTENT CREATION EXCELLENCE:
+1. AUTHENTIC SUPPORTING MATERIALS:
+   - Reading passages should be dense, informative, and require careful analysis
+   - Data tables should contain meaningful, realistic information
+   - Graphs should show actual trends or relationships worth interpreting
+   - All supporting content should justify multiple sophisticated questions
+
+2. QUESTION SOPHISTICATION:
+   - Each question should require specific knowledge or skills
+   - Distractors should test genuine understanding, not just guessing
+   - Questions should mirror the complexity students face in real academic/professional contexts
+   - Avoid questions that can be answered without understanding the material
+
+3. COGNITIVE VARIETY:
+   - Include questions that test different thinking skills
+   - Mix recall, application, analysis, and evaluation appropriately
+   - Ensure questions require different approaches to solve
+   - Create questions that build upon each other when grouped
+  `;
+
+  const STRUCTURAL_REQUIREMENTS = `
+QUIZ STRUCTURE REQUIREMENTS:
+• Generate EXACTLY ${remaining} questions total - this is critical
+• Use question_groups when you have substantial supporting content (passages, data, graphs)
+• Put standalone questions in the main "questions" array
+• Each question group should have 2-3 questions maximum
+• Supporting content must be substantial enough to warrant multiple questions
+• Give descriptive group_titles and unique group_ids
+  `;
+
+  const JSON_FORMAT = `
+OUTPUT FORMAT - Return ONLY this JSON structure:
+{
+  "title": "Engaging, descriptive title",
+  "description": "Clear description of what this quiz tests", 
+  "topic": "Main subject area",
+  "subject": "Academic field",
+  "language": "${language}",
+  "difficulty": "${difficulty}",
+  "question_groups": [
+    {
+      "group_id": "unique_identifier",
+      "group_title": "Descriptive title",
+      "supporting_content": {
+        "type": "text|table|graph",
+        "content": "substantial_content_here",
+        "caption": "optional_description"
+      },
+      "questions": [...]
+    }
+  ],
+  "questions": [
+    {
+      "question_text": "Well-crafted question requiring thought",
+      "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
+      "correct_option": "A|B|C|D"
+    }
+  ]
+}
+
+For tables: {"type": "table", "content": {"headers": [...], "rows": [...]}}
+For graphs: {"type": "graph", "content": {"type": "bar|line|pie", "title": "", "labels": [...], "datasets": [...]}}
+
+End with: END_OF_JSON
+  `;
+
+  return [
+    ROLE,
+    CORE_INTELLIGENCE,
+    variability,
+    CONTENT_CREATION_MASTERY,
+    STRUCTURAL_REQUIREMENTS,
+    customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}` : '',
+    JSON_FORMAT
+  ].filter(Boolean).join('\n\n');
+}
+
+// Simplified but powerful user message
+export function buildUserMessage(
+  content: string,
+  remaining: number,
+  uniqueToken: string
+): string {
+  
+  return `
+CREATE A QUIZ: ${content}
+
+REQUIREMENTS:
+- Generate exactly ${remaining} questions
+- Match the sophistication level implied by the request
+- If this is for a specific exam (GMAT, SAT, etc.), create questions that would genuinely help someone prepare
+- Use your expertise to determine what types of questions would be most valuable
+- Session ID: ${uniqueToken}
+
+Make this quiz something a serious student would find genuinely useful for their preparation.
+  `;
+}
+
+// Simplified variability system using pure prompt intelligence
+export function getVariabilityInstructions(
+  sessionFingerprint?: string, 
+  difficulty: string = "Medium",
+  userId?: string
+): string {
+  const fingerprint = sessionFingerprint || generateSessionFingerprint(Date.now().toString(), userId);
+  
+  return generateIntelligentVariabilityPrompt(fingerprint, difficulty);
+}
+
 // ----- Response Cleaning -----
 export function cleanResponse(text: string): string {
   const idx = text.indexOf("END_OF_JSON");
@@ -157,7 +398,7 @@ export function cleanResponse(text: string): string {
 }
 
 // ----- Parsing & Validation -----
-export function parseQuiz(raw: string): GeneratedQuiz {
+export function parseQuiz(raw: string, expectedQuestionCount?: number): GeneratedQuiz {
   const cleaned = cleanResponse(raw);
   let parsed: unknown;
   try {
@@ -173,16 +414,13 @@ export function parseQuiz(raw: string): GeneratedQuiz {
   const standaloneCount = quiz.questions?.length || 0;
   const groupedCount = quiz.question_groups?.reduce((sum, group) => sum + (group.questions?.length || 0), 0) || 0;
   const totalQuestions = standaloneCount + groupedCount;
-
-  // Extract question count from user message
-  const userMessage = buildUserMessage(quiz.topic, 0, ""); // 0 is a dummy value, we just need the message format
-  const requestedCount = parseInt(userMessage.match(/Generate exactly (\d+) questions/)?.[1] || "10");
-
-  if (totalQuestions !== requestedCount) {
-    console.error(`Warning: Generated ${totalQuestions} questions, but ${requestedCount} were requested`);
-    throw new Error(`Invalid number of questions: got ${totalQuestions}, expected ${requestedCount}. This is a critical error that must be fixed.`);
+        
+  // Validate question count if expected count is provided
+  if (expectedQuestionCount !== undefined && totalQuestions !== expectedQuestionCount) {
+    console.error(`Warning: Generated ${totalQuestions} questions, but ${expectedQuestionCount} were requested`);
+    throw new Error(`Invalid number of questions: got ${totalQuestions}, expected ${expectedQuestionCount}. This is a critical error that must be fixed.`);
   }
-
+        
   // Additional validation for question groups
   quiz.question_groups?.forEach((group, idx) => {
     if (!group.questions?.length) {
@@ -193,253 +431,14 @@ export function parseQuiz(raw: string): GeneratedQuiz {
     }
   });
 
-  return quiz;
-}
-
-// ----- Variability Instructions -----
-const tones = [
-  "Engaging and clear",
-  "Challenging and thought-provoking", 
-  "Informative and concise",
-  "Professional and analytical",
-  "Practical and application-focused"
-];
-
-const creativityMods = [
-  "Ensure questions cover multiple cognitive levels (remember, understand, apply, analyze, evaluate, create).",
-  "Incorporate diverse real-world applications and scenarios.",
-  "Mix theoretical concepts with practical applications.",
-  "Balance abstract thinking with concrete examples.",
-  "Include both straightforward and complex problem-solving approaches."
-];
-
-const qTypes = [
-  "Direct recall questions testing fundamental knowledge",
-  "Analysis questions requiring breaking down complex information",
-  "Synthesis questions combining multiple concepts",
-  "Evaluation questions requiring judgment and assessment",
-  "Application questions using real-world scenarios",
-  "Comparison questions exploring relationships between concepts",
-  "Case study questions with detailed scenarios",
-  "Data interpretation questions with graphs or tables",
-  "Process explanation questions about sequences or procedures",
-  "Problem-solving questions requiring multi-step solutions"
-];
-
-// Question category weights to ensure balanced distribution
-export const questionCategories = {
-  RECALL: 'recall',
-  COMPREHENSION: 'comprehension',
-  APPLICATION: 'application',
-  ANALYSIS: 'analysis',
-  SYNTHESIS: 'synthesis',
-  EVALUATION: 'evaluation'
-} as const;
-
-type QuestionCategory = typeof questionCategories[keyof typeof questionCategories];
-
-function pick<T>(arr: T[], rng: () => number) { return arr[Math.floor(rng() * arr.length)]; }
-
-export function getVariabilityInstructions(rng: () => number = Math.random): string {
-  // Pick multiple question types to focus on
-  const selectedTypes = new Set<string>();
-  while(selectedTypes.size < 3) {
-    selectedTypes.add(pick(qTypes, rng));
-  }
-
-  return [
-    `1. Tone: ${pick(tones, rng)}`,
-    `2. ${pick(creativityMods, rng)}`,
-    `3. Question Types to Include:\n${Array.from(selectedTypes).map(t => `   - ${t}`).join('\n')}`,
-    `4. CRITICAL DIVERSITY REQUIREMENTS:`,
-    `   - No more than 25% of questions should be reading comprehension`,
-    `   - Mix standalone questions with grouped questions`,
-    `   - Vary question complexity within the chosen difficulty level`,
-    `   - Use different cognitive levels (Bloom's Taxonomy)`,
-    `5. Content Variety Requirements:`,
-    `   - For reading passages: use different types (narrative, descriptive, technical)`,
-    `   - For data interpretation: alternate between graphs, tables, and charts`,
-    `   - For problem-solving: vary between numerical, logical, and analytical approaches`,
-    `6. Structure Requirements:`,
-    `   - Ensure each question group has a unique theme or concept`,
-    `   - Limit related questions to 2-3 per supporting content`,
-    `   - Maintain independence between question groups`,
-    `7. Language Requirements:`,
-    `   - Vary question stems (avoid repetitive patterns)`,
-    `   - Use diverse vocabulary within the appropriate level`,
-    `   - Include both positive and negative question forms`,
-    `8. Answer Options Requirements:`,
-    `   - Ensure plausible distractors`,
-    `   - Vary the position of correct answers`,
-    `   - Maintain consistent option length and style`
-  ].join('\n');
-}
-
-export function buildSystemMessage(
-  variability: string,
-  language: string,
-  difficulty: string,
-  remaining: number,
-  maxTokens: number,
-  customInstructions: string = ''
-): string {
-  const ROLE = "You are an expert Test Generator specializing in standardized tests as of April 2025.";
-  
-  const CRITICAL_RULES = `
-CRITICAL REQUIREMENTS:
-1. You MUST generate EXACTLY ${remaining} questions total - no more, no less
-2. Count your questions carefully:
-   - Each standalone question counts as 1
-   - Each question in a group counts as 1
-   - Total = (standalone questions) + (sum of questions in all groups)
-3. Before returning JSON:
-   - Count all questions to verify the total is exactly ${remaining}
-   - If not exactly ${remaining}, adjust your output before returning
-4. Quality Requirements:
-   - Each question must be complete with question text, 4 options, and correct answer
-   - Questions must be substantive and meaningful
-   - No placeholder or filler questions
-5. If you cannot generate exactly ${remaining} high-quality questions, STOP and return an error
-`;
-  
-  const CONTENT_ALIGNMENT_RULES = `
-CRITICAL: Supporting Content and Question Alignment Rules:
-1. ONLY create question_groups when you have specific supporting content (text passage, data table, graph, image) that DIRECTLY relates to multiple questions
-2. Each question in a group MUST explicitly reference or depend on the supporting content
-3. Questions should be answerable ONLY by using the supporting content provided
-4. Supporting content should contain ALL information needed to answer the grouped questions
-5. If questions can be answered without the supporting content, put them in the standalone "questions" array instead
-6. Use supporting content types appropriately:
-   - "text": For passages, scenarios, or detailed explanations that questions reference
-   - "table": For data tables with headers and rows that questions analyze
-   - "graph": For charts/graphs with structured data that questions interpret
-   - "image": For visual content that questions describe or analyze
-7. Each question group should have 2-4 questions maximum to maintain focus
-8. Supporting content should be substantial enough to warrant multiple questions
-
-GROUPING STRUCTURE REQUIREMENTS:
-- Give each question group a unique "group_id" (e.g., "passage_1", "table_data_1", "alexander_study") 
-- Add a descriptive "group_title" that clearly identifies what this group is about
-- For multiple passages on similar topics (e.g., two Alexander the Great passages), use distinct group_ids like "alexander_military" and "alexander_legacy"
-- Questions within a group must ALL reference the SAME supporting content
-- Never mix questions from different supporting content in the same group
-
-SPECIAL FORMAT HANDLING:
-- If the user requests "reading comprehension", create distinct text passages with unique themes and group_ids
-- If the user requests data analysis, create tables or graphs with meaningful data and questions that analyze that data
-- If the user mentions specific subjects (history, science, literature), focus the content on those subjects rather than creating questions about the subject names themselves
-- When creating multiple passages on similar historical figures/topics, ensure each passage covers a different aspect (military campaigns vs. cultural impact vs. political reforms)
-`;
-
-  const SCHEMA_INSTRUCTIONS = `
-Output **must** be a single valid JSON object (no markdown, no extra text) in exactly this shape:
-
-{
-  "title": "string",
-  "description": "string", 
-  "topic": "string",
-  "subject": "string",
-  "language": "${language}",
-  "difficulty": "${difficulty}",
-  "question_groups": [
-    {
-      "group_id": "unique_identifier_for_this_group",
-      "group_title": "Descriptive title for this group",
-      "supporting_content": {
-        "type": "text" | "image" | "graph" | "table",
-        "content": "string or structured object with meaningful data",
-        "caption": "brief description of how content relates to questions (optional, defaults to empty string)"
-      },
-      "questions": [
-        {
-          "question_text": "Question that explicitly references the supporting content",
-          "options": { "A": "option1", "B": "option2", "C": "option3", "D": "option4" },
-          "correct_option": "A" | "B" | "C" | "D"
-        }
-      ]
-    }
-  ],
-  "questions": [
-    {
-      "question_text": "Standalone question not requiring supporting content",
-      "options": { "A": "option1", "B": "option2", "C": "option3", "D": "option4" },
-      "correct_option": "A" | "B" | "C" | "D"
-    }
-  ]
-}
-
-CRITICAL: For graph content, you MUST use this EXACT structure:
-{
-  "type": "graph",
-  "content": {
-    "type": "bar" | "line" | "pie",
-    "title": "Graph Title",
-    "labels": ["Label1", "Label2", "Label3"],
-    "datasets": [{"label": "Series Name", "values": [10, 20, 30]}]
-  }
-}
-
-CRITICAL: For table content, you MUST use this EXACT structure:
-{
-  "type": "table",
-  "content": {
-    "headers": ["Column1", "Column2", "Column3"],
-    "rows": [["Row1Col1", "Row1Col2", "Row1Col3"], ["Row2Col1", "Row2Col2", "Row2Col3"]]
-  }
-}
-
-IMPORTANT VALIDATION RULES:
-1. For graphs:
-   - "type" in supporting_content must be "graph"
-   - "content" must be an object with "type" ("bar", "line", or "pie")
-   - All graph data must be in the content object
-2. For tables:
-   - "type" in supporting_content must be "table"
-   - "content" must be an object with "headers" and "rows" arrays
-3. For text and images:
-   - "type" must be "text" or "image"
-   - "content" must be a string
-
-Append the literal marker END_OF_JSON immediately after the closing brace.
-`;
-
-  const RULES = [
-    CRITICAL_RULES,
-    CONTENT_ALIGNMENT_RULES,
-    `Variability rules:\n${variability}`,
-    customInstructions ? `Custom instructions:\n${customInstructions}` : '',
-    `Fit your JSON within ${maxTokens} tokens.`,
-  ].filter(Boolean).join("\n\n");
-
-  return [ROLE, SCHEMA_INSTRUCTIONS.trim(), RULES].join("\n\n");
-}
-
-export function buildUserMessage(
-  content: string,
-  remaining: number,
-  uniqueToken: string
-): string {
-  // Detect if this is a format request rather than content
-  const isReadingComprehension = content.toLowerCase().includes('reading comprehension');
-  const isDataAnalysis = content.toLowerCase().includes('data analysis');
-  const isGeneralSubject = /^(math|science|history|literature|geography|biology|chemistry|physics|english)$/i.test(content.trim());
-  
-  const CRITICAL_REMINDER = `
-CRITICAL: You must generate EXACTLY ${remaining} questions total.
-Count carefully: (standalone questions) + (questions in all groups) must equal ${remaining}.
-`;
-
-  const message = [
-    CRITICAL_REMINDER,
-    `Create a quiz about: ${content}`,
-    `Unique token: ${uniqueToken}`
-  ].join('\n\n');
-
-  return message;
+    return quiz;
 }
 
 // ----- Extraction Helper -----
-export function extractValidQuestions(raw: string) {
-  const quiz = parseQuiz(raw);
+export function extractValidQuestions(raw: string, expectedQuestionCount?: number) {
+  const quiz = parseQuiz(raw, expectedQuestionCount);
   return { validQuestions: quiz.questions, validQuestionGroups: quiz.question_groups, metadata: quiz };
 }
+
+// All exam-specific intelligence is now handled through natural language prompting
+// The AI will understand exam context from the user's request and respond appropriately
