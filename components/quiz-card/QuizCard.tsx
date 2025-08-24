@@ -23,13 +23,25 @@ export function QuizCard({ quiz, onDelete, className }: QuizCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on action buttons or dropdown menu
+    // Don't navigate if clicking on action buttons, dropdown menu, or dialog
     const target = e.target as HTMLElement;
     if (
       target.closest('.quiz-card-actions') || 
       target.closest('[role="menu"]') ||
       target.closest('[role="menuitem"]') ||
+      target.closest('[role="menubar"]') ||
+      target.closest('[role="menuitemradio"]') ||
+      target.closest('[role="menuitemcheckbox"]') ||
+      target.closest('[data-radix-popper-content-wrapper]') ||
+      target.closest('[data-radix-dropdown-menu-content]') ||
+      target.closest('[data-radix-dropdown-menu-trigger]') ||
+      target.closest('[data-radix-dialog-content]') ||
+      target.closest('[data-radix-dialog-overlay]') ||
       target.closest('button[role="combobox"]') ||
+      target.closest('button[aria-haspopup="menu"]') ||
+      target.closest('button[aria-expanded]') ||
+      target.closest('a[href]') || // Prevent navigation when clicking links
+      target.closest('button') || // Prevent navigation when clicking any button
       isDeleting // Prevent navigation while deleting
     ) {
       e.stopPropagation();
@@ -37,7 +49,7 @@ export function QuizCard({ quiz, onDelete, className }: QuizCardProps) {
     }
     // Only navigate if slug is available
     if (quiz.slug) {
-    router.push(`/quiz/${quiz.slug}`);
+      router.push(`/quiz/${quiz.slug}`);
     }
   };
 

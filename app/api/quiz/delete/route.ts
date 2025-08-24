@@ -21,12 +21,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Delete the quiz
+    // Delete related records in the correct order to avoid foreign key constraint violations
+    
+    // 1. Delete quiz results first (they reference the quiz)
+    const { error: resultsDeleteError } = await supabase
+      .from('quiz_results')
+      .delete()
+      .eq('quiz_id', quizId);
+    if (resultsDeleteError) {
+      console.error('Error deleting quiz results:', resultsDeleteError);
+      throw resultsDeleteError;
+    }
+
+    // 2. Delete questions (they reference the quiz and question groups)
+    const { error: questionsDeleteError } = await supabase
+      .from('questions')
+      .delete()
+      .eq('quiz_id', quizId);
+    if (questionsDeleteError) {
+      console.error('Error deleting questions:', questionsDeleteError);
+      throw questionsDeleteError;
+    }
+
+    // 3. Delete question groups (they reference the quiz)
+    const { error: groupsDeleteError } = await supabase
+      .from('question_groups')
+      .delete()
+      .eq('quiz_id', quizId);
+    if (groupsDeleteError) {
+      console.error('Error deleting question groups:', groupsDeleteError);
+      throw groupsDeleteError;
+    }
+
+    // 4. Finally delete the quiz itself
     const { error: deleteError } = await supabase
       .from('quizzes')
       .delete()
       .eq('quiz_id', quizId);
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error('Error deleting quiz:', deleteError);
+      throw deleteError;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

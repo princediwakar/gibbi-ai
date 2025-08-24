@@ -415,10 +415,46 @@ export function parseQuiz(raw: string, expectedQuestionCount?: number): Generate
   const groupedCount = quiz.question_groups?.reduce((sum, group) => sum + (group.questions?.length || 0), 0) || 0;
   const totalQuestions = standaloneCount + groupedCount;
         
-  // Validate question count if expected count is provided
+  // Handle question count mismatch by truncating if needed
   if (expectedQuestionCount !== undefined && totalQuestions !== expectedQuestionCount) {
-    console.error(`Warning: Generated ${totalQuestions} questions, but ${expectedQuestionCount} were requested`);
-    throw new Error(`Invalid number of questions: got ${totalQuestions}, expected ${expectedQuestionCount}. This is a critical error that must be fixed.`);
+    console.log(`Adjusting question count: Generated ${totalQuestions}, requested ${expectedQuestionCount}`);
+    
+    if (totalQuestions > expectedQuestionCount) {
+      // Truncate excess questions
+      const excess = totalQuestions - expectedQuestionCount;
+      console.log(`Truncating ${excess} excess questions`);
+      
+      // First truncate from standalone questions
+      if (quiz.questions && quiz.questions.length > 0) {
+        const standaloneToRemove = Math.min(excess, quiz.questions.length);
+        quiz.questions = quiz.questions.slice(0, quiz.questions.length - standaloneToRemove);
+        console.log(`Removed ${standaloneToRemove} standalone questions`);
+      }
+      
+      // If still need to remove more, truncate from question groups
+      let remainingToRemove = totalQuestions - expectedQuestionCount - (quiz.questions?.length || 0);
+      const groupedCurrent = quiz.question_groups?.reduce((sum, group) => sum + (group.questions?.length || 0), 0) || 0;
+      remainingToRemove = Math.min(remainingToRemove, groupedCurrent);
+      
+      if (remainingToRemove > 0 && quiz.question_groups) {
+        for (let i = quiz.question_groups.length - 1; i >= 0 && remainingToRemove > 0; i--) {
+          const group = quiz.question_groups[i];
+          if (group.questions && group.questions.length > 0) {
+            const toRemoveFromGroup = Math.min(remainingToRemove, group.questions.length);
+            group.questions = group.questions.slice(0, group.questions.length - toRemoveFromGroup);
+            remainingToRemove -= toRemoveFromGroup;
+            
+            // Remove empty groups
+            if (group.questions.length === 0) {
+              quiz.question_groups.splice(i, 1);
+            }
+          }
+        }
+      }
+    } else {
+      // If we have fewer questions than expected, log a warning but continue
+      console.warn(`Generated ${totalQuestions} questions, but ${expectedQuestionCount} were requested. Continuing with available questions.`);
+    }
   }
         
   // Additional validation for question groups
