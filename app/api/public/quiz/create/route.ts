@@ -5,7 +5,7 @@ import { createQuizWithAI } from '@/lib/ai';
 import { validateApiKey, checkRateLimit } from '@/lib/api-key-auth';
 
 // Handle CORS preflight requests
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
