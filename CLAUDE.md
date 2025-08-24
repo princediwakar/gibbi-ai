@@ -1,0 +1,306 @@
+# GibbiAI - Quiz Creation Tool
+
+## Overview
+GibbiAI is an AI-powered platform for effortless quiz creation, designed for educators, students, professionals, and marketers. The platform generates engaging, customizable quizzes tailored to specific needs and use cases.
+
+## Core Features
+- 🤖 **AI-Powered Generation**: Instant quiz creation from topics or prompts
+- 🎯 **Difficulty Customization**: Easy, medium, and hard quiz levels
+- 🌐 **Universal Usage**: Education, business training, and marketing
+- 🔗 **Share & Embed**: Link sharing and website embedding
+- 📊 **Analytics**: Performance tracking and engagement metrics
+
+## Technical Stack
+- **Frontend**: Next.js, TypeScript, Tailwind CSS
+- **Backend**: Supabase
+- **AI Integration**: OpenAI API
+- **Deployment**: Vercel
+
+## Development Guidelines
+
+### Code Standards
+1. **TypeScript Usage**
+   - Strict type checking enabled
+   - Interfaces for all data structures
+   - No `any` types unless absolutely necessary
+
+2. **React Best Practices**
+   - Functional components with hooks
+   - Server components where applicable
+   - Proper state management
+   - Memoization for performance
+
+3. **Styling**
+   - Tailwind CSS for all styling
+   - Responsive design principles
+   - Consistent color scheme
+   - Accessibility compliance
+
+4. **Component Structure**
+   - Modular, reusable components
+   - Clear prop interfaces
+   - Proper error boundaries
+   - Loading states
+
+### File Organization
+```
+app/                 # Next.js app directory
+  ├─ (legal)/       # Legal pages
+  ├─ api/           # API routes
+  ├─ quiz/          # Quiz-related pages
+  └─ landing/       # Landing pages
+components/         # Shared components
+  ├─ quiz-creator/  # Quiz creation components
+  ├─ quiz-player/   # Quiz playing components
+  └─ ui/            # UI components
+lib/                # Utility functions
+  └─ supabase/     # Supabase client
+types/              # TypeScript types
+```
+
+### Environment Variables
+Required variables:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY`
+- `NEXT_PUBLIC_BASE_URL`
+- `RESEND_API_KEY`
+
+Optional variables for public API:
+- `PUBLIC_API_KEYS` - Comma-separated API keys for public quiz creation endpoint
+
+### Error Handling
+1. **Frontend**
+   - Error boundaries for component failures
+   - User-friendly error messages
+   - Graceful degradation
+
+2. **Backend**
+   - Proper HTTP status codes
+   - Detailed error responses
+   - Error logging
+
+### Performance Optimization
+1. **Frontend**
+   - Image optimization
+   - Code splitting
+   - Lazy loading
+   - Caching strategies
+
+2. **Backend**
+   - Query optimization
+   - Rate limiting
+   - Response caching
+
+### Code Quality Checks
+1. **After Every Change**
+   ```bash
+   # Run linting and fix type errors
+   npm run lint
+   
+   # Run build to catch any build-time errors
+   npm run build
+   ```
+   - Fix all linting errors before committing
+   - Ensure clean TypeScript compilation
+   - Verify successful build completion
+
+2. **Automated Testing**
+   - Use Playwright for end-to-end testing
+   - Test critical user flows:
+     ```typescript
+     // Example: Quiz Creation Flow
+     await page.goto('http://localhost:3000');
+     await page.getByRole('button', { name: 'Create Quiz' }).click();
+     await page.getByRole('textbox', { name: 'Topic' }).fill('GMAT Reading Comprehension');
+     await page.getByRole('button', { name: 'Generate' }).click();
+     
+     // Wait for quiz generation
+     await page.waitForSelector('[data-testid="quiz-ready"]');
+     
+     // Complete the quiz
+     await page.getByRole('button', { name: 'Start Quiz' }).click();
+     // Answer questions...
+     await page.getByRole('button', { name: 'Submit' }).click();
+     ```
+   - Verify quiz generation completion
+   - Test quiz-taking functionality
+   - Check results display
+
+### Playwright Testing Requirements
+1. **Test Setup**
+   ```bash
+   # Install Playwright
+   npm install -D @playwright/test
+   
+   # Install browsers
+   npx playwright install
+   ```
+2. **Critical Test Cases**
+   - Quiz Creation Flow
+     - Topic input validation
+     - Difficulty selection
+     - Generation progress tracking
+     - Error handling
+   - Quiz Taking Flow
+     - Question navigation
+     - Answer selection
+     - Progress tracking
+     - Results display
+   - Authentication Flow
+     - Sign in/out
+     - Protected routes
+     - User session handling
+
+3. **Test Data Management**
+   - Use test-specific topics
+   - Clean up generated quizzes
+   - Reset user state between tests
+   - Mock long-running operations
+
+## Deployment Process
+1. **Development**
+   - Local testing
+   - Code review
+   - Linting and type checking
+
+2. **Production**
+   - Vercel deployment
+   - Environment variable verification
+   - Post-deployment checks
+
+## Security Guidelines
+1. **Authentication**
+   - Supabase authentication
+   - Protected routes
+   - Session management
+
+2. **Data Protection**
+   - Input sanitization
+   - XSS prevention
+   - CSRF protection
+
+3. **API Security**
+   - Rate limiting
+   - Request validation
+   - Proper CORS settings
+
+## Documentation Requirements
+1. **Code Documentation**
+   - JSDoc comments
+   - Type definitions
+   - README updates
+
+2. **API Documentation**
+   - Endpoint descriptions
+   - Request/response examples
+   - Error codes
+
+3. **User Documentation**
+   - Feature guides
+   - FAQ updates
+   - Troubleshooting guides
+
+## Quiz Creation Tool
+
+### Overview
+GibbiAI is a powerful, AI-driven platform designed for anyone looking to create quizzes effortlessly. Whether you're a student, teacher, business professional, or marketer, this tool helps you generate engaging quizzes tailored to your needs.
+
+### Key Features
+- **AI-Powered Quiz Generation**: Simply provide a topic or prompt, and the AI will generate a quiz instantly.
+- **Customizable Difficulty Levels**: Choose from easy, medium, or hard levels for your quizzes.
+- **Flexible Audience Use**: Suitable for educators, students, businesses, and marketing campaigns.
+- **Shareable & Embeddable**: Quizzes can be shared via links or embedded on websites and blogs.
+- **Data & Analytics**: Track quiz attempts, scores, and engagement.
+- **Multi-Industry Applications**: Use quizzes for learning, training, lead generation, audience engagement, and more.
+
+### How It Works
+1. **Enter a Prompt**: Provide a topic or detailed prompt (e.g., "Create a quiz on digital marketing fundamentals").
+2. **AI Processing**: The system generates a title, description, and questions based on the input.
+3. **Review & Customize**: Edit quiz details if needed.
+4. **Publish & Share**: Share via a link, embed on your site, or invite participants directly.
+5. **Track Performance**: View analytics to measure quiz success.
+
+### Use Cases
+#### 🎓 Education & Learning
+- Teachers can create quizzes for assessments.
+- Students can generate quizzes for self-study.
+
+#### 📊 Business & Training
+- HR teams can use quizzes for employee training.
+- Companies can assess knowledge retention in training programs.
+
+#### 📣 Marketing & Engagement
+- Marketers can create quizzes for lead generation.
+- Brands can boost audience engagement through interactive content.
+
+### Get Started
+1. Visit GibbiAI (http://localhost:3000).
+2. Sign up or log in.
+3. Start creating and sharing quizzes effortlessly!
+
+### Future Enhancements
+- **Adaptive Learning Paths**: AI will suggest follow-up quizzes based on user performance.
+- **Gamification**: Add badges, leaderboards, and rewards.
+- **Integrations**: Connect with learning management systems (LMS) and CRM tools.
+
+Ready to create your first quiz? Get started today and make learning and engagement fun and interactive!
+
+## General Guidelines
+
+- **Full Code Solutions**: Provide complete, functional code that can be directly copied and pasted
+- **Context Awareness**: Use provided code/context or state assumptions clearly
+- **Reliability**: Ensure code is syntactically correct and follows project stack (Next.js, TypeScript, Supabase)
+- **Explanatory Detail**: Include clear explanations and integration notes
+- **Structured Format**: Follow consistent response structure
+
+## Response Structure
+
+### 1. Problem Summary
+- State the task/problem being addressed
+- Reference any relevant user code or context
+
+### 2. Code Solution
+- Use language-specific markdown code blocks (```tsx)
+- Include file paths for all code changes
+- Add comments for complex logic
+
+```typescript
+// Example code block format
+// filepath: /path/to/file
+export function Example() {
+  // Add explanatory comments for complex logic
+  return <div>Example component</div>
+}
+```
+
+### 3. Implementation Details
+- Explain key code sections and changes
+- Describe the solution approach
+- List any assumptions or dependencies
+- Note any type definitions or interfaces needed
+
+### 4. Integration Steps
+- Provide clear installation/setup steps if needed
+- List any new dependencies to install
+- Explain where code should be placed
+
+### 5. Verification
+- Provide specific testing steps
+- Note expected behavior
+- Mention any edge cases to check
+
+## Coding Standards
+
+### Style Guidelines
+- Match existing project patterns
+- Use TypeScript for type safety
+- Follow React/Next.js best practices
+- Implement responsive Tailwind CSS
+
+### Best Practices
+- Write modular, reusable code
+- Use proper TypeScript types/interfaces
+- Leverage modern React features (hooks, server components)
+- Follow accessibility guidelines
+- Include error handling
