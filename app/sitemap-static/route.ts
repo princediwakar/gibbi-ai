@@ -1,10 +1,9 @@
-// File: app/sitemap-static.xml/route.ts
+// File: app/sitemap-static/route.ts
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gibbi.vercel.app';
 
 export async function GET() {
   console.log('[sitemap-static] Generating static pages sitemap...');
 
-  // Simple array of your static paths
   const routes = [
     '',           // Homepage
     '/quizzes',
@@ -13,11 +12,10 @@ export async function GET() {
     '/terms',
   ];
 
-  // Current ISO time
   const lastModified = new Date().toISOString();
 
-  // Construct XML using Template Literals (matches your working sitemaps)
-  // We trim the URLs to ensure no whitespace issues
+  // We use a clean template literal to avoid XML formatting issues
+  // The URL in <loc> will be constructed cleanly
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${routes

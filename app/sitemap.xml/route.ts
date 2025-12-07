@@ -1,3 +1,4 @@
+// File: app/sitemap.xml/route.ts
 import { createStaticClient } from '@/lib/supabase/static';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gibbi.vercel.app';
@@ -49,10 +50,10 @@ export async function GET() {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-  // Add static pages sitemap
+  // UPDATED: Points to /sitemap-static (no .xml extension)
   xml += `
   <sitemap>
-    <loc>${baseUrl}/sitemap-static.xml</loc>
+    <loc>${baseUrl}/sitemap-static</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
   </sitemap>`;
 

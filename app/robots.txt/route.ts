@@ -1,3 +1,4 @@
+// app/robots.txt/route.ts
 const baseUrl = 'https://gibbi.vercel.app';
 
 export async function GET() {
