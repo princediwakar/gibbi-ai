@@ -1,47 +1,39 @@
+// File: app/sitemap-static.xml/route.ts
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gibbi.vercel.app';
 
 export async function GET() {
-  try {
-    console.log('[sitemap-static] Generating static pages sitemap...');
+  console.log('[sitemap-static] Generating static pages sitemap...');
 
-    const staticPages = [
-      { url: `${baseUrl}/`, lastModified: new Date().toISOString() },
-      { url: `${baseUrl}/quizzes`, lastModified: new Date().toISOString() },
-      { url: `${baseUrl}/feedback`, lastModified: new Date().toISOString() },
-      { url: `${baseUrl}/privacy`, lastModified: new Date().toISOString() },
-      { url: `${baseUrl}/terms`, lastModified: new Date().toISOString() },
-    ];
+  // Simple array of your static paths
+  const routes = [
+    '',           // Homepage
+    '/quizzes',
+    '/feedback',
+    '/privacy',
+    '/terms',
+  ];
 
-    // Generate XML with proper escaping and encoding
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  // Current ISO time
+  const lastModified = new Date().toISOString();
+
+  // Construct XML using Template Literals (matches your working sitemaps)
+  // We trim the URLs to ensure no whitespace issues
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticPages.map(page => `  <url>
-    <loc>${page.url}</loc>
-    <lastmod>${page.lastModified}</lastmod>
-  </url>`).join('\n')}
+  ${routes
+    .map((route) => {
+      return `<url><loc>${baseUrl}${route}</loc><lastmod>${lastModified}</lastmod></url>`;
+    })
+    .join('')}
 </urlset>`;
 
-    console.log(`[sitemap-static] Generated ${staticPages.length} static pages`);
+  console.log(`[sitemap-static] Generated ${routes.length} static pages`);
 
-    return new Response(xml, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-      },
-    });
-  } catch (error) {
-    console.error('[sitemap-static] Error generating sitemap:', error);
-    // Return empty valid sitemap to avoid breaking Google Search Console
-    const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-</urlset>`;
-    return new Response(emptySitemap, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=60, s-maxage=60',
-      },
-    });
-  }
+  return new Response(xml, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+    },
+  });
 }
