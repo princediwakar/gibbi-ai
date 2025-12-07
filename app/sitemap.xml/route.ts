@@ -1,6 +1,6 @@
 import { createStaticClient } from '@/lib/supabase/static';
 
-const baseUrl = 'https://gibbi.vercel.app';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gibbi.vercel.app';
 const quizzesPerSitemap = 50000;
 const subjectsPerSitemap = 50000;
 

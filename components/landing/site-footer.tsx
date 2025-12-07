@@ -10,6 +10,7 @@ export default function SiteFooter({ className }: React.HTMLAttributes<HTMLEleme
       items: [
         { title: "Home", href: "/" },
         { title: "Public Quizzes", href: "/quizzes" },
+        { title: "Feedback", href: "/feedback" },
         { title: "Features", href: "#features" },
       ],
     },
