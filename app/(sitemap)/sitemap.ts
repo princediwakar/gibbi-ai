@@ -17,7 +17,7 @@ async function getQuizCount() {
     console.log(`[sitemap] Quiz count: ${count}`);
     return count || 0;
   } catch (error) {
-    console.error('[sitemap] Error fetching quiz count:', error);
+    console.error('[sitemap] Error fetching quiz count:', error instanceof Error ? error.message : 'Unknown error');
     return 0;
   }
 }
@@ -34,7 +34,7 @@ async function getSubjectCount() {
     console.log(`[sitemap] Subject count: ${uniqueSubjects.length}`);
     return uniqueSubjects.length;
   } catch (error) {
-    console.error('[sitemap] Error fetching subjects:', error);
+    console.error('[sitemap] Error fetching subjects:', error instanceof Error ? error.message : 'Unknown error');
     return 0;
   }
 }
@@ -67,6 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const sitemapEntries = [...staticPages, ...quizSitemapIndex, ...subjectSitemapIndex];
-  console.log('[sitemap] Generated entries:', sitemapEntries);
+
+  // Log summary
+  console.log(`[sitemap] Summary: ${staticPages.length} static pages, ${totalQuizSitemaps} quiz sitemaps (${totalQuizzes} quizzes), ${totalSubjectSitemaps} subject sitemaps (${totalSubjects} subjects)`);
+
+  if (totalQuizzes === 0 && totalSubjects === 0) {
+    console.log('[sitemap] Note: No quiz or subject data available. Only static pages will be included.');
+  }
+
   return sitemapEntries;
 }
