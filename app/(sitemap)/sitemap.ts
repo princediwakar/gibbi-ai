@@ -2,7 +2,7 @@
 import type { MetadataRoute } from 'next';
 import { createStaticClient } from '@/lib/supabase/static';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const baseUrl = 'https://gibbi.vercel.app';
 const quizzesPerSitemap = 50000;
 const subjectsPerSitemap = 50000;
 
