@@ -1,6 +1,6 @@
 // app/sitemap.ts
 import type { MetadataRoute } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createStaticClient } from '@/lib/supabase/static';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const quizzesPerSitemap = 50000;
@@ -8,7 +8,7 @@ const subjectsPerSitemap = 50000;
 
 async function getQuizCount() {
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
     const { error, count } = await supabase
       .from('quiz_with_counts')
       .select('*', { count: 'exact', head: true })
@@ -24,7 +24,7 @@ async function getQuizCount() {
 
 async function getSubjectCount() {
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
     const { data, error } = await supabase
       .from('quiz_with_counts')
       .select('subject')

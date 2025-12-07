@@ -1,5 +1,5 @@
 // app/sitemap-quizzes/[id]/route.ts
-import { createClient } from '@/lib/supabase/server';
+import { createStaticClient } from '@/lib/supabase/static';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const quizzesPerSitemap = 50000;
@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<RouteP
 
   console.log(`[sitemap-quizzes] Generating sitemap for quiz page: ${page + 1}`);
 
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from('quiz_with_counts')
     .select('slug, updated_at')
