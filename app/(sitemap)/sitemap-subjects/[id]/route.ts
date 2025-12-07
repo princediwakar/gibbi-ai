@@ -1,7 +1,7 @@
 // app/sitemap-subjects/[id]/route.ts
 import { createStaticClient } from '@/lib/supabase/static';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://gibbi.vercel.app';
 const subjectsPerSitemap = 50000;
 
 // Define the params type
@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<RouteP
     console.error('[sitemap-subjects] Invalid ID format:', resolvedParams.id);
     return new Response('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', {
       status: 200,
-      headers: { 'Content-Type': 'application/xml' },
+      headers: { 'Content-Type': 'application/xml; charset=utf-8' },
     });
   }
 
@@ -35,13 +35,13 @@ export async function GET(request: Request, { params }: { params: Promise<RouteP
     console.error('[sitemap-subjects] Error fetching subjects:', error);
     return new Response('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', {
       status: 200,
-      headers: { 'Content-Type': 'application/xml' },
+      headers: { 'Content-Type': 'application/xml; charset=utf-8' },
     });
   }
 
   const uniqueSubjects = [...new Set(data.map((quiz) => quiz.subject).filter(Boolean))];
   const subjectRoutes = uniqueSubjects.map((subject) => ({
-    url: `${baseUrl}/quizzes/subject/${encodeURIComponent(subject)}`,
+    url: `${baseUrl}/quizzes/${encodeURIComponent(subject)}`,
     lastModified: new Date().toISOString(),
   }));
 
@@ -53,6 +53,9 @@ export async function GET(request: Request, { params }: { params: Promise<RouteP
   console.log(`[sitemap-subjects] Generated ${subjectRoutes.length} entries`);
   return new Response(xml, {
     status: 200,
-    headers: { 'Content-Type': 'application/xml' },
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600'
+    },
   });
 }
