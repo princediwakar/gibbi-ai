@@ -140,13 +140,15 @@ export default async function QuizResultsPage({ params }: { params: Promise<{ sl
   });
   
   return (
-    <div className="container max-w-6xl py-8 px-4">
-      <QuizResults
-        quiz={quiz}
-        userAnswers={indexBasedAnswers}
-        score={result.score}
-        showBackToHistoryLink={true}
-      />
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-4xl mx-auto py-8 px-4">
+        <QuizResults
+          quiz={quiz}
+          userAnswers={indexBasedAnswers}
+          score={result.score}
+          showBackToHistoryLink={true}
+        />
+      </div>
     </div>
   );
 } 

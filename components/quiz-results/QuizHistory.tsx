@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { QuizResult } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime } from "@/lib/quiz-utils";
 import { Clock, Calendar, Award, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -49,13 +50,25 @@ export const QuizHistory = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h2 className="text-2xl font-bold">Your Quiz History</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-32 bg-muted rounded-lg"></div>
-            </div>
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full mt-2" />
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

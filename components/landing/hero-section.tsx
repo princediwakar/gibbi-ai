@@ -12,7 +12,7 @@ export default function HeroSection() {
   const randomHeroImage = heroImages[Math.floor(Math.random() * heroImages.length)];
   return (
     <section className="py-12 sm:py-16 lg:py-20">
-      <div className="container flex max-w-5xl flex-col items-center gap-6 text-center lg:gap-12">
+      <div className="mx-auto max-w-6xl px-4 flex flex-col items-center gap-6 text-center lg:gap-12">
         <div className="space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
             The Practice Test Generator That Finds What You Don't Know

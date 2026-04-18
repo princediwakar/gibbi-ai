@@ -20,9 +20,9 @@ export default function QuizzesPage() {
   }, [searchInput]);
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="w-full max-w-6xl py-6 px-4 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-4">From the Community</h1>
+        <h1 className="text-2xl font-bold">From the Community</h1>
         <p className="text-muted-foreground">
           Discover quizzes on all sorts of topics shared by the community.
         </p>

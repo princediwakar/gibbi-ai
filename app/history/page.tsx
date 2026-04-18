@@ -18,7 +18,7 @@ export default async function HistoryPage() {
   }
   
   return (
-    <div className="container max-w-6xl py-8 px-4">
+    <div className="w-full max-w-6xl py-6 px-4">
       <QuizHistory />
     </div>
   );

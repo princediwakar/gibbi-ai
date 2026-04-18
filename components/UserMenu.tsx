@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, History } from "lucide-react";
+import { LogOut, History, LayoutDashboard } from "lucide-react";
 import { User } from "@/types/quiz";
 import { useRouter } from "next/navigation";
 
@@ -57,6 +57,14 @@ export const UserMenu = memo(({ user, isOpen, onOpenChange, onSignOut }: UserMen
         </div>
         
         <DropdownMenuSeparator />
+        
+        <DropdownMenuItem 
+          onClick={() => router.push("/dashboard")}
+          className="cursor-pointer"
+        >
+          <LayoutDashboard className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
         
         <DropdownMenuItem 
           onClick={() => router.push("/history")}

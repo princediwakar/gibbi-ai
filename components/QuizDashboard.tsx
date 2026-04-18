@@ -7,7 +7,6 @@ import { QuizList } from "./QuizList";
 import { useUser } from "@/hooks/useUser";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
-import Image from "next/image";
 import StudentsLanding from "@/app/landing/students/page";
 
 export function QuizDashboard() {
@@ -30,20 +29,19 @@ export function QuizDashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center mx-auto p-6">
-      <div className="flex flex-col items-center mb-32 space-y-20">
-        <Image src="/Q.svg" alt="GibbiAI logo" height={60} width={60} priority />
-        <QuizCreator onQuizCreated={onQuizCreated} />
-      </div>
-      
+    <div className="w-full max-w-6xl mx-auto py-6 px-4">
       {isUserLoading ? (
-        <div className="w-full max-w-7xl min-h-[400px] flex items-center justify-center">
+        <div className="w-full max-w-6xl min-h-[400px] flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       ) : !user ? (
         <StudentsLanding />
       ) : (
-        <div className="w-full max-w-7xl">
+        <div className="w-full max-w-6xl">
+          <div className="flex flex-col items-center mb-12 space-y-8">
+            <QuizCreator onQuizCreated={onQuizCreated} />
+          </div>
+          
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-4">My Quizzes</h2>
             <div className="relative">

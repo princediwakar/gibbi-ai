@@ -38,6 +38,8 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [pdfText, setPdfText] = useState<string>("");
   const { user } = useUser();
+  
+  // Get topic from URL params if present
 
   const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number, attempt = 0, maxAttempts = 20) => {
     try {
@@ -56,8 +58,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
         onQuizCreated({ quiz_id: quizId, status: "timeout" } as Quiz);
       } else {
         const nextAttempt = attempt + 1;
-        const progress = Math.round((nextAttempt / maxAttempts) * 100);
-        toast.loading(`Generating quiz... ${progress}%`, { id: toastId });
+        toast.loading(`Generating quiz... ${nextAttempt} of ${maxAttempts}`, { id: toastId });
         setTimeout(() => checkQuizStatus(quizId, toastId, nextAttempt, maxAttempts), STATUS_CHECK_FREQUENCY);
       }
     } catch (error) {
@@ -116,9 +117,14 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   // Retrieve the prompt from localStorage on component mount
   useEffect(() => {
     const savedPrompt = localStorage.getItem("quizPrompt");
-    if (savedPrompt) {
+    const prefillTopic = localStorage.getItem("prefillTopic");
+    
+    if (prefillTopic) {
+      setPrompt(prefillTopic);
+      localStorage.removeItem("prefillTopic");
+    } else if (savedPrompt) {
       setPrompt(savedPrompt);
-      localStorage.removeItem("quizPrompt"); // Clear the saved prompt
+      localStorage.removeItem("quizPrompt");
     }
   }, []);
 
@@ -143,11 +149,6 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       toast.error("Failed to proceed to next step. Please try again.");
     }
   }, [prompt, pdfText, user]);
-
-  // Add step change effect for debugging
-  useEffect(() => {
-    console.log("Current step:", step);
-  }, [step]);
 
   // Reset loading state if error occurs
   useEffect(() => {
