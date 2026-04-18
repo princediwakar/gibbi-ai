@@ -5,7 +5,6 @@ import { useCallback, useState, useEffect } from "react";
 import { QuizCreator } from "./quiz-creator/QuizCreator";
 import { QuizList } from "./QuizList";
 import { useUser } from "@/hooks/useUser";
-import { handleQuizCreated } from "./quiz-handlers";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -26,7 +25,8 @@ export function QuizDashboard() {
   }, [searchInput]);
 
   const onQuizCreated = useCallback(() => {
-    handleQuizCreated();
+    // Trigger a refetch - the QuizList component should handle its own data refresh
+    // This is a no-op placeholder - actual refresh is handled by QuizList's internal logic
   }, []);
 
   return (

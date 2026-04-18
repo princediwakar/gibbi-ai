@@ -1,0 +1,10 @@
+export const QUIZ_CONFIG = {
+  MAX_QUESTION_COUNT: Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 100,
+  DEFAULT_QUESTION_COUNT: Number(process.env.NEXT_PUBLIC_DEFAULT_QUESTION_COUNT) || 10,
+  DEFAULT_DIFFICULTY: process.env.NEXT_PUBLIC_DEFAULT_DIFFICULTY || "Medium",
+  STATUS_CHECK_FREQUENCY: Number(process.env.NEXT_PUBLIC_STATUS_CHECK_FREQUENCY) || 5000,
+  MAX_PROMPT_LENGTH: 45000 / 0.75,
+  DIFFICULTY_LEVELS: ["Easy", "Medium", "Hard"] as const,
+} as const;
+
+export type DifficultyLevel = typeof QUIZ_CONFIG.DIFFICULTY_LEVELS[number];

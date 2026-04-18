@@ -1,6 +1,6 @@
 // app/api/quiz/status/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,15 +10,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
     }
 
+    const supabase = await createClient();
+
     // Fetch quiz metadata
     const { data: quizRow, error: quizError } = await supabase
       .from('quizzes')
       .select('quiz_id, title, description, topic, subject, difficulty, language, status, slug')
       .eq('quiz_id', quizId)
-      .single();
+      .maybeSingle();
     if (quizError || !quizRow) {
       console.error('Error fetching quiz status:', quizError);
-      return NextResponse.json({ error: quizError?.message || 'Not found' }, { status: 500 });
+      return NextResponse.json({ error: quizError?.message || 'Quiz not found' }, { status: 404 });
     }
 
     const result: Record<string, unknown> = {

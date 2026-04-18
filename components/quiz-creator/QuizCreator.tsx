@@ -15,16 +15,14 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { LANGUAGES } from "@/lib/utils";
+import { LANGUAGES } from "@/lib/constants/languages";
+import { QUIZ_CONFIG } from "@/lib/constants/quiz";
 import { PromptInput } from "./PromptInput";
 import { PDFUploader } from "./PDFUploader";
 import { SignInModal } from "../SignInModal";
 
-// Constants
-const MAX_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_MAX_QUESTION_COUNT) || 100;
-const DEFAULT_QUESTION_COUNT = Number(process.env.NEXT_PUBLIC_DEFAULT_QUESTION_COUNT) || 10;
-const DEFAULT_DIFFICULTY = process.env.NEXT_PUBLIC_DEFAULT_DIFFICULTY || "Medium";
-const STATUS_CHECK_FREQUENCY = Number(process.env.NEXT_PUBLIC_STATUS_CHECK_FREQUENCY) || 5000;
+// Use constants from config
+const { MAX_QUESTION_COUNT, DEFAULT_QUESTION_COUNT, DEFAULT_DIFFICULTY, STATUS_CHECK_FREQUENCY } = QUIZ_CONFIG;
 
 interface QuizCreatorProps {
   onQuizCreated: (quiz: Quiz) => void;
@@ -41,7 +39,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [pdfText, setPdfText] = useState<string>("");
   const { user } = useUser();
 
-  const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number, currentQuestion = 1, totalQuestions = questionCount) => {
+  const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number, attempt = 0, maxAttempts = 20) => {
     try {
       const response = await fetch(`/api/quiz/status?id=${quizId}`);
       const data = await response.json();
@@ -49,22 +47,24 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       if (data.status === "ready" && data.quiz) {
         toast.success("Quiz generated successfully!", { id: toastId });
         onQuizCreated(data.quiz);
-        // Navigate to the quiz page
         window.location.href = `/quiz/${data.quiz.slug}`;
       } else if (data.status === "failed") {
         toast.error(data.error || "Quiz generation failed", { id: toastId });
         onQuizCreated({ quiz_id: quizId, status: "failed" } as Quiz);
+      } else if (attempt >= maxAttempts) {
+        toast.error("Quiz generation is taking too long. Please check your quizzes later.", { id: toastId });
+        onQuizCreated({ quiz_id: quizId, status: "timeout" } as Quiz);
       } else {
-        // Simulate progress by incrementing question count
-        const nextQuestion = Math.min(currentQuestion + 1, totalQuestions);
-        toast.loading(`Generating questions - ${currentQuestion} of ${totalQuestions}`, { id: toastId });
-        setTimeout(() => checkQuizStatus(quizId, toastId, nextQuestion, totalQuestions), STATUS_CHECK_FREQUENCY);
+        const nextAttempt = attempt + 1;
+        const progress = Math.round((nextAttempt / maxAttempts) * 100);
+        toast.loading(`Generating quiz... ${progress}%`, { id: toastId });
+        setTimeout(() => checkQuizStatus(quizId, toastId, nextAttempt, maxAttempts), STATUS_CHECK_FREQUENCY);
       }
     } catch (error) {
       console.error("Polling error:", error);
       toast.error("Failed to check quiz status", { id: toastId });
     }
-  }, [onQuizCreated, questionCount]);
+  }, [onQuizCreated, STATUS_CHECK_FREQUENCY]);
 
   const handleQuestionCount = useCallback((value: string) => {
     const num = parseInt(value, 10);
@@ -188,7 +188,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["Easy", "Medium", "Hard"].map((level) => (
+                    {QUIZ_CONFIG.DIFFICULTY_LEVELS.map((level) => (
                       <SelectItem key={level} value={level}>{level}</SelectItem>
                     ))}
                   </SelectContent>
