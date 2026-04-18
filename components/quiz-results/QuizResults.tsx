@@ -174,7 +174,7 @@ export const QuizResults = ({
             className="flex items-center gap-2"
           >
             <History className="w-4 h-4" />
-            Back to History
+            Your Quiz History
           </Button>
         )}
         <GoBackOrHome />

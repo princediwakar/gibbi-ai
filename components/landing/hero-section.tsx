@@ -15,14 +15,14 @@ export default function HeroSection() {
       <div className="container flex max-w-5xl flex-col items-center gap-6 text-center lg:gap-12">
         <div className="space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-            Ace Your Exams with AI-Powered Quizzes
+            The Practice Test Generator That Finds What You Don't Know
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-muted-foreground sm:text-xl">
-            Stop cramming. Start learning. GibbiAI transforms your study materials into custom quizzes, so you can master any subject and track your progress.
+            Paste your notes or upload a PDF. Get practice tests in seconds. No card-making, no setup—just study what you don't know.
           </p>
         </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-          <SignInButton buttonText="Start Learning for Free" icon={false} />
+          <SignInButton buttonText="Start Practicing for Free" icon={false} />
             <Link
               href="/quizzes"
               className={cn(
@@ -30,7 +30,7 @@ export default function HeroSection() {
               "transition-all"
               )}
             >
-            Browse Public Quizzes
+            Browse Practice Tests
             </Link>
         </div>
         <div className="w-full max-w-4xl">

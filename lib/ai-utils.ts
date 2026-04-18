@@ -358,12 +358,14 @@ End with: END_OF_JSON
 export function buildUserMessage(
   content: string,
   remaining: number,
-  uniqueToken: string
+  uniqueToken: string,
+  searchContext?: string | null
 ): string {
   
   return `
 CREATE A QUIZ: ${content}
 
+${searchContext ? searchContext + '\n\n' : ''}
 REQUIREMENTS:
 - Generate exactly ${remaining} questions
 - Match the sophistication level implied by the request

@@ -63,6 +63,7 @@ export const Icons = {
   download: Download,
   chartBar: BarChart,
   eye: Eye,
+  fileText: FileText,
   linkedin: Briefcase,
   clock: Clock,
   close: X,

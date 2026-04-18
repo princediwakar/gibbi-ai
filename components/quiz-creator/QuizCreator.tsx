@@ -159,7 +159,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   return (
     <div className="max-w-2xl w-full mx-auto">
       <div className="min-h-[275px] flex flex-col space-y-6">
-        <h2 className="text-5xl font-bold text-center">{step === 1 ? "What's your quiz about?" : "Customize Your Quiz"}</h2>
+        <h2 className="text-5xl font-bold text-center">{step === 1 ? "What are you studying?" : "Customize Your Practice Test"}</h2>
         <div className="flex-1 space-y-4">
           {step === 1 ? (
             <div className="space-y-2">

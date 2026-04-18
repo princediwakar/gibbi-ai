@@ -5,23 +5,23 @@ import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 export default function Features() {
   const features = [
     {
-      title: "Flexible Quiz Creation",
-      description: "Generate True/False or multiple-choice questions from any topic, text, or PDF.",
+      title: "Feed Your Notes, Get Tests",
+      description: "Paste your textbook, lecture slides, or upload a PDF. In seconds, you have practice tests. No typing. No flashcards. Just study.",
       icon: "edit",
     },
     {
-      title: "Timed Practice Exams",
-      description: "Simulate real exam conditions to build confidence and improve time management.",
+      title: "Know Your Weak Spots",
+      description: "Every answer comes with an explanation. See exactly what you missed—and why.",
+      icon: "search",
+    },
+    {
+      title: "Build Exam Stamina",
+      description: "Timed practice under pressure—so exam day feels like just another practice session.",
       icon: "clock",
     },
     {
-      title: "Detailed Performance Analytics",
-      description: "Pinpoint strengths and weaknesses with insightful results and explanations.",
-      icon: "chartBar",
-    },
-    {
-      title: "Track Your Progress",
-      description: "Monitor your improvement over time and stay motivated on your path to success.",
+      title: "Study What Matters",
+      description: "Track your scores over time and see which topics need the most work.",
       icon: "trendingUp",
     },
   ];

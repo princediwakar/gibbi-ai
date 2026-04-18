@@ -47,3 +47,4 @@ next-env.d.ts
 
 # IDE configuration
 .cursor/
+.env*.local

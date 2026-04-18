@@ -16,9 +16,9 @@ export default function BentoGrid() {
             <div className="flex size-24 items-center justify-center rounded-full border border-dashed border-primary/50 bg-primary/10">
               <Icons.edit className="size-12 text-primary" />
             </div>
-            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">1. Create Your Quiz</h3>
+            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">1. What Are You Studying?</h3>
             <p className="mt-2 text-center text-muted-foreground">
-              Provide a topic, paste text, or upload a file.
+              Enter your topic, paste notes, or upload a PDF.
             </p>
           </div>
 
@@ -27,9 +27,9 @@ export default function BentoGrid() {
             <div className="flex size-24 items-center justify-center rounded-full border border-dashed border-primary/50 bg-primary/10">
               <Icons.clock className="size-12 text-primary" />
             </div>
-            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">2. Practice with Purpose</h3>
+            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">2. Test Yourself</h3>
             <p className="mt-2 text-center text-muted-foreground">
-              Use timed tests to simulate real exam pressure.
+              Take timed practice tests under pressure.
             </p>
           </div>
 
@@ -38,9 +38,9 @@ export default function BentoGrid() {
             <div className="flex size-24 items-center justify-center rounded-full border border-dashed border-primary/50 bg-primary/10">
               <Icons.award className="size-12 text-primary" />
             </div>
-            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">3. Achieve Mastery</h3>
+            <h3 className="mt-6 text-center text-xl font-semibold text-foreground">3. See Your Score</h3>
             <p className="mt-2 text-center text-muted-foreground">
-              Review your results and track your improvement.
+              Get instant results with explanations. Know what to focus on.
             </p>
           </div>
 

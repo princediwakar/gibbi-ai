@@ -2,48 +2,48 @@ import { FeatureLdg, InfoLdg, TestimonialType } from "@/types";
 
 export const infos: InfoLdg[] = [
   {
-    title: "From Overwhelmed to Prepared",
+    title: "Stop Studying What You Already Know",
     description:
-      "Turn your study materials into powerful, custom quizzes. GibbiAI helps you conquer any subject by identifying your strengths and weaknesses.",
+      "GibbiAI finds the gaps in your knowledge—so you walk in confident, not confused.",
     image: "/_static/illustrations/feature.png",
     list: [
       {
-        title: "Endless notes?",
-        description: "Transform dense study materials into focused quizzes in seconds.",
-        icon: "bookOpen",
+        title: "\"I don't know what I don't know\"",
+        description: "After every test, see exactly where you slipped—and study that, not everything.",
+        icon: "search",
       },
       {
-        icon: "star",
-        title: "Uncertain progress?",
-        description: "Get immediate, clear feedback to see what you know and where to improve.",
+        icon: "clock",
+        title: "\"I run out of time on exams\"",
+        description: "Timed practice mode builds your pace. No more rushing on the real thing.",
       },
       {
-        icon: "award",
-        title: "Exam anxiety?",
-        description: "Build confidence with realistic, timed practice tests that prepare you for success.",
+        icon: "brain",
+        title: "\"I forget everything by exam day\"",
+        description: "Instant explanations after every answer = deeper retention, longer memory.",
       },
     ],
   },
   {
-    title: "Track and Analyze Quiz Performance",
+    title: "Your Exam-Ready in 3 Steps",
     description:
-      "Get detailed analytics on quiz attempts, scores, and engagement. Use these insights to improve your quizzes and better understand your audience.",
-    image: "/_static/illustrations/feature.png", // Update the image path
+      "From messy notes to focused practice in seconds. No setup required.",
+    image: "/_static/illustrations/feature.png",
     list: [
       {
-        title: "Data-Driven",
-        description: "Access comprehensive quiz analytics.",
-        icon: "chartBar",
+        title: "1. Paste your material",
+        description: "Notes, textbook chapters, or upload a PDF. Anything goes.",
+        icon: "fileText",
       },
       {
-        title: "Insightful",
-        description: "Understand user performance and engagement.",
+        title: "2. Take the test",
+        description: "Timed practice. Real exam conditions. No distractions.",
+        icon: "check",
+      },
+      {
+        title: "3. See your weak spots",
+        description: "Every wrong answer explained. Know exactly what to review next.",
         icon: "search",
-      },
-      {
-        title: "Actionable",
-        description: "Use insights to improve your quizzes.",
-        icon: "arrowRight",
       },
     ],
   },
