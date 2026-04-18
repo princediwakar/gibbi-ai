@@ -18,6 +18,8 @@ export const QuestionSchema = z.object({
   question_text: z.string(),
   options: OptionSchema,
   correct_option: z.string(),
+  explanation: z.string().optional().default(""),
+  topics: z.array(z.string()).optional().default([]),
 });
 export type Question = z.infer<typeof QuestionSchema>;
 
@@ -325,17 +327,31 @@ OUTPUT FORMAT - Return ONLY this JSON structure:
         "content": "substantial_content_here",
         "caption": "optional_description"
       },
-      "questions": [...]
+      "questions": [
+        {
+          "question_text": "Well-crafted question requiring thought",
+          "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
+          "correct_option": "A|B|C|D",
+          "explanation": "Brief explanation of why the correct answer is right",
+          "topics": ["sub_topic_1", "sub_topic_2"]
+        }
+      ]
     }
   ],
   "questions": [
     {
       "question_text": "Well-crafted question requiring thought",
       "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
-      "correct_option": "A|B|C|D"
+      "correct_option": "A|B|C|D",
+      "explanation": "Brief explanation of why the correct answer is right",
+      "topics": ["sub_topic_1", "sub_topic_2"]
     }
   ]
 }
+
+IMPORTANT: Each question MUST include:
+- "topics": An array of 1-2 specific sub-topic tags that this question tests (e.g., ["Mitosis", "Cell Division"] or ["Algebra", "Linear Equations"]). These should be specific enough to identify weak areas but consistent across similar questions.
+- "explanation": A brief explanation of why the correct answer is correct.
 
 For tables: {"type": "table", "content": {"headers": [...], "rows": [...]}}
 For graphs: {"type": "graph", "content": {"type": "bar|line|pie", "title": "", "labels": [...], "datasets": [...]}}

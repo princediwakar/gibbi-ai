@@ -107,7 +107,9 @@ async function generateQuizAsync(
             quiz_id: quizId,
             question_text: q.question_text,
             options: q.options,
-            correct_option: q.correct_option
+            correct_option: q.correct_option,
+            topics: q.topics || [],
+            explanation: q.explanation || ""
           }))
         );
       if (qError) throw qError;
@@ -138,7 +140,9 @@ async function generateQuizAsync(
               group_id: groupData.group_id,
               question_text: q.question_text,
               options: q.options,
-              correct_option: q.correct_option
+              correct_option: q.correct_option,
+              topics: q.topics || [],
+              explanation: q.explanation || ""
             }))
           );
         if (qgError) throw qgError;

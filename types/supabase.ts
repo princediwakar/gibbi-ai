@@ -101,6 +101,8 @@ export type Database = {
           question_id: number
           question_text: string
           quiz_id: string | null
+          topics: string[] | null
+          explanation: string | null
         }
         Insert: {
           correct_option: string
@@ -110,6 +112,8 @@ export type Database = {
           question_id?: number
           question_text: string
           quiz_id?: string | null
+          topics?: string[] | null
+          explanation?: string | null
         }
         Update: {
           correct_option?: string
@@ -119,6 +123,8 @@ export type Database = {
           question_id?: number
           question_text?: string
           quiz_id?: string | null
+          topics?: string[] | null
+          explanation?: string | null
         }
         Relationships: [
           {

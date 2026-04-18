@@ -99,7 +99,7 @@ export async function GET(request: Request) {
         answers,
         completed_at,
         time_taken,
-        quizzes(title, description)
+        quizzes(title, description, subject, topic, questions(question_id, question_text, correct_option, topics, explanation))
       `)
       .eq("user_id", userId)
       .order("completed_at", { ascending: false });

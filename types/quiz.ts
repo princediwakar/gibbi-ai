@@ -45,6 +45,7 @@ export interface Question {
   options: Record<string, string>;
   correct_option: string;
   explanation?: string;
+  topics?: string[];
   type?: string;
   content?: {
     type: ContentType;
