@@ -108,7 +108,7 @@ export const QuestionEditor = memo(
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Object.entries(question.options).map(([key, value]) => (
             <div key={key} className="space-y-2">
               <Label className="text-muted-foreground">Option {key.toUpperCase()}</Label>

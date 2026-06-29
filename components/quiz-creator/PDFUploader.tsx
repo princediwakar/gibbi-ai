@@ -95,7 +95,7 @@ export const PDFUploader = memo(({ onUpload, onClear, disabled }: PDFUploaderPro
                   e.stopPropagation();
                   handleClearFile();
                 }}
-                className="ml-2 shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100"
+                className="ml-2 shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-full hover:bg-gray-100"
               >
                 <X className="h-4 w-4" />
               </span>

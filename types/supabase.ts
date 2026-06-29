@@ -96,35 +96,35 @@ export type Database = {
         Row: {
           correct_option: string
           created_at: string | null
+          explanation: string | null
           group_id: number | null
           options: Json
           question_id: number
           question_text: string
           quiz_id: string | null
-          topics: string[] | null
-          explanation: string | null
+          topics: Json | null
         }
         Insert: {
           correct_option: string
           created_at?: string | null
+          explanation?: string | null
           group_id?: number | null
           options: Json
           question_id?: number
           question_text: string
           quiz_id?: string | null
-          topics?: string[] | null
-          explanation?: string | null
+          topics?: Json | null
         }
         Update: {
           correct_option?: string
           created_at?: string | null
+          explanation?: string | null
           group_id?: number | null
           options?: Json
           question_id?: number
           question_text?: string
           quiz_id?: string | null
-          topics?: string[] | null
-          explanation?: string | null
+          topics?: Json | null
         }
         Relationships: [
           {

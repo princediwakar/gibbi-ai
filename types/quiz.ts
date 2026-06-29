@@ -55,6 +55,11 @@ export interface Question {
   created_at?: string;
   question_id?: number;
   quiz_id?: string;
+  difficulty_tier?: "foundation" | "application" | "advanced" | "expert";
+  distractor_analysis?: Record<string, string>;
+  skill_domain?: string;
+  time_estimate_seconds?: number;
+  misconception?: string;
 }
 
 export interface QuestionGroup {

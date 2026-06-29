@@ -1,6 +1,7 @@
+// Path: components/quiz-creator/QuizCreator.tsx
 "use client";
 
-import { useState, useCallback, memo, useEffect } from "react";
+import { useState, useCallback, memo, useEffect, useRef } from "react";
 import { useUser } from "@/hooks/useUser";
 import { Quiz } from "@/types/quiz";
 import { Button } from "@/components/ui/button";
@@ -20,15 +21,17 @@ import { QUIZ_CONFIG } from "@/lib/constants/quiz";
 import { PromptInput } from "./PromptInput";
 import { PDFUploader } from "./PDFUploader";
 import { SignInModal } from "../SignInModal";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { useRouter } from "next/navigation";
 
-// Use constants from config
-const { MAX_QUESTION_COUNT, DEFAULT_QUESTION_COUNT, DEFAULT_DIFFICULTY, STATUS_CHECK_FREQUENCY } = QUIZ_CONFIG;
+const { MAX_QUESTION_COUNT, DEFAULT_QUESTION_COUNT, DEFAULT_DIFFICULTY } = QUIZ_CONFIG;
 
 interface QuizCreatorProps {
   onQuizCreated: (quiz: Quiz) => void;
 }
 
 export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [prompt, setPrompt] = useState("");
   const [language, setLanguage] = useState("Auto");
@@ -37,35 +40,14 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [pdfText, setPdfText] = useState<string>("");
-  const { user } = useUser();
-  
-  // Get topic from URL params if present
+  const { user, accessToken, isUserLoading } = useUser();
+  const abortRef = useRef<AbortController | null>(null);
 
-  const checkQuizStatus = useCallback(async (quizId: string, toastId: string | number, attempt = 0, maxAttempts = 20) => {
-    try {
-      const response = await fetch(`/api/quiz/status?id=${quizId}`);
-      const data = await response.json();
-      
-      if (data.status === "ready" && data.quiz) {
-        toast.success("Quiz generated successfully!", { id: toastId });
-        onQuizCreated(data.quiz);
-        window.location.href = `/quiz/${data.quiz.slug}`;
-      } else if (data.status === "failed") {
-        toast.error(data.error || "Quiz generation failed", { id: toastId });
-        onQuizCreated({ quiz_id: quizId, status: "failed" } as Quiz);
-      } else if (attempt >= maxAttempts) {
-        toast.error("Quiz generation is taking too long. Please check your quizzes later.", { id: toastId });
-        onQuizCreated({ quiz_id: quizId, status: "timeout" } as Quiz);
-      } else {
-        const nextAttempt = attempt + 1;
-        toast.loading(`Generating quiz... ${nextAttempt} of ${maxAttempts}`, { id: toastId });
-        setTimeout(() => checkQuizStatus(quizId, toastId, nextAttempt, maxAttempts), STATUS_CHECK_FREQUENCY);
-      }
-    } catch (error) {
-      console.error("Polling error:", error);
-      toast.error("Failed to check quiz status", { id: toastId });
-    }
-  }, [onQuizCreated, STATUS_CHECK_FREQUENCY]);
+  const handleCancel = useCallback(() => {
+    abortRef.current?.abort();
+    setIsLoading(false);
+    toast.info("Generation cancelled.");
+  }, []);
 
   const handleQuestionCount = useCallback((value: string) => {
     const num = parseInt(value, 10);
@@ -80,45 +62,83 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
 
   const handleGenerateQuiz = useCallback(async () => {
     if (!prompt.trim() && !pdfText) return toast.warning("Please enter a prompt or upload a PDF file");
-    if (!user) return setIsSignInModalOpen(true);
+    if (isUserLoading) return;
+    if (!user || !accessToken) return setIsSignInModalOpen(true);
 
     setIsLoading(true);
-    const toastId = toast.loading("Starting quiz generation...");
     setStep(1);
     setPrompt("");
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const content = pdfText ? (prompt.trim() ? `${prompt}\n\n${pdfText}` : pdfText) : prompt;
+
+    const toastId = toast.loading("Starting quiz generation...");
+
     try {
-      const formData = new FormData();
-      const content = pdfText ? (prompt.trim() ? `${prompt}\n\n${pdfText}` : pdfText) : prompt;
-      formData.append("content", content.slice(0, 45000 / 0.75));
-      formData.append("creator_id", user.id);
-      formData.append("question_count", questionCount.toString());
-      formData.append("difficulty", difficulty);
-      formData.append("language", language);
-
-      const response = await fetch("/api/quiz/create", {
+      await fetchEventSource("/api/quiz/create", {
         method: "POST",
-        headers: { Authorization: `Bearer ${user.access_token}` },
-        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content.slice(0, QUIZ_CONFIG.MAX_PROMPT_LENGTH),
+          question_count: questionCount,
+          difficulty,
+          language,
+        }),
+        signal: controller.signal,
+        onmessage(event) {
+          const data = JSON.parse(event.data);
+          switch (data.type) {
+            case "connected":
+              toast.loading("Starting quiz generation...", { id: toastId });
+              break;
+            case "progress":
+              toast.loading(`Generating question ${data.done} of ${data.total}...`, { id: toastId });
+              break;
+            case "complete":
+              toast.success("Quiz generated!", { id: toastId });
+              setIsLoading(false);
+              router.push(`/quiz/${data.quiz?.slug || data.quiz_id}`);
+              break;
+            case "partial":
+              toast.warning(`Generated ${data.generated} of ${data.requested}.`, { id: toastId });
+              setIsLoading(false);
+              router.push(`/quiz/${data.quiz_id}`);
+              break;
+            case "error":
+              toast.error(data.message, { id: toastId });
+              setIsLoading(false);
+              break;
+          }
+        },
+        onerror(err) {
+          throw err;
+        },
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to create quiz");
-
-      checkQuizStatus(data.quiz_id, toastId);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to generate quiz", { id: toastId });
+      const message = error instanceof Error ? error.message : "Failed to generate quiz";
+      if (message !== "Aborted") {
+        toast.error(message, { id: toastId });
+      }
     } finally {
       setIsLoading(false);
       setPdfText("");
+      abortRef.current = null;
     }
-  }, [prompt, pdfText, user, questionCount, difficulty, language, checkQuizStatus]);
+  }, [prompt, pdfText, user, accessToken, isUserLoading, questionCount, difficulty, language, router]);
 
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
-  // Retrieve the prompt from localStorage on component mount
   useEffect(() => {
     const savedPrompt = localStorage.getItem("quizPrompt");
     const prefillTopic = localStorage.getItem("prefillTopic");
-    
+
     if (prefillTopic) {
       setPrompt(prefillTopic);
       localStorage.removeItem("prefillTopic");
@@ -133,24 +153,17 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
       toast.warning("Please enter a prompt or upload a PDF file");
       return;
     }
-    
-    if (!user) {
-      localStorage.setItem("quizPrompt", prompt); // Save the prompt to localStorage
+
+    if (isUserLoading) return;
+    if (!user || !accessToken) {
+      localStorage.setItem("quizPrompt", prompt);
       setIsSignInModalOpen(true);
       return;
     }
-    
-    try {
-      setStep(2);
-      // Log successful transition
-      console.log("Moved to step 2: Quiz customization");
-    } catch (error) {
-      console.error("Error transitioning to step 2:", error);
-      toast.error("Failed to proceed to next step. Please try again.");
-    }
-  }, [prompt, pdfText, user]);
 
-  // Reset loading state if error occurs
+    setStep(2);
+  }, [prompt, pdfText, user, accessToken, isUserLoading]);
+
   useEffect(() => {
     if (isLoading && step === 1) {
       setIsLoading(false);
@@ -160,7 +173,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
   return (
     <div className="max-w-2xl w-full mx-auto">
       <div className="min-h-[275px] flex flex-col space-y-6">
-        <h2 className="text-5xl font-bold text-center">{step === 1 ? "What are you studying?" : "Customize Your Practice Test"}</h2>
+        <h2 className="text-3xl sm:text-5xl font-bold text-center">{step === 1 ? "What are you studying?" : "Customize Your Practice Test"}</h2>
         <div className="flex-1 space-y-4">
           {step === 1 ? (
             <div className="space-y-2">
@@ -168,7 +181,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
               <PDFUploader onUpload={setPdfText} onClear={() => setPdfText("")} disabled={isLoading} />
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="questionCount">No. of Questions</Label>
                 <Input
@@ -213,14 +226,15 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
         </div>
         <div className="flex gap-4">
           {step === 2 && <Button variant="outline" onClick={() => setStep(1)} disabled={isLoading} className="w-full">Back</Button>}
-          <Button onClick={step === 1 ? handleNext : handleGenerateQuiz} disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : step === 1 ? "Next" : "Generate Quiz"}
-          </Button>
+          {isLoading ? (
+            <Button variant="outline" onClick={handleCancel} className="w-full">
+              Cancel
+            </Button>
+          ) : (
+            <Button onClick={step === 1 ? handleNext : handleGenerateQuiz} className="w-full">
+              {step === 1 ? "Next" : "Generate Quiz"}
+            </Button>
+          )}
         </div>
       </div>
       <SignInModal open={isSignInModalOpen} onOpenChange={setIsSignInModalOpen} isLoading={isLoading} />

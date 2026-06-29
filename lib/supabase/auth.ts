@@ -3,8 +3,8 @@ import Cookies from "js-cookie";
 import { supabase } from "@/lib/supabase/client";
 
 
-export async function signInWithGoogle() { 
-  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`;
+export async function signInWithGoogle() {
+  const redirectTo = `${window.location.origin}/api/auth/callback`;
 
   await supabase.auth.signInWithOAuth({
     provider: 'google',

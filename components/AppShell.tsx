@@ -35,11 +35,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const [isSignOutLoading, setIsSignOutLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const mql = window.matchMedia("(min-width: 1024px)");
+    setSidebarOpen(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setSidebarOpen(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
   }, []);
 
   const handleSignOut = async () => {
@@ -82,6 +87,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <aside className={`fixed left-0 top-0 h-screen w-64 border-r bg-background z-50 transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-4 h-full flex flex-col">
           <div className="mb-6">
@@ -155,7 +166,7 @@ className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colo
         </div>
       </aside>
       
-      <div className={`flex-1 transition-all ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`flex-1 transition-all ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         <header className="h-14 border-b flex items-center px-4 sticky top-0 bg-background z-40">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

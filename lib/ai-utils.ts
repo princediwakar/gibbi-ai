@@ -1,6 +1,5 @@
-// lib/ai-utils.ts
+// Path: lib/ai-utils.ts
 import { z } from "zod";
-import * as crypto from "crypto";
 
 // ----- Schemas and Types -----
 
@@ -20,6 +19,11 @@ export const QuestionSchema = z.object({
   correct_option: z.string(),
   explanation: z.string().optional().default(""),
   topics: z.array(z.string()).optional().default([]),
+  difficulty_tier: z.enum(["foundation", "application", "advanced", "expert"]).optional(),
+  distractor_analysis: z.record(z.string(), z.string()).optional(),
+  skill_domain: z.string().optional(),
+  time_estimate_seconds: z.number().optional(),
+  misconception: z.string().optional(),
 });
 export type Question = z.infer<typeof QuestionSchema>;
 
@@ -152,13 +156,40 @@ export type GeneratedQuiz = z.infer<typeof GeneratedQuizSchema>;
 // ----- Session-Based Variability Engine -----
 // Simplified approach using intelligent prompting instead of complex programmatic logic
 
-// Session fingerprint generation
-export function generateSessionFingerprint(content: string, userId?: string): string {
+// Session fingerprint generation (Web Crypto API — Edge + Client compatible)
+function buf2hex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function sha256Slice(input: string, length: number): Promise<string> {
+  const encoder = new TextEncoder();
+  const hash = await crypto.subtle.digest("SHA-256", encoder.encode(input));
+  return buf2hex(hash).slice(0, length);
+}
+
+function randomHex(length: number): string {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+let _fingerprintSeed: string | null = null;
+async function getContentHash(content: string): Promise<string> {
+  _fingerprintSeed ??= randomHex(4);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content.toLowerCase().trim() + _fingerprintSeed);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return buf2hex(hash).slice(0, 8);
+}
+
+export async function generateSessionFingerprint(content: string, userId?: string): Promise<string> {
   const timestamp = Date.now();
-  const contentHash = crypto.createHash('sha256').update(content.toLowerCase().trim()).digest('hex').slice(0, 8);
-  const userComponent = userId ? crypto.createHash('sha256').update(userId).digest('hex').slice(0, 4) : 'anon';
-  const randomComponent = crypto.randomBytes(4).toString('hex');
-  
+  const contentHash = await getContentHash(content);
+  const userComponent = userId ? await sha256Slice(userId, 4) : 'anon';
+  const randomComponent = randomHex(4);
+
   return `${timestamp}_${contentHash}_${userComponent}_${randomComponent}`;
 }
 
@@ -310,7 +341,11 @@ QUIZ STRUCTURE REQUIREMENTS:
   `;
 
   const JSON_FORMAT = `
-OUTPUT FORMAT - Return ONLY this JSON structure:
+OUTPUT FORMAT - Return ONLY valid JSON (no markdown, no code fences). Start your response with { and end with }:
+
+CRITICAL: Your entire response must be a single JSON object. Do not wrap it in markdown code blocks.
+
+Return this JSON structure:
 {
   "title": "Engaging, descriptive title",
   "description": "Clear description of what this quiz tests", 
@@ -333,7 +368,12 @@ OUTPUT FORMAT - Return ONLY this JSON structure:
           "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
           "correct_option": "A|B|C|D",
           "explanation": "Brief explanation of why the correct answer is right",
-          "topics": ["sub_topic_1", "sub_topic_2"]
+          "topics": ["sub_topic_1", "sub_topic_2"],
+          "difficulty_tier": "foundation|application|advanced|expert",
+          "distractor_analysis": {"A": "Why someone might pick A", "B": "Why someone might pick B", "C": "Why someone might pick C", "D": "Why someone might pick D"},
+          "skill_domain": "Specific skill or concept this tests",
+          "time_estimate_seconds": 60,
+          "misconception": "A common mistake students make on this concept"
         }
       ]
     }
@@ -344,14 +384,24 @@ OUTPUT FORMAT - Return ONLY this JSON structure:
       "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
       "correct_option": "A|B|C|D",
       "explanation": "Brief explanation of why the correct answer is right",
-      "topics": ["sub_topic_1", "sub_topic_2"]
+      "topics": ["sub_topic_1", "sub_topic_2"],
+      "difficulty_tier": "foundation|application|advanced|expert",
+      "distractor_analysis": {"A": "Why someone might pick A", "B": "Why someone might pick B", "C": "Why someone might pick C", "D": "Why someone might pick D"},
+      "skill_domain": "Specific skill or concept this tests",
+      "time_estimate_seconds": 60,
+      "misconception": "A common mistake students make on this concept"
     }
   ]
 }
 
 IMPORTANT: Each question MUST include:
-- "topics": An array of 1-2 specific sub-topic tags that this question tests (e.g., ["Mitosis", "Cell Division"] or ["Algebra", "Linear Equations"]). These should be specific enough to identify weak areas but consistent across similar questions.
+- "topics": An array of 1-2 specific sub-topic tags that this question tests (e.g., ["Mitosis", "Cell Division"] or ["Algebra", "Linear Equations"]).
 - "explanation": A brief explanation of why the correct answer is correct.
+- "difficulty_tier": Per-question difficulty independent of quiz-level: "foundation" (basic recall), "application" (applying concepts), "advanced" (multi-step reasoning), or "expert" (synthesis across topics).
+- "distractor_analysis": Map each wrong option letter to a one-sentence explanation of the trap/fallacy.
+- "skill_domain": A short, consistent label for the specific skill or concept tested (e.g., "Thermodynamics", "Cell Division", "Quadratic Equations"). Use consistent naming.
+- "time_estimate_seconds": How long a prepared student would take to answer (typically 30-180 seconds).
+- "misconception": A common mistake students make on this concept.
 
 For tables: {"type": "table", "content": {"headers": [...], "rows": [...]}}
 For graphs: {"type": "graph", "content": {"type": "bar|line|pie", "title": "", "labels": [...], "datasets": [...]}}
@@ -394,13 +444,13 @@ Make this quiz something a serious student would find genuinely useful for their
 }
 
 // Simplified variability system using pure prompt intelligence
-export function getVariabilityInstructions(
-  sessionFingerprint?: string, 
+export async function getVariabilityInstructions(
+  sessionFingerprint?: string,
   difficulty: string = "Medium",
   userId?: string
-): string {
-  const fingerprint = sessionFingerprint || generateSessionFingerprint(Date.now().toString(), userId);
-  
+): Promise<string> {
+  const fingerprint = sessionFingerprint || await generateSessionFingerprint(Date.now().toString(), userId);
+
   return generateIntelligentVariabilityPrompt(fingerprint, difficulty);
 }
 
