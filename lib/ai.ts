@@ -10,21 +10,41 @@ import {
 } from "./ai-utils";
 import { searchCurrentAffairs, formatSearchContext } from "./tavily";
 
-const REQUIRED_ENV_VARS = [
-  "OPENAI_API_KEY",
-  "AI_BASE_URL",
-  "OPENAI_MODEL",
-];
-REQUIRED_ENV_VARS.forEach((n) => {
-  if (!process.env[n]) throw new Error(`Missing ${n}`);
-});
+type AIProvider = "openai" | "deepseek";
 
-const MODEL = process.env.OPENAI_MODEL!;
-const IS_OPENAI = MODEL.startsWith("gpt-") || MODEL.startsWith("o1") || MODEL.startsWith("o3");
+interface ProviderConfig {
+  apiKey: string;
+  baseURL: string;
+  model: string;
+}
+
+const PROVIDER: AIProvider = (process.env.AI_PROVIDER as AIProvider) || "deepseek";
+
+const PROVIDER_CONFIGS: Record<AIProvider, ProviderConfig> = {
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY!,
+    baseURL: process.env.AI_BASE_URL || "https://api.openai.com/v1",
+    model: process.env.OPENAI_MODEL || "gpt-4o",
+  },
+  deepseek: {
+    apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY!,
+    baseURL: process.env.AI_BASE_URL || "https://api.deepseek.com/v1",
+    model: process.env.OPENAI_MODEL || "deepseek-v4-pro",
+  },
+};
+
+const config = PROVIDER_CONFIGS[PROVIDER];
+if (!config.apiKey) {
+  const keyVar = PROVIDER === "openai" ? "OPENAI_API_KEY" : "DEEPSEEK_API_KEY";
+  throw new Error(`Missing ${keyVar}`);
+}
+
+const MODEL = config.model;
+const IS_OPENAI = PROVIDER === "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.AI_BASE_URL,
+  apiKey: config.apiKey,
+  baseURL: config.baseURL,
 });
 
 const CURRENT_AFFAIRS_KEYWORDS = [
