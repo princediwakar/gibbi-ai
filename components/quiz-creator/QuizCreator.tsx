@@ -66,7 +66,6 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     if (!user || !accessToken) return setIsSignInModalOpen(true);
 
     setIsLoading(true);
-    setStep(1);
     setPrompt("");
 
     const controller = new AbortController();
@@ -164,11 +163,6 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
     setStep(2);
   }, [prompt, pdfText, user, accessToken, isUserLoading]);
 
-  useEffect(() => {
-    if (isLoading && step === 1) {
-      setIsLoading(false);
-    }
-  }, [step, isLoading]);
 
   return (
     <div className="max-w-2xl w-full mx-auto">
