@@ -11,6 +11,11 @@ import type { SelfAssessment } from "@/types/tutor";
 import taxonomy from "@/lib/taxonomies.json";
 
 const TAXONOMY = taxonomy as unknown as Record<string, Record<string, string[]>>;
+const EXAM_NAMES = Object.keys(TAXONOMY).filter((k) => k !== "_schema_version");
+const EXAM_SUBJECTS: Record<string, string[]> = {};
+for (const exam of EXAM_NAMES) {
+  EXAM_SUBJECTS[exam] = Object.keys(TAXONOMY[exam] ?? {});
+}
 
 export const metadata: Metadata = {
   title: "Exam Profile Setup | GibbiAI",
@@ -118,5 +123,5 @@ async function SetupPageContent() {
     };
   }
 
-  return <SetupForm prefill={prefill} />;
+  return <SetupForm prefill={prefill} examNames={EXAM_NAMES} examSubjects={EXAM_SUBJECTS} />;
 }

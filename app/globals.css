@@ -22,11 +22,11 @@ body {
     --primary: 172 80% 50%; /* #2DD4BF - Teal */
     --primary-foreground: 215 20% 15%; /* #1F2937 - Darker text for buttons */
     --secondary: 35 90% 50%; /* #F59E0B - Amber */
-    --secondary-foreground: 0 0% 100%; /* #FFFFFF */
+    --secondary-foreground: 215 20% 15%; /* #1F2937 - dark text for legibility on amber */
     --muted: 215 10% 45%; /* #6B7280 - Gray */
     --muted-foreground: 215 10% 45%; /* #6B7280 */
     --accent: 35 90% 50%; /* #F59E0B - Reuse Amber as accent for simplicity */
-    --accent-foreground: 0 0% 100%; /* #FFFFFF */
+    --accent-foreground: 215 20% 15%; /* #1F2937 - dark text for legibility on amber */
     --destructive: 0 84% 60%; /* #EF4444 - Red */
     --destructive-foreground: 0 0% 98%; /* #F9FAFB */
     --border: 215 20% 83%; /* #D1D5DB - Gray-300 */

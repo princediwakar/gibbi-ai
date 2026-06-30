@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { TUTOR_ROUTES } from "@/lib/constants/tutor";
 import { calculateReadinessIndex, getTimeMode } from "@/lib/sm2";
-import { DashboardView } from "@/components/tutor/DashboardView";
+import { DashboardView, DashboardViewLoading } from "@/components/tutor/DashboardView";
 import type { ExamProfile, ConceptMastery, TimeMode } from "@/types/tutor";
 import taxonomy from "@/lib/taxonomies.json";
 
@@ -93,7 +93,7 @@ function computeStreak(questionResults: { answered_at: string }[]): number {
 
 export default function DashboardPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<DashboardViewLoading />}>
       <DashboardPageContent />
     </Suspense>
   );

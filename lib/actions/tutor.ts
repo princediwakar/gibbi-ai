@@ -122,6 +122,7 @@ export async function createExamProfile(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/setup");
 
   return { profile_id: profileId };
 }

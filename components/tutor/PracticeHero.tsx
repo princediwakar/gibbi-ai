@@ -31,7 +31,7 @@ export function PracticeHero({
         : "days";
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 md:px-8 bg-muted/30 border rounded-2xl mb-8 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center py-12 px-4 md:px-8 bg-card border rounded-2xl mb-8 relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-emerald-500/10 blur-[100px] pointer-events-none" />
 
       <h2 className="text-3xl md:text-5xl font-extrabold text-foreground text-center tracking-tight max-w-3xl mb-8 leading-tight">

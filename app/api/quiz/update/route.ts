@@ -1,13 +1,37 @@
-// app/api/quiz/update/route.ts
+// Path: app/api/quiz/update/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { Question } from "@/types/quiz";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { quizId, details, questions, deletedQuestionIds } = await req.json();
 
   try {
+    const { data: quiz, error: quizFetchError } = await supabase
+      .from("quizzes")
+      .select("creator_id")
+      .eq("quiz_id", quizId)
+      .single();
+
+    if (quizFetchError || !quiz) {
+      return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+    }
+
+    if (quiz.creator_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const invalidQuestions = questions.filter(
       (q: Question) =>
         !q.question_text || !Object.values(q.options).some((opt) => opt) || !q.correct_option

@@ -16,7 +16,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-import taxonomy from "@/lib/taxonomies.json";
 import { getTimeMode } from "@/lib/sm2";
 import { TUTOR_ROUTES } from "@/lib/constants/tutor";
 import { cn } from "@/lib/utils";
@@ -28,8 +27,6 @@ import type { ExamProfileInput } from "@/lib/validations/tutor";
 // Constants
 // ---------------------------------------------------------------------------
 
-const EXAM_TAXONOMY = taxonomy as unknown as Record<string, Record<string, string[]>>;
-const EXAM_NAMES = Object.keys(EXAM_TAXONOMY);
 const ASSESSMENT_LEVELS: SelfAssessment[] = ["weak", "okay", "strong"];
 
 const ASSESSMENT_LABELS: Record<SelfAssessment, string> = {
@@ -182,13 +179,15 @@ export interface SetupFormPrefill {
 
 interface SetupFormProps {
   prefill: SetupFormPrefill | null;
+  examNames: string[];
+  examSubjects: Record<string, string[]>;
 }
 
 // ---------------------------------------------------------------------------
 // Page component
 // ---------------------------------------------------------------------------
 
-export function SetupForm({ prefill }: SetupFormProps) {
+export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) {
   const router = useRouter();
 
   const [exam, setExam] = useState<string>(prefill?.exam ?? "");
@@ -209,8 +208,8 @@ export function SetupForm({ prefill }: SetupFormProps) {
   // Derived
   const subjects = useMemo<string[]>(() => {
     if (!exam) return [];
-    return Object.keys(EXAM_TAXONOMY[exam] ?? {});
-  }, [exam]);
+    return examSubjects[exam] ?? [];
+  }, [exam, examSubjects]);
 
   const timeMode = useMemo<TimeMode | null>(() => {
     if (!targetDate) return null;
@@ -241,27 +240,21 @@ export function SetupForm({ prefill }: SetupFormProps) {
   const saveProfile = useCallback(async () => {
     if (!canSubmit || !timeMode) return null;
 
-    const input: ExamProfileInput = {
+    return createExamProfile({
       exam_name: exam,
       target_date: targetDate,
       self_assessments: assessments as Record<string, SelfAssessment>,
-    };
-
-    const result = await createExamProfile(input);
-
-    if ("error" in result) {
-      return result.error;
-    }
-    return result.profile_id;
+    });
   }, [canSubmit, timeMode, exam, targetDate, assessments]);
 
   const handleSaveOnly = useCallback(async () => {
     setIsSubmitting(true);
-    const error = await saveProfile();
+    const result = await saveProfile();
     setIsSubmitting(false);
 
-    if (typeof error === "string") {
-      toast.error(error);
+    if (!result) return;
+    if ("error" in result) {
+      toast.error(result.error);
     } else {
       toast.success("Profile saved.", { duration: 3000 });
     }
@@ -270,19 +263,25 @@ export function SetupForm({ prefill }: SetupFormProps) {
   const handleSaveAndStart = useCallback(async () => {
     setIsSubmitting(true);
 
-    const profileIdOrError = await saveProfile();
+    const result = await saveProfile();
 
-    if (typeof profileIdOrError === "string") {
-      toast.error(profileIdOrError);
+    if (!result) {
       setIsSubmitting(false);
       return;
     }
+    if ("error" in result) {
+      toast.error(result.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    const profileId = result.profile_id;
 
     try {
       const sessionRes = await fetch(`${TUTOR_ROUTES.API_SESSION_START}?stream=false`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exam_profile_id: profileIdOrError }),
+        body: JSON.stringify({ exam_profile_id: profileId }),
       });
 
       if (!sessionRes.ok) {
@@ -331,7 +330,7 @@ export function SetupForm({ prefill }: SetupFormProps) {
                 <SelectValue placeholder="Select your exam..." />
               </SelectTrigger>
               <SelectContent>
-                {EXAM_NAMES.map((name) => (
+                {examNames.map((name) => (
                   <SelectItem key={name} value={name}>
                     {name}
                   </SelectItem>

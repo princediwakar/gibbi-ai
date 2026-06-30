@@ -209,7 +209,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className={`flex-1 transition-all ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
+      <div className={`flex-1 transition-[margin-left] duration-200 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         <header className="h-14 border-b flex items-center px-4 sticky top-0 bg-background z-40">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

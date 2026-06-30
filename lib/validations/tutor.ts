@@ -4,7 +4,7 @@ import taxonomy from "@/lib/taxonomies.json";
 
 type TaxonomyData = Record<string, Record<string, string[]>>;
 const taxonomyData = taxonomy as unknown as TaxonomyData;
-const EXAM_NAMES = Object.keys(taxonomyData);
+const EXAM_NAMES = Object.keys(taxonomyData).filter((k) => k !== "_schema_version");
 const ANSWER_OPTIONS = ["A", "B", "C", "D"] as const;
 const ASSESSMENT_LEVELS = ["weak", "okay", "strong"] as const;
 

@@ -253,7 +253,7 @@ export default function Powered() {
               key={logo.title}
               href={logo.href}
               aria-label={logo.title}
-              className="duration-250 grayscale transition hover:text-foreground hover:grayscale-0"
+              className="duration-200 grayscale transition hover:text-foreground hover:grayscale-0"
             >
               {logo.icon}
             </Link>
@@ -267,7 +267,7 @@ export default function Powered() {
               key={logo.title}
               href={logo.href}
               aria-label={logo.title}
-              className="duration-250 grayscale transition hover:text-foreground hover:grayscale-0"
+              className="duration-200 grayscale transition hover:text-foreground hover:grayscale-0"
             >
               {logo.icon}
             </Link>

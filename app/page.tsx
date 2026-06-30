@@ -28,5 +28,5 @@ export default async function IndexPage() {
     redirect("/dashboard");
   }
 
-  redirect("/create");
+  redirect("/setup");
 }

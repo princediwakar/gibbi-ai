@@ -6,17 +6,16 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     
-    // Get current user session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const userId = session.user.id;
+
+    const userId = user.id;
     const body = await request.json();
     
     const { 
@@ -73,18 +72,17 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     
-    // Get current user session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const userId = session.user.id;
-    
+
+    const userId = user.id;
+
     // Get URL parameters
     const { searchParams } = new URL(request.url);
     const quizId = searchParams.get("quizId");

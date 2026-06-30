@@ -76,12 +76,19 @@ export function SessionAutoStarter({
   }
 
   return (
-    <SessionStartView
-      profileId={profileId}
-      examName={examName}
-      daysRemaining={daysRemaining}
-      hasActiveSession={false}
-      activeSessionId={null}
-    />
+    <div className="max-w-lg mx-auto space-y-6 px-4 py-12">
+      {startError && (
+        <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+          <span>{startError}</span>
+        </div>
+      )}
+      <SessionStartView
+        profileId={profileId}
+        examName={examName}
+        daysRemaining={daysRemaining}
+        hasActiveSession={false}
+        activeSessionId={null}
+      />
+    </div>
   );
 }
