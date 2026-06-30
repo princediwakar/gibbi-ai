@@ -254,6 +254,5 @@ Where does this state live?
 ```
 
 
-
 Never add Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Don't ever be a co-auther.
