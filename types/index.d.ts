@@ -1,5 +1,5 @@
 import { UserRole } from "@prisma/client";
-import { Icons } from "@/components/shared/icons";
+import { Icons } from "@/components/shared/Icons";
 
 export type SiteConfig = {
   name: string;

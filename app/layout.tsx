@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/ThemeProvider"
 // import { ClarityProvider } from '@/components/ClarityProvider';
 
 import { AppShell } from "@/components/AppShell";
@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner"
 import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 import { Metadata, Viewport } from "next";
-import StructuredData, { websiteSchema, organizationSchema } from "@/components/seo/structured-data";
+import StructuredData, { websiteSchema, organizationSchema } from "@/components/seo/StructuredData";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 

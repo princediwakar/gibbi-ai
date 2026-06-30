@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { Icons } from "@/components/shared/icons";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
-import BlurImage from "../shared/blur-image";
+import { Icons } from "@/components/shared/Icons";
+import MaxWidthWrapper from "@/components/shared/MaxWidthWrapper";
+import BlurImage from "../shared/BlurImage";
 
 interface InfoLandingProps {
   data: {

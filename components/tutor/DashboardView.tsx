@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WarRoomHero } from "@/components/tutor/WarRoomHero";
+import { PracticeHero } from "@/components/tutor/PracticeHero";
 import type { DashboardPageData } from "@/app/dashboard/page";
 import { Zap, Clock, Target, TrendingUp, BookOpen, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -127,7 +127,7 @@ export function DashboardViewError({ message }: { message: string }) {
 export function DashboardView({ data }: { data: DashboardPageData }) {
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 py-6">
-      <WarRoomHero
+      <PracticeHero
         directive={data.directive}
         daysRemaining={data.daysRemaining}
         readinessIndex={data.readinessIndex}

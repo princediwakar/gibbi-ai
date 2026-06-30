@@ -1,4 +1,4 @@
-// Path: components/tutor/WarRoomHero.tsx
+// Path: components/tutor/PracticeHero.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,19 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
 import { TUTOR_ROUTES } from "@/lib/constants/tutor";
 
-interface WarRoomHeroProps {
+interface PracticeHeroProps {
   directive: string;
   daysRemaining: number;
   readinessIndex: number;
   examName: string;
 }
 
-export function WarRoomHero({
+export function PracticeHero({
   directive,
   daysRemaining,
   readinessIndex,
   examName,
-}: WarRoomHeroProps) {
+}: PracticeHeroProps) {
   const router = useRouter();
 
   const daysLabel =
@@ -93,4 +93,4 @@ export function WarRoomHero({
   );
 }
 
-export default WarRoomHero;
+export default PracticeHero;

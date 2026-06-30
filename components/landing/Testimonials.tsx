@@ -1,7 +1,7 @@
 import Image from "next/image";
-import { HeaderSection } from "@/components/shared/header-section";
+import { HeaderSection } from "@/components/shared/HeaderSection";
 import { studentTestimonials } from "@/config/landing";
-import MaxWidthWrapper from "../shared/max-width-wrapper";
+import MaxWidthWrapper from "../shared/MaxWidthWrapper";
 
 export default function Testimonials() {
 

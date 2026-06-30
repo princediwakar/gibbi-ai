@@ -1,6 +1,6 @@
-import { HeaderSection } from "@/components/shared/header-section";
-import { Icons } from "@/components/shared/icons";
-import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
+import { HeaderSection } from "@/components/shared/HeaderSection";
+import { Icons } from "@/components/shared/Icons";
+import MaxWidthWrapper from "@/components/shared/MaxWidthWrapper";
 
 export default function Features() {
   const features = [

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggleButton";
-import MaxWidthWrapper from "../shared/max-width-wrapper";
+import MaxWidthWrapper from "../shared/MaxWidthWrapper";
 
 export default function SiteFooter({ className }: React.HTMLAttributes<HTMLElement>) {
   const footerLinks = [
