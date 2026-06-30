@@ -252,3 +252,8 @@ Where does this state live?
 ├── Cross-component, can't be in URL? → Zustand (justify it)
 └── Initial page data? → Server Component fetch (never useEffect)
 ```
+
+
+
+Never add Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+Don't ever be a co-auther.
