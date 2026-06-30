@@ -39,10 +39,10 @@ if (!config.apiKey) {
   throw new Error(`Missing ${keyVar}`);
 }
 
-const MODEL = config.model;
+export const MODEL = config.model;
 const IS_OPENAI = PROVIDER === "openai";
 
-const openai = new OpenAI({
+export const openai = new OpenAI({
   apiKey: config.apiKey,
   baseURL: config.baseURL,
 });

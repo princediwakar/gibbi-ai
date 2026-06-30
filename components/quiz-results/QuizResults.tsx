@@ -137,7 +137,7 @@ export const QuizResults = ({
 
                       if (isCorrectOption) {
                         variant = "default";
-                        className += " bg-primary dark:primary-foreground";
+                        className += " bg-primary text-primary-foreground";
                       } else if (isUserAnswer && !isCorrect) {
                         variant = "default";
                         className += " bg-destructive text-destructive-foreground";
@@ -174,7 +174,7 @@ export const QuizResults = ({
             className="flex items-center gap-2"
           >
             <History className="w-4 h-4" />
-            Your Quiz History
+            History
           </Button>
         )}
         <GoBackOrHome />

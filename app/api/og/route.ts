@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-type ImageType = "home" | "quiz";
+type ImageType = "home" | "quiz" | "session";
 
 const typeStyles: Record<
 	ImageType,
@@ -27,6 +27,13 @@ const typeStyles: Record<
 		titleColor:
 			"linear-gradient(to right, #2563eb, #4f46e5)",
 	},
+	session: {
+		backgroundImage:
+			"linear-gradient(to bottom right, #0f172a, #1e293b)",
+		titleColor:
+			"linear-gradient(to right, #22c55e, #3b82f6)",
+		subtitle: "Practice with GibbiAI",
+	},
 };
 
 export async function GET(request: Request) {
@@ -48,6 +55,7 @@ export async function GET(request: Request) {
 		alignItems: "center",
 		justifyContent: "center",
 		backgroundColor:
+			type === "session" ? "#0f172a" :
 			type === "home" ? "#1a1a1a" : "#ffffff",
 	};
 
@@ -70,20 +78,22 @@ export async function GET(request: Request) {
 				},
 				title
 			),
-			type === "quiz" &&
+			(type === "quiz" || type === "session") &&
 				React.createElement(
 					"div",
 					{
 						style: {
 							fontSize: 32,
 							color:
-								type === "quiz"
-									? "#374151"
-									: "#ffffff",
+								type === "session"
+									? "#94a3b8"
+									: type === "quiz"
+										? "#374151"
+										: "#ffffff",
 							marginBottom: 12,
 						},
 					},
-					`Topic: ${topic}`
+					type === "session" ? topic : `Topic: ${topic}`
 				),
 			React.createElement(
 				"div",
@@ -100,7 +110,9 @@ export async function GET(request: Request) {
 				},
 				type === "home"
 					? "Test Your Knowledge, Challenge Your Friends"
-					: "Test your knowledge now!"
+					: type === "session"
+						? "Practice with GibbiAI"
+						: "Test your knowledge now!"
 			)
 		),
 		{

@@ -71,7 +71,7 @@ export const UserMenu = memo(({ user, isOpen, onOpenChange, onSignOut }: UserMen
           className="cursor-pointer"
         >
           <History className="mr-2 h-4 w-4" />
-          <span>Quiz History</span>
+          <span>History</span>
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />

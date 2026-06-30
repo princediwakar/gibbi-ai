@@ -7,13 +7,97 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
+      concept_mastery: {
+        Row: {
+          created_at: string | null
+          exam_profile_id: string
+          id: string
+          last_seen_at: string
+          mastery_score: number
+          next_review_at: string
+          review_ease_factor: number
+          review_interval_days: number
+          skill_domain: string
+          streak: number
+          total_attempted: number
+          total_correct: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          exam_profile_id: string
+          id?: string
+          last_seen_at?: string
+          mastery_score?: number
+          next_review_at?: string
+          review_ease_factor?: number
+          review_interval_days?: number
+          skill_domain: string
+          streak?: number
+          total_attempted?: number
+          total_correct?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          exam_profile_id?: string
+          id?: string
+          last_seen_at?: string
+          mastery_score?: number
+          next_review_at?: string
+          review_ease_factor?: number
+          review_interval_days?: number
+          skill_domain?: string
+          streak?: number
+          total_attempted?: number
+          total_correct?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_mastery_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
+      exam_profiles: {
+        Row: {
+          created_at: string | null
+          exam_name: string
+          is_active: boolean | null
+          profile_id: string
+          target_date: string
+          time_mode: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          exam_name: string
+          is_active?: boolean | null
+          profile_id?: string
+          target_date: string
+          time_mode?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          exam_name?: string
+          is_active?: boolean | null
+          profile_id?: string
+          target_date?: string
+          time_mode?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           created_at: string | null
@@ -46,6 +130,68 @@ export type Database = {
           user_name?: string | null
         }
         Relationships: []
+      }
+      generation_usage: {
+        Row: {
+          created_at: string
+          id: number
+          question_count: number
+          quiz_id: string
+          token_estimate: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          question_count: number
+          quiz_id: string
+          token_estimate?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          question_count?: number
+          quiz_id?: string
+          token_estimate?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mastery_history: {
+        Row: {
+          exam_profile_id: string
+          id: string
+          mastery_score: number
+          recorded_at: string | null
+          skill_domain: string
+          user_id: string
+        }
+        Insert: {
+          exam_profile_id: string
+          id?: string
+          mastery_score: number
+          recorded_at?: string | null
+          skill_domain: string
+          user_id: string
+        }
+        Update: {
+          exam_profile_id?: string
+          id?: string
+          mastery_score?: number
+          recorded_at?: string | null
+          skill_domain?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mastery_history_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
       }
       question_groups: {
         Row: {
@@ -92,12 +238,52 @@ export type Database = {
           },
         ]
       }
+      question_results: {
+        Row: {
+          correct: boolean
+          created_at: string | null
+          difficulty_tier: string | null
+          id: number
+          misconception: string | null
+          question_id: number
+          quiz_id: string
+          skill_domain: string
+          time_taken_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          correct: boolean
+          created_at?: string | null
+          difficulty_tier?: string | null
+          id?: never
+          misconception?: string | null
+          question_id: number
+          quiz_id: string
+          skill_domain?: string
+          time_taken_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          correct?: boolean
+          created_at?: string | null
+          difficulty_tier?: string | null
+          id?: never
+          misconception?: string | null
+          question_id?: number
+          quiz_id?: string
+          skill_domain?: string
+          time_taken_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           correct_option: string
           created_at: string | null
           explanation: string | null
           group_id: number | null
+          metadata_json: Json | null
           options: Json
           question_id: number
           question_text: string
@@ -109,6 +295,7 @@ export type Database = {
           created_at?: string | null
           explanation?: string | null
           group_id?: number | null
+          metadata_json?: Json | null
           options: Json
           question_id?: number
           question_text: string
@@ -120,6 +307,7 @@ export type Database = {
           created_at?: string | null
           explanation?: string | null
           group_id?: number | null
+          metadata_json?: Json | null
           options?: Json
           question_id?: number
           question_text?: string
@@ -252,6 +440,134 @@ export type Database = {
         }
         Relationships: []
       }
+      result_cards: {
+        Row: {
+          card_data: Json
+          card_type: string
+          created_at: string | null
+          id: string
+          share_token: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          card_data: Json
+          card_type: string
+          created_at?: string | null
+          id?: string
+          share_token?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          card_data?: Json
+          card_type?: string
+          created_at?: string | null
+          id?: string
+          share_token?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      session_answers: {
+        Row: {
+          answered_at: string | null
+          exam_profile_id: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_option: string | null
+          session_id: string
+          skill_domain: string
+          time_to_answer_ms: number | null
+          user_id: string
+          was_revealed: boolean
+        }
+        Insert: {
+          answered_at?: string | null
+          exam_profile_id: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          selected_option?: string | null
+          session_id: string
+          skill_domain: string
+          time_to_answer_ms?: number | null
+          user_id: string
+          was_revealed?: boolean
+        }
+        Update: {
+          answered_at?: string | null
+          exam_profile_id?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_option?: string | null
+          session_id?: string
+          skill_domain?: string
+          time_to_answer_ms?: number | null
+          user_id?: string
+          was_revealed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_results_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "question_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          exam_profile_id: string
+          id: string
+          questions_json: Json
+          status: string
+          target_domains: string[]
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          exam_profile_id: string
+          id?: string
+          questions_json: Json
+          status?: string
+          target_domains: string[]
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          exam_profile_id?: string
+          id?: string
+          questions_json?: Json
+          status?: string
+          target_domains?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
     }
     Views: {
       quiz_with_counts: {
@@ -299,6 +615,22 @@ export type Database = {
         }[]
       }
       restore_tables: { Args: never; Returns: undefined }
+      submit_answer: {
+        Args: {
+          p_exam_profile_id: string
+          p_is_correct: boolean
+          p_question_id: string
+          p_selected_option: string
+          p_session_id: string
+          p_skill_domain: string
+          p_time_to_answer_ms: number
+          p_user_id: string
+          p_was_revealed: boolean
+        }
+        Returns: {
+          inserted: boolean
+        }[]
+      }
       update_quiz_question_count: {
         Args: { p_question_count: number; p_quiz_id: string }
         Returns: undefined

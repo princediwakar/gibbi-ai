@@ -101,3 +101,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.dark .katex {
+  color: inherit;
+}

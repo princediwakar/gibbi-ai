@@ -1,0 +1,55 @@
+{
+  "JEE Main": {
+    "Physics": ["Kinematics", "Laws of Motion", "Work, Energy and Power", "Rotational Motion", "Thermodynamics", "Electrostatics", "Current Electricity", "Optics", "Modern Physics"],
+    "Chemistry": ["Atomic Structure", "Chemical Bonding", "Thermodynamics", "Chemical Equilibrium", "Coordination Compounds", "Organic Chemistry Basics", "Hydrocarbons"],
+    "Mathematics": ["Complex Numbers", "Matrices and Determinants", "Calculus", "Coordinate Geometry", "Vector Algebra", "Probability and Statistics"]
+  },
+  "NEET": {
+    "Physics": ["Mechanics", "Electrodynamics", "Thermodynamics", "Modern Physics", "Optics"],
+    "Chemistry": ["Physical Chemistry", "Inorganic Chemistry", "Organic Chemistry"],
+    "Biology": ["Cell Structure and Function", "Human Physiology", "Plant Physiology", "Genetics and Evolution", "Ecology and Environment"]
+  },
+  "UPSC CSE": {
+    "General Studies I": ["Indian History", "Art and Culture", "World Geography", "Indian Society"],
+    "General Studies II": ["Indian Constitution", "Governance", "Social Justice", "International Relations"],
+    "General Studies III": ["Economy", "Environment and Ecology", "Science and Technology", "Security and Disaster Management"],
+    "CSAT": ["Logical Reasoning", "Analytical Ability", "Decision Making", "Basic Numeracy", "Data Interpretation"]
+  },
+  "GMAT Focus": {
+    "Quantitative Reasoning": ["Arithmetic", "Algebra"],
+    "Verbal Reasoning": ["Reading Comprehension", "Critical Reasoning"],
+    "Data Insights": ["Data Sufficiency", "Multi-Source Reasoning", "Table Analysis", "Graphics Interpretation", "Two-Part Analysis"]
+  },
+  "SAT": {
+    "Reading and Writing": ["Craft and Structure", "Information and Ideas", "Standard English Conventions", "Expression of Ideas"],
+    "Mathematics": ["Algebra", "Advanced Math", "Problem-Solving and Data Analysis", "Geometry and Trigonometry"]
+  },
+  "GRE": {
+    "Verbal Reasoning": ["Text Completion", "Sentence Equivalence", "Reading Comprehension"],
+    "Quantitative Reasoning": ["Arithmetic", "Algebra", "Geometry", "Data Analysis"],
+    "Analytical Writing": ["Analyze an Issue"]
+  },
+  "CAT": {
+    "Verbal Ability": ["Reading Comprehension", "Para-jumbles", "Para-completion", "Grammar"],
+    "Data Interpretation and Logical Reasoning": ["Data Interpretation", "Logical Reasoning"],
+    "Quantitative Ability": ["Number Systems", "Arithmetic", "Algebra", "Geometry", "Modern Math"]
+  },
+  "GATE": {
+    "Engineering Mathematics": ["Linear Algebra", "Calculus", "Differential Equations", "Probability and Statistics"],
+    "General Aptitude": ["Verbal Ability", "Quantitative Aptitude", "Analytical Aptitude", "Spatial Aptitude"],
+    "Core Engineering": ["Circuit Theory", "Digital Logic", "Signals and Systems", "Control Systems"]
+  },
+  "CLAT": {
+    "English Language": ["Reading Comprehension", "Inference", "Vocabulary"],
+    "Current Affairs": ["Static GK", "Current Events"],
+    "Legal Reasoning": ["Legal Principles", "Legal Facts"],
+    "Logical Reasoning": ["Analogies", "Critical Reasoning"],
+    "Quantitative Techniques": ["Data Interpretation", "Basic Math"]
+  },
+  "CA Foundation": {
+    "Accounting": ["Accounting Fundamentals", "Bank Reconciliation", "Final Accounts"],
+    "Business Laws": ["Indian Contract Act", "Sale of Goods Act", "Partnership Act"],
+    "Business Mathematics": ["Ratio and Proportion", "Equations and Matrices", "Linear Inequalities"],
+    "Business Economics": ["Theory of Demand and Supply", "Theory of Production and Cost", "Market Structures"]
+  }
+}

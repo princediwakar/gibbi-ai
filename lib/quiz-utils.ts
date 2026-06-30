@@ -280,7 +280,7 @@ export const renderMathContent = (text: string): React.ReactNode[] => {
       return React.createElement("span", { key: idx }, part);
     } catch (error) {
       console.error(`Math render error for part: ${part}`, error);
-      return React.createElement("span", { key: idx, style: { color: "red" } }, part);
+      return React.createElement("span", { key: idx, className: "text-red-600 dark:text-red-400" }, part);
     }
   });
 };
