@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { utils, writeFile } from "xlsx";
+import ExcelJS from "exceljs";
 import { supabase } from "@/lib/supabase/client";
 import { saveAs } from "file-saver";
 import { Quiz } from "@/types/quiz";
@@ -7,8 +7,8 @@ import {Question} from '@/types/quiz'
 
 interface ExcelQuestion {
 	Question: string;
-	[key: string]: string | undefined;
 	"Correct Answer": string;
+	[key: string]: string | undefined;
 }
 
 
@@ -34,32 +34,33 @@ export const downloadQuiz = async (
 				id: toastId,
 			});
 
-			const worksheet = utils.json_to_sheet(
-				questions.map((q: Question) => {
-					const excelQuestion: ExcelQuestion = {
-						Question: q.question_text,
-						"Correct Answer": q.correct_option,
-					};
+			const sheetData: ExcelQuestion[] = questions.map((q: Question) => {
+				const row: ExcelQuestion = {
+					Question: q.question_text,
+					"Correct Answer": q.correct_option,
+				};
+				Object.entries(q.options).forEach(([key, value]) => {
+					row[`Option ${key.toUpperCase()}`] = value;
+				});
+				return row;
+			});
 
-					Object.entries(q.options).forEach(
-						([key, value]) => {
-							excelQuestion[
-								`Option ${key.toUpperCase()}`
-							] = value;
-						}
-					);
+			const workbook = new ExcelJS.Workbook();
+			const worksheet = workbook.addWorksheet("Quiz");
+			const columns = Object.keys(sheetData[0]).map((key) => ({
+				header: key,
+				key,
+			}));
+			worksheet.columns = columns;
+			worksheet.addRows(sheetData);
 
-					return excelQuestion;
-				})
+			const buffer = await workbook.xlsx.writeBuffer();
+			saveAs(
+				new Blob([buffer], {
+					type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				}),
+				`${quiz.title}.xlsx`
 			);
-
-			const workbook = utils.book_new();
-			utils.book_append_sheet(
-				workbook,
-				worksheet,
-				"Quiz"
-			);
-			writeFile(workbook, `${quiz.title}.xlsx`);
 
 			toast.success(
 				`Quiz downloaded in Excel format`,
