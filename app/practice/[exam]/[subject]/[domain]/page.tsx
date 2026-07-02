@@ -7,7 +7,7 @@ import PracticeQuestion from "@/components/practice/PracticeQuestion";
 import ExamCTABanner from "@/components/practice/ExamCTABanner";
 import StructuredData, { breadcrumbSchema } from "@/components/seo/StructuredData";
 import Link from "next/link";
-import type { Question } from "@/lib/ai-utils";
+import type { Question } from "@/lib/schemas/quiz";
 import type { WithContext } from "schema-dts";
 
 // ---- Types ----

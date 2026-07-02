@@ -47,7 +47,6 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
   const timerStartRef = useRef<number>(Date.now());
   const questionStartRef = useRef<number>(Date.now());
   const [totalTimeElapsed, setTotalTimeElapsed] = useState(0);
-  const [questionTimeMs, setQuestionTimeMs] = useState(0);
   const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const submittingRef = useRef(false);
@@ -105,7 +104,6 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
       setIsCorrect(correct);
       setIsRevealed(revealed);
       const timeMs = Date.now() - questionStartRef.current;
-      setQuestionTimeMs(timeMs);
       if (correct) setScore((prev) => prev + 1);
       recordAnswer(option, correct, revealed, timeMs);
       const delay = revealed
@@ -142,7 +140,6 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
       setIsCorrect(null);
       setIsRevealed(false);
       setNextEnabled(false);
-      setQuestionTimeMs(0);
       questionStartRef.current = Date.now();
     } else {
       setSessionComplete(true);

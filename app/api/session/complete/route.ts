@@ -7,17 +7,10 @@ import { gradeQuality, updateSM2, calculateReadinessIndex, getManualAttemptsToda
 import { TUTOR_CONFIG } from "@/lib/constants/tutor";
 import { seedDiagnosticPriors } from "@/lib/diagnostic-seed";
 import type { SessionQuestion } from "@/types/tutor";
-import taxonomies from "@/lib/taxonomies.json";
+import { getDomainsForExam } from "@/lib/services/taxonomy";
+import { type ConceptMasteryRow } from "@/lib/tutor-prompt";
 
 const { SM2_DEFAULTS } = TUTOR_CONFIG;
-
-interface ConceptMasteryRow {
-  skill_domain: string;
-  mastery_score: number;
-  review_interval_days: number;
-  review_ease_factor: number;
-  streak: number;
-}
 
 interface QuestionResultRow {
   question_id: string;
@@ -32,19 +25,6 @@ interface SM2LocalState {
   easeFactor: number;
   intervalDays: number;
   streak: number;
-}
-
-type TaxonomyData = Record<string, Record<string, string[]>>;
-const taxonomyData = taxonomies as unknown as TaxonomyData;
-
-function getAllDomains(examName: string): string[] {
-  const examSubjects = taxonomyData[examName];
-  if (!examSubjects) return [];
-  const domains: string[] = [];
-  for (const subject of Object.keys(examSubjects)) {
-    domains.push(...examSubjects[subject]);
-  }
-  return domains;
 }
 
 export async function POST(request: NextRequest) {
@@ -131,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     const { data: existingMastery, error: masteryError } = await supabase
       .from("concept_mastery")
-      .select("skill_domain, mastery_score, review_interval_days, review_ease_factor, streak")
+      .select("skill_domain, mastery_score, review_interval_days, review_ease_factor, streak, next_review_at, last_seen_at, total_attempted, total_correct")
       .eq("user_id", user.id)
       .eq("exam_profile_id", session.exam_profile_id);
 
@@ -147,7 +127,7 @@ export async function POST(request: NextRequest) {
       masteryMap.set(row.skill_domain, row);
     }
 
-    const allDomains = getAllDomains(examProfile.exam_name);
+    const allDomains = getDomainsForExam(examProfile.exam_name);
     const beforeScores: Record<string, number> = {};
     for (const row of existingMastery || []) {
       beforeScores[row.skill_domain] = row.mastery_score;

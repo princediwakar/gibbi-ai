@@ -2,12 +2,14 @@
 import OpenAI from "openai";
 import {
   parseQuiz,
+} from "./parse/quiz";
+import {
   getVariabilityInstructions,
   buildSystemMessage,
   buildUserMessage,
-  GeneratedQuiz,
   generateSessionFingerprint,
-} from "./ai-utils";
+} from "./prompts/quiz";
+import type { GeneratedQuiz } from "./schemas/quiz";
 import { searchCurrentAffairs, formatSearchContext } from "./tavily";
 
 type AIProvider = "openai" | "deepseek";

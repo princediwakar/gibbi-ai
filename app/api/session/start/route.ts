@@ -15,9 +15,10 @@ import { getTimeMode } from "@/lib/sm2";
 import { TUTOR_CONFIG, TUTOR_ERRORS } from "@/lib/constants/tutor";
 import { normalizeSkillDomain } from "@/lib/services/skill-normalizer";
 import { openai, MODEL } from "@/lib/ai";
-import { QuestionSchema, parseWithRecovery } from "@/lib/ai-utils";
+import { QuestionSchema } from "@/lib/schemas/quiz";
+import { parseWithRecovery } from "@/lib/parse/quiz";
 import { getDiagnosticStrata } from "@/lib/diagnostic-seed";
-import taxonomy from "@/lib/taxonomies.json";
+import { getDomainsForExam } from "@/lib/services/taxonomy";
 import type { SessionQuestion, DifficultyTier, TimeMode } from "@/types/tutor";
 
 const DIFFICULTY_TIER_MAP: Record<string, DifficultyTier> = {
@@ -29,13 +30,6 @@ const DIFFICULTY_TIER_MAP: Record<string, DifficultyTier> = {
 
 function normalizeDifficultyTier(tier: string | undefined): DifficultyTier {
   return DIFFICULTY_TIER_MAP[tier ?? ""] ?? 2;
-}
-
-function getTaxonomyDomains(examName: string): string[] {
-  const map = taxonomy as unknown as Record<string, Record<string, string[]>>;
-  const examTaxonomy = map[examName];
-  if (!examTaxonomy) return [];
-  return Object.values(examTaxonomy).flat();
 }
 
 function buildTargetDomainsFromFocus(
@@ -127,7 +121,7 @@ async function generateAndCreateSession(
     targetDomains = buildTargetDomainsFromFocus(focusDomains, concepts);
   } else {
     // spaced_review or diagnostic — algorithmic domain selection
-    const taxonomyDomains = getTaxonomyDomains(profile.exam_name);
+    const taxonomyDomains = getDomainsForExam(profile.exam_name);
 
     if (focusDomains && focusDomains.length > 0) {
       const focusSet = new Set(focusDomains.map((d) => d.toLowerCase().trim()));

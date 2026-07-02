@@ -25,6 +25,8 @@ export interface ConceptMasteryRow {
   skill_domain: string;
   mastery_score: number;
   review_interval_days: number;
+  review_ease_factor?: number;
+  streak?: number;
   next_review_at: string;
   last_seen_at: string;
   total_attempted: number;

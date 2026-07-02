@@ -2,7 +2,7 @@
 import React from "react";
 import Katex from "@matejmazur/react-katex";
 import { FlattenedQuestion, Quiz, Question, QuestionGroup, StructuredContent } from "@/types/quiz";
-import { OptionSchema } from "@/lib/ai-utils";
+import { OptionSchema } from "@/lib/schemas/quiz";
 
 // ======================== Type Definitions ========================
 interface KatexProps {

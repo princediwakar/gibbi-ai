@@ -19,7 +19,7 @@ import {
   flattenTaxonomy,
   type PracticeDomainEntry,
 } from "../lib/geo-prompts";
-import { QuestionSchema } from "../lib/ai-utils";
+import { QuestionSchema } from "../lib/schemas/quiz";
 import { z } from "zod";
 import taxonomyRaw from "../lib/taxonomies.json";
 
