@@ -47,7 +47,7 @@ async function generateAndCreateSession(
   questionCount: number,
   focusDomains: string[] | undefined,
   profile: { exam_name: string; target_date: string; time_mode: string },
-): Promise<{ result?: SessionGenerationResult; error?: string; status?: number }> {
+): Promise<{ result?: SessionGenerationResult; error?: string; details?: string; status?: number }> {
   const { count: dailyCount } = await supabase
     .from("sessions")
     .select("*", { count: "exact", head: true })
@@ -158,8 +158,9 @@ async function generateAndCreateSession(
 
   const targetDomainNames = targetDomains.map((d) => d.skillDomain);
 
-  const maxTokens =
-    questionCount * 250 + 1000;
+  const maxTokens = questionCount * 250 + 1000;
+
+  console.log(`[SessionStart] model=${MODEL} baseURL=${(openai as any).baseURL || "default"} domains=${targetDomainNames.length} questions=${questionCount}`);
 
   const completion = await openai.chat.completions.create({
     model: MODEL,
@@ -177,13 +178,23 @@ async function generateAndCreateSession(
   let parsedResponse: Record<string, unknown>;
   try {
     parsedResponse = JSON.parse(rawResponse);
-  } catch {
-    return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, status: 500 };
+  } catch (parseErr) {
+    console.error("JSON parse failed. Raw response prefix:", rawResponse.slice(0, 500));
+    return {
+      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+      details: `Model returned invalid JSON: ${(parseErr as Error).message}`,
+      status: 500,
+    };
   }
 
   const questionsArray = parsedResponse?.questions;
   if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
-    return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, status: 500 };
+    console.error("No questions in response. Keys:", Object.keys(parsedResponse));
+    return {
+      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+      details: `Model returned ${questionsArray?.length ?? 0} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`,
+      status: 500,
+    };
   }
 
   const validatedQuestions: SessionQuestion[] = [];
@@ -222,7 +233,11 @@ async function generateAndCreateSession(
   }
 
   if (validatedQuestions.length === 0) {
-    return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, status: 500 };
+    return {
+      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+      details: `All ${(questionsArray as unknown[]).length} generated questions failed validation. Target domains: ${targetDomainNames.join(", ") || "none"}`,
+      status: 500,
+    };
   }
 
   const { data: session, error: insertError } = await supabase
@@ -307,7 +322,10 @@ export async function POST(req: NextRequest) {
       );
 
       if (genResult.error) {
-        return Response.json({ error: genResult.error }, { status: genResult.status ?? 500 });
+        return Response.json(
+          { error: genResult.error, details: genResult.details },
+          { status: genResult.status ?? 500 },
+        );
       }
 
       return Response.json({ session_id: genResult.result!.session_id });

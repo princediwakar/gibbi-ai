@@ -286,7 +286,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
 
       if (!sessionRes.ok) {
         const errBody = await sessionRes.json().catch(() => null);
-        toast.error(errBody?.error ?? "Failed to start your practice session.");
+        toast.error(errBody?.details || errBody?.error ?? "Failed to start your practice session.");
         setIsSubmitting(false);
         return;
       }

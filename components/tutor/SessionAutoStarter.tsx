@@ -34,7 +34,7 @@ export function SessionAutoStarter({
 
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || "Failed to start session");
+          throw new Error(body.details || body.error || "Failed to start session");
         }
 
         const { session_id } = await res.json();
