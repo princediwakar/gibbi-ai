@@ -46,6 +46,12 @@ export async function GET() {
   const totalQuizSitemaps = Math.ceil(totalQuizzes / quizzesPerSitemap);
   const totalSubjectSitemaps = Math.ceil(totalSubjects / subjectsPerSitemap);
 
+  // Practice sitemaps: one sitemap for all domains from taxonomies.json
+  const practiceSitemaps = [{ id: 1 }];
+
+  // Insights sitemaps: one sitemap for all insights pages
+  const insightsSitemaps = [{ id: 1 }];
+
   // Create sitemap index XML
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
@@ -75,10 +81,28 @@ export async function GET() {
   </sitemap>`;
   }
 
+  // Add practice sitemaps
+  for (const sitemap of practiceSitemaps) {
+    xml += `
+  <sitemap>
+    <loc>${baseUrl}/sitemap-practice/${sitemap.id}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+  </sitemap>`;
+  }
+
+  // Add insights sitemaps
+  for (const sitemap of insightsSitemaps) {
+    xml += `
+  <sitemap>
+    <loc>${baseUrl}/sitemap-insights/${sitemap.id}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+  </sitemap>`;
+  }
+
   xml += `
 </sitemapindex>`;
 
-  console.log(`[sitemap-index] Generated index with ${1 + totalQuizSitemaps + totalSubjectSitemaps} sitemaps`);
+  console.log(`[sitemap-index] Generated index with ${1 + totalQuizSitemaps + totalSubjectSitemaps + practiceSitemaps.length + insightsSitemaps.length} sitemaps`);
 
   return new Response(xml, {
     status: 200,

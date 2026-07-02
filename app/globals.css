@@ -4,6 +4,7 @@
 
 html {
   touch-action: manipulation;
+  @apply bg-background;
 }
 
 body {

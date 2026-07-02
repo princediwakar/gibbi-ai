@@ -373,6 +373,49 @@ export async function POST(request: NextRequest) {
     const correctCount = results.filter((qr) => qr.is_correct).length;
     const domainsCovered = [...new Set(results.map((qr) => qr.skill_domain))];
 
+    // Build map of question_id -> result for hardest-question detection
+    const resultByQid = new Map<string, QuestionResultRow>();
+    for (const qr of results) {
+      resultByQid.set(qr.question_id, qr);
+    }
+
+    // Find the hardest question: highest difficulty_tier, then longest time, then incorrect
+    let hardestQuestion: { question: SessionQuestion; result: QuestionResultRow } | null = null;
+    for (const q of questions) {
+      const result = resultByQid.get(q.question_id);
+      if (!result) continue;
+
+      if (!hardestQuestion) {
+        hardestQuestion = { question: q, result };
+      } else {
+        const currTier = q.difficulty_tier;
+        const bestTier = hardestQuestion.question.difficulty_tier;
+        if (currTier > bestTier) {
+          hardestQuestion = { question: q, result };
+        } else if (currTier === bestTier) {
+          const currTime = result.time_to_answer_ms ?? 0;
+          const bestTime = hardestQuestion.result.time_to_answer_ms ?? 0;
+          if (currTime > bestTime) {
+            hardestQuestion = { question: q, result };
+          } else if (
+            currTime === bestTime &&
+            !result.is_correct &&
+            hardestQuestion.result.is_correct
+          ) {
+            hardestQuestion = { question: q, result };
+          }
+        }
+      }
+    }
+
+    // Identify mastered domains: mastery went from <0.7 to >=0.7
+    const masteredDomains: string[] = [];
+    for (const delta of masteryDeltas) {
+      if (delta.before < 0.7 && delta.after >= 0.7) {
+        masteredDomains.push(delta.domain);
+      }
+    }
+
     const cardData = {
       exam_name: examProfile.exam_name,
       session_date: nowIso,
@@ -384,6 +427,17 @@ export async function POST(request: NextRequest) {
       mastery_deltas: masteryDeltas,
       readiness_before: Math.round(readinessBefore),
       readiness_after: Math.round(readinessAfter),
+      hardest_question: hardestQuestion
+        ? {
+            question_text: hardestQuestion.question.question_text,
+            options: hardestQuestion.question.options,
+            correct_option: hardestQuestion.question.correct_option,
+            explanation: hardestQuestion.question.explanation,
+            skill_domain: hardestQuestion.question.skill_domain,
+            difficulty_tier: hardestQuestion.question.difficulty_tier,
+          }
+        : null,
+      mastered_domains: masteredDomains.length > 0 ? masteredDomains : null,
     };
 
     if (conceptMasteryUpserts.length > 0) {

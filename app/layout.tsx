@@ -8,7 +8,7 @@ import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 import { createClient } from "@/lib/supabase/server";
 import { computeStreak } from "@/lib/utils";
 import { Metadata, Viewport } from "next";
-import StructuredData, { websiteSchema, organizationSchema } from "@/components/seo/StructuredData";
+import StructuredData, { websiteSchema, organizationSchema, educationalOrgSchema, educationalAppSchema } from "@/components/seo/StructuredData";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
@@ -16,14 +16,14 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://gibbi.vercel.app";
 
 export const metadata: Metadata = {
     title: {
-        default: "GibbiAI - Test Your Knowledge",
-        template: "%s - Gibbi AI",
+        default: "GibbiAI — Free AI-Powered Exam Prep for JEE, NEET, UPSC & More",
+        template: "%s | GibbiAI",
     },
-    description: "Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
-    keywords: ["quiz", "trivia", "knowledge test", "education", "learning"],
+    description: "Free AI-powered exam preparation for JEE Main, NEET, UPSC, GMAT, CAT, and more. Adaptive spaced repetition, personalized diagnostics, and detailed distractor analysis.",
+    keywords: ["exam prep", "JEE Main", "NEET", "UPSC", "AI tutor", "spaced repetition", "practice questions", "free test prep", "competitive exams", "diagnostic test"],
     openGraph: {
-        title: "GibbiAI - Test Your Knowledge",
-        description: "Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
+        title: "GibbiAI — Free AI-Powered Exam Prep for JEE, NEET, UPSC & More",
+        description: "Free AI-powered exam preparation with adaptive spaced repetition. Personalized diagnostics, distractor analysis, and 10 exam tracks.",
         url: baseUrl,
         siteName: "GibbiAI",
         images: [{ url: `${baseUrl}/api/og?type=home`, width: 1200, height: 630 }],
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "GibbiAI - Test Your Knowledge",
-        description: "Create, share, and take quizzes on any topic. Join GibbiAI to challenge yourself and others!",
+        title: "GibbiAI — Free AI-Powered Exam Prep",
+        description: "Free AI-powered exam preparation for JEE, NEET, UPSC, GMAT, CAT. Adaptive spaced repetition with personalized diagnostics.",
         images: [`${baseUrl}/api/og?type=home`],
     },
     icons: { icon: "/icon.ico" },
@@ -109,6 +109,8 @@ export default async function RootLayout({
                 >
                     <StructuredData schema={websiteSchema} />
                     <StructuredData schema={organizationSchema} />
+                    <StructuredData schema={educationalOrgSchema} />
+                    <StructuredData schema={educationalAppSchema} />
                     <AppShell sidebarData={sidebarData}>
                         {children}
                         <FeedbackWidget />

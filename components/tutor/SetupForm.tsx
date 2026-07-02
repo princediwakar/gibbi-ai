@@ -290,8 +290,32 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
   const [step, setStep] = useState(1);
 
   // ---- Form state ----
-  const [exam, setExam] = useState<string>(prefill?.exam ?? "");
-  const [targetDate, setTargetDate] = useState<string>(prefill?.targetDate ?? "");
+  const [exam, setExam] = useState<string>(() => {
+    if (prefill?.exam) return prefill.exam;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("landingPrefill");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return parsed.exam ?? "";
+        }
+      } catch { /* ignore corrupt localStorage */ }
+    }
+    return "";
+  });
+  const [targetDate, setTargetDate] = useState<string>(() => {
+    if (prefill?.targetDate) return prefill.targetDate;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("landingPrefill");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return parsed.targetDate ?? "";
+        }
+      } catch { /* ignore corrupt localStorage */ }
+    }
+    return "";
+  });
   const [assessments, setAssessments] = useState<Record<string, SelfAssessment>>(
     prefill?.assessments ?? {}
   );
@@ -307,6 +331,13 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
   useEffect(() => {
     const timer = setTimeout(() => selectRef.current?.focus(), 150);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Consume landing page prefill from localStorage, then clear it
+  useEffect(() => {
+    try {
+      localStorage.removeItem("landingPrefill");
+    } catch { /* ignore */ }
   }, []);
 
   // ---- Derived ----

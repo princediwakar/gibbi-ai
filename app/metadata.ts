@@ -1,22 +1,28 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "GibbiAI - Practice Tests That Find What You Don't Know",
+	title: {
+		default: "GibbiAI — Free AI-Powered Exam Prep for JEE, NEET, UPSC & More",
+		template: "%s | GibbiAI",
+	},
 	description:
-		"Paste your notes or upload a PDF. Get practice tests in seconds. No card-making, no setup—just study what you don't know.",
+		"Free AI-powered exam preparation for JEE Main, NEET, UPSC, GMAT, CAT, and more. Adaptive spaced repetition, personalized diagnostics, and detailed distractor analysis. Start your free diagnostic in 5 minutes.",
 	keywords: [
-		"test prep",
 		"exam prep",
-		"practice test",
-		"AI study app",
-		"flashcard alternative",
-		"education",
-		"learning",
+		"JEE Main preparation",
+		"NEET preparation",
+		"UPSC preparation",
+		"AI tutor",
+		"spaced repetition",
+		"practice questions",
+		"free test prep",
+		"diagnostic test",
+		"competitive exams",
 	],
 	openGraph: {
-		title: "GibbiAI - Practice Tests That Find What You Don't Know",
+		title: "GibbiAI — Free AI-Powered Exam Prep for JEE, NEET, UPSC & More",
 		description:
-			"Paste your notes or upload a PDF. Get practice tests in seconds. No card-making, no setup—just study what you don't know.",
+			"Free AI-powered exam preparation with adaptive spaced repetition. Personalized diagnostics, distractor analysis, and 10 exam tracks including JEE, NEET, UPSC, and GMAT.",
 		url: process.env.NEXT_PUBLIC_BASE_URL,
 		siteName: "GibbiAI",
 		images: [
@@ -31,9 +37,9 @@ export const metadata: Metadata = {
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "GibbiAI - AI-Powered Test Prep",
+		title: "GibbiAI — Free AI-Powered Exam Prep",
 		description:
-			"Turn any study material into practice tests. AI-powered test prep that helps you master any subject and ace your exams.",
+			"Free AI-powered exam preparation for JEE, NEET, UPSC, GMAT, CAT. Adaptive spaced repetition with personalized diagnostics.",
 		images: [
 			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 		],

@@ -1,26 +1,31 @@
-import InfoLanding from '@/components/landing/InfoLanding'
-import HeroSection from '@/components/landing/HeroSection'
-import { infos } from '@/config/landing'
-import Features from '@/components/landing/Features'
-import BentoGrid from '@/components/landing/BentoGrid'
-import Testimonials from '@/components/landing/Testimonials'
-import SiteFooter from '@/components/landing/SiteFooter'
-import CTA from '@/components/landing/CTA'
-// import QuickQuizStart from '@/components/landing/QuickQuizStart'
+// Path: app/landing/students/page.tsx
 
-const StudentsLanding = () => {
+import dynamic from "next/dynamic";
+import InteractiveDemoHero from "@/components/landing/InteractiveDemoHero";
+import CognitiveFlowSection from "@/components/landing/CognitiveFlowSection";
+import ReliefComparisonSection from "@/components/landing/ReliefComparisonSection";
+import CTA from "@/components/landing/CTA";
+import SiteFooter from "@/components/landing/SiteFooter";
+
+const SocialProofSection = dynamic(
+  () => import("@/components/landing/SocialProofSection"),
+);
+const PeerInsightsSection = dynamic(
+  () => import("@/components/landing/PeerInsightsSection"),
+);
+
+const StudentsLanding = async () => {
   return (
     <div>
-        <HeroSection />
-        {/* <QuickQuizStart /> */}
-        <InfoLanding data={infos[0]} reverse={true}/>
-        <Features />
-        <BentoGrid />
-        <Testimonials />
-        <CTA />
-        <SiteFooter />
+      <InteractiveDemoHero />
+      <SocialProofSection />
+      <CognitiveFlowSection />
+      <ReliefComparisonSection />
+      <PeerInsightsSection />
+      <CTA />
+      <SiteFooter />
     </div>
-  )
-}
+  );
+};
 
-export default StudentsLanding
+export default StudentsLanding;

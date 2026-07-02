@@ -4,7 +4,17 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, TrendingUp, Award, Target } from "lucide-react";
+import {
+  ArrowRight,
+  TrendingUp,
+  Award,
+  Target,
+  Brain,
+  CheckCircle2,
+} from "lucide-react";
+import StructuredData, {
+  breadcrumbSchema,
+} from "@/components/seo/StructuredData";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -16,13 +26,25 @@ interface MasteryDelta {
   after: number;
 }
 
+interface HardestQuestion {
+  question_text: string;
+  options: Record<string, string>;
+  correct_option: string;
+  explanation: string;
+  skill_domain: string;
+  difficulty_tier: number;
+}
+
 interface CardData {
   exam_name?: string;
   score?: number;
   total_questions?: number;
+  correct_count?: number;
   mastery_delta?: MasteryDelta[];
   topics?: string[];
   time_taken?: number;
+  hardest_question?: HardestQuestion;
+  mastered_domains?: string[];
 }
 
 export async function generateMetadata({
@@ -48,20 +70,25 @@ export async function generateMetadata({
 
     const cd = card.card_data as CardData;
     const examName = cd.exam_name || "Practice Session";
-    const score = cd.score ?? 0;
+    const score = cd.correct_count ?? cd.score ?? 0;
     const total = cd.total_questions ?? 0;
     const pct = total > 0 ? Math.round((score / total) * 100) : 0;
     const improvedCount =
       cd.mastery_delta?.filter((d) => d.after > d.before).length ?? 0;
+    const hardestDomain = cd.hardest_question?.skill_domain;
 
     const ogImageUrl = `${baseUrl}/api/og?type=session&title=${encodeURIComponent(
       `${examName}: ${pct}%`
     )}&topic=${encodeURIComponent(`Score: ${score}/${total}`)}`;
 
-    const description =
-      improvedCount > 0
-        ? `Improved in ${improvedCount} topics. Start your free prep on GibbiAI.`
-        : `Scored ${score}/${total}. Start your free prep on GibbiAI.`;
+    let description: string;
+    if (improvedCount > 0) {
+      description = `Improved in ${improvedCount} topics. Start your free prep on GibbiAI.`;
+    } else if (hardestDomain) {
+      description = `Scored ${score}/${total} on ${examName}. Practiced ${hardestDomain}. Start your free prep on GibbiAI.`;
+    } else {
+      description = `Scored ${score}/${total}. Start your free prep on GibbiAI.`;
+    }
 
     return {
       title: `${examName}: ${score}/${total} (${pct}%)`,
@@ -139,14 +166,46 @@ export default async function ShareCardPage({ params }: PageProps) {
 
   const cd = card.card_data as CardData;
   const examName = cd.exam_name || "Practice Session";
-  const score = cd.score ?? 0;
+  const score = cd.correct_count ?? cd.score ?? 0;
   const total = cd.total_questions ?? 0;
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const masteryDelta: MasteryDelta[] = cd.mastery_delta ?? [];
   const improvedTopics = masteryDelta.filter((d) => d.after > d.before);
+  const hardestQuestion = cd.hardest_question ?? null;
+  const masteredDomains = cd.mastered_domains ?? null;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "https://gibbi.vercel.app";
+
+  const allDomains: string[] = [
+    ...new Set([
+      ...(hardestQuestion ? [hardestQuestion.skill_domain] : []),
+      ...(masteredDomains || []),
+      ...masteryDelta.map((d) => d.domain),
+    ]),
+  ];
+
+  const learningResourceSchema = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    educationalLevel: examName,
+    teaches: allDomains.length > 0 ? allDomains : undefined,
+    educationalUse: "Practice Session Results",
+  };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-8 sm:py-12">
+    <>
+      <StructuredData schema={learningResourceSchema} />
+      <StructuredData
+        schema={breadcrumbSchema([
+          { name: "Home", url: baseUrl },
+          {
+            name: `${examName} Session Results`,
+            url: `${baseUrl}/s/${token}`,
+          },
+        ])}
+      />
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-8 sm:py-12">
       <div className="w-full max-w-lg">
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 shadow-2xl">
           <div
@@ -244,6 +303,89 @@ export default async function ShareCardPage({ params }: PageProps) {
               </div>
             )}
 
+            {hardestQuestion && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Brain className="w-4 h-4 text-purple-400" />
+                  <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    The Hardest Question
+                  </h2>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                  <p className="text-sm text-slate-200 leading-relaxed mb-4">
+                    {hardestQuestion.question_text}
+                  </p>
+
+                  <div className="space-y-2 mb-4">
+                    {Object.entries(hardestQuestion.options).map(
+                      ([letter, text]) => {
+                        const isCorrect =
+                          letter === hardestQuestion.correct_option;
+                        return (
+                          <div
+                            key={letter}
+                            className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${
+                              isCorrect
+                                ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300"
+                                : "bg-slate-800/50 border border-transparent text-slate-400"
+                            }`}
+                          >
+                            <span
+                              className={`font-semibold mt-0.5 ${
+                                isCorrect ? "text-emerald-400" : "text-slate-500"
+                              }`}
+                            >
+                              {letter}.
+                            </span>
+                            <span>{text}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-indigo-400 hover:text-indigo-300">
+                      See explanation
+                    </summary>
+                    <div className="mt-3 text-sm text-slate-300 leading-relaxed">
+                      {hardestQuestion.explanation}
+                    </div>
+                  </details>
+
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      {hardestQuestion.skill_domain}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 capitalize">
+                      Tier {hardestQuestion.difficulty_tier}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {masteredDomains && masteredDomains.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    Topics Mastered
+                  </h2>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {masteredDomains.map((domain) => (
+                    <span
+                      key={domain}
+                      className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                    >
+                      {domain}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3">
               <Link
                 href="/setup"
@@ -270,5 +412,6 @@ export default async function ShareCardPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
