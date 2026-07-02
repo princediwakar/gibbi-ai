@@ -515,7 +515,7 @@ export default function InteractiveDemoHero() {
                     </div>
                   </div>
 
-                  <p className="mt-4 text-center text-xs text-muted-foreground/70">
+                  <p className="mt-4 text-center text-sm text-muted-foreground/70">
                     No sign-in required to explore. Your results are private and
                     tailored to your exam.
                   </p>

@@ -140,7 +140,7 @@ function SegmentedControl({
 }) {
   return (
     <div
-      className="inline-flex rounded-lg border border-input bg-muted/40 dark:bg-white/[0.04] p-0.5 gap-0.5"
+      className="inline-flex rounded-lg p-0.5 gap-0.5"
       role="radiogroup"
     >
       {ASSESSMENT_LEVELS.map((level) => {
@@ -161,8 +161,8 @@ function SegmentedControl({
               isSelected
                 ? cn(colors.selected, "shadow-sm")
                 : cn(
-                    "text-muted-foreground dark:text-foreground/55 border-transparent bg-transparent",
-                    "hover:bg-muted hover:text-foreground dark:hover:bg-white/[0.12] dark:hover:text-foreground",
+                    "text-foreground/70 bg-transparent border border-input",
+                    "hover:text-foreground hover:border-foreground/30",
                   ),
             )}
           >
@@ -576,7 +576,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
                     <Label className="text-sm font-medium">
                       Rate your current understanding
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-sm text-muted-foreground mt-0.5">
                       Be honest — this helps us tailor difficulty to your actual level.
                     </p>
                   </div>
@@ -614,7 +614,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
                 <Label className="text-sm font-medium">
                   What are you studying this week?
                 </Label>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   Select 1–{TUTOR_CONFIG.ACTIVE_TARGET_MAX_TOPICS} topics you are actively working on.
                   This helps us focus your practice on what matters most right now.
                 </p>
@@ -728,7 +728,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
               </div>
 
               {/* Selection count hint */}
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 {activeTargets.length === 0
                   ? "Select at least 1 topic to continue."
                   : `${activeTargets.length} of ${TUTOR_CONFIG.ACTIVE_TARGET_MAX_TOPICS} topics selected.`}
@@ -762,7 +762,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
               <div className="grid gap-3">
                 <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
                   <p className="text-sm font-medium">Why an initial assessment?</p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     We measure what you know right now across every topic. No studying
                     required — just 5 quick questions to map your strengths and gaps.
                   </p>
@@ -770,7 +770,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
 
                 <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
                   <p className="text-sm font-medium">What happens next?</p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     After the assessment, you will get a personalized dashboard with your
                     readiness index, weak spots, and a daily review plan tuned to your
                     exam date.
@@ -907,7 +907,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
 
       {/* Step 2 validation hint */}
       {step === 2 && !step2Valid && activeTargets.length === 0 && (
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+        <p className="mt-3 text-center text-sm text-muted-foreground">
           Select at least 1 topic to continue.
         </p>
       )}
@@ -930,7 +930,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
 
       {/* Step 1 validation hint */}
       {step === 1 && !step1Valid && exam && targetDate && !allAssessed && (
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+        <p className="mt-3 text-center text-sm text-muted-foreground">
           Rate all subjects above to continue.
         </p>
       )}
