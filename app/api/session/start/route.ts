@@ -187,12 +187,13 @@ async function generateAndCreateSession(
     };
   }
 
-  const questionsArray = parsedResponse?.questions;
+  const questionsArray = parsedResponse?.questions as unknown[] | undefined;
   if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
+    const arrLen = Array.isArray(questionsArray) ? questionsArray.length : 0;
     console.error("No questions in response. Keys:", Object.keys(parsedResponse));
     return {
       error: TUTOR_ERRORS.AI_GENERATION_FAILED,
-      details: `Model returned ${questionsArray?.length ?? 0} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`,
+      details: `Model returned ${arrLen} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`,
       status: 500,
     };
   }
