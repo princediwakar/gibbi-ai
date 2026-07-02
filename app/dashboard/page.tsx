@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { TUTOR_ROUTES } from "@/lib/constants/tutor";
-import { calculateReadinessIndex, getTimeMode } from "@/lib/sm2";
+import { calculateWeightedReadinessIndex, getTimeMode } from "@/lib/sm2";
 import { DashboardView, DashboardViewLoading } from "@/components/tutor/DashboardView";
 import type { ExamProfile, ConceptMastery, TimeMode } from "@/types/tutor";
 import taxonomy from "@/lib/taxonomies.json";
@@ -42,6 +42,9 @@ export interface DashboardPageData {
   };
   examName: string;
   profileId: string;
+  activeTargets: string[];
+  overdueDomainCount: number;
+  customMockCountToday: number;
 }
 
 function computeDirective(concepts: ConceptRow[], daysRemaining: number): string {
@@ -111,6 +114,35 @@ async function DashboardPageContent() {
     redirect("/");
   }
 
+  // --- Diagnostic Gatekeeper ---
+  // Step 1: Check for an active diagnostic session
+  const { data: diagnosticSession } = await supabase
+    .from("sessions")
+    .select("id, status, session_intent")
+    .eq("user_id", user.id)
+    .eq("session_intent", "diagnostic")
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Step 2: Check concept_mastery count
+  const { count: conceptCount } = await supabase
+    .from("concept_mastery")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  // Step 3: Force redirect to active diagnostic session if one exists
+  if (diagnosticSession) {
+    redirect(TUTOR_ROUTES.SESSION(diagnosticSession.id));
+  }
+
+  // Step 4: If no concept_mastery rows AND no diagnostic session, redirect to setup
+  if ((conceptCount ?? 0) === 0) {
+    redirect(TUTOR_ROUTES.SETUP);
+  }
+
+  // --- Fetch all dashboard data in parallel ---
   const [
     profileRes,
     conceptsRes,
@@ -118,6 +150,8 @@ async function DashboardPageContent() {
     recentSessionsRes,
     questionResultsRes,
     completedSessionsRes,
+    customMockTodayRes,
+    overdueCountRes,
   ] = await Promise.all([
     supabase
       .from("exam_profiles")
@@ -152,6 +186,17 @@ async function DashboardPageContent() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("status", "completed"),
+    supabase
+      .from("sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("session_intent", "custom_mock")
+      .gte("created_at", new Date().toISOString().slice(0, 10)),
+    supabase
+      .from("concept_mastery")
+      .select("id")
+      .eq("user_id", user.id)
+      .lt("next_review_at", new Date().toISOString()),
   ]);
 
   if (profileRes.error || !profileRes.data) {
@@ -163,6 +208,9 @@ async function DashboardPageContent() {
   const activeSessions = (activeSessionsRes.data || []) as { id: string; created_at: string }[];
   const recentSessions = (recentSessionsRes.data || []) as SessionRow[];
   const questionResults = (questionResultsRes.data || []) as { answered_at: string }[];
+
+  const customMockCountToday = customMockTodayRes.count ?? 0;
+  const overdueDomainCount = overdueCountRes.count ?? 0;
 
   const examTaxonomy = taxonomy as unknown as Record<string, Record<string, string[]>>;
   const examSubjects = examTaxonomy[profile.exam_name];
@@ -183,7 +231,7 @@ async function DashboardPageContent() {
 
   const readinessIndex = Math.round(
     allDomains.length > 0
-      ? calculateReadinessIndex(masteryMap, allDomains)
+      ? calculateWeightedReadinessIndex(masteryMap, allDomains)
       : 0
   );
 
@@ -215,6 +263,9 @@ async function DashboardPageContent() {
     },
     examName: profile.exam_name,
     profileId: profile.profile_id,
+    activeTargets: profile.active_targets ?? [],
+    overdueDomainCount,
+    customMockCountToday,
   };
 
   return <DashboardView data={data} />;

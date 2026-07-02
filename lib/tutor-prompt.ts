@@ -166,6 +166,43 @@ export function formatDomainMasteryLine(domain: TargetDomain): string {
 
 // ----- Difficulty Distribution Calculator -----
 
+// ----- Diagnostic User Message Builder -----
+
+export interface DiagnosticStrata {
+  name: string;
+  domains: string[];
+}
+
+export interface DiagnosticUserMessageParams {
+  examName: string;
+  examYear: string;
+  strata: DiagnosticStrata[];
+}
+
+export function buildDiagnosticUserMessage(
+  params: DiagnosticUserMessageParams,
+): string {
+  const { examName, examYear, strata } = params;
+
+  const strataLines = strata
+    .map((s) => `- ${s.name}: ${s.domains.join(", ")}`)
+    .join("\n");
+
+  return `CONTEXT: ${examName} ${examYear} | Mode: Diagnostic (5 questions)
+
+DIAGNOSTIC STRATA:
+${strataLines}
+
+EXECUTION DIRECTIVE:
+Generate exactly 5 questions — one per stratum listed above. Each question must:
+1. Test fundamental, cross-cutting understanding of the stratum's domain cluster. Do NOT target a single topic within the cluster.
+2. Require connecting concepts across at least two domains in the cluster to reach the correct answer.
+3. Use the standard conventions for the exam (SI, IUPAC where applicable).
+4. Include plausible distractors derived from common errors within that stratum.
+
+CRITICAL: One question per stratum. Output raw JSON matching the schema. Do not repeat questions.`;
+}
+
 export function computeDifficultyDistribution(
   questionCount: number,
   timeMode: TimeMode,

@@ -1,5 +1,7 @@
 // Path: lib/sm2.ts
 
+import { PREREQUISITE_WEIGHTS } from '@/lib/constants/tutor';
+
 type TimeMode = 'foundation' | 'acceleration' | 'triage';
 
 interface SM2State {
@@ -95,4 +97,79 @@ export function getTimeMode(daysRemaining: number): TimeMode {
 
 export function getDifficultyDistribution(timeMode: TimeMode): { easy: number; medium: number; hard: number } {
   return { ...DIFFICULTY_DISTRIBUTIONS[timeMode] };
+}
+
+// ----- Anti-Gaming Guardrails -----
+
+export async function getManualAttemptsToday(
+  userId: string,
+  supabase: any,
+): Promise<Map<string, number>> {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: sessions, error } = await supabase
+    .from('sessions')
+    .select('target_domains')
+    .eq('user_id', userId)
+    .in('session_intent', ['active_target', 'custom_mock'])
+    .gt('created_at', twentyFourHoursAgo);
+
+  if (error || !sessions) {
+    console.warn('Failed to fetch manual attempts:', error?.message ?? 'no data');
+    return new Map();
+  }
+
+  const countMap = new Map<string, number>();
+  for (const session of sessions) {
+    const domains: string[] = session.target_domains ?? [];
+    if (Array.isArray(domains)) {
+      for (const domain of domains) {
+        countMap.set(domain, (countMap.get(domain) ?? 0) + 1);
+      }
+    }
+  }
+
+  return countMap;
+}
+
+export function applyLogarithmicDecay(delta: number, manualCount: number): number {
+  if (manualCount > 1) return delta / manualCount;
+  return delta;
+}
+
+export function computeEarlyReviewPush(
+  score: number,
+  currentNextReview: Date,
+): number | null {
+  if (score !== 1.0) return null;
+
+  const now = new Date();
+  const daysUntilReview =
+    (currentNextReview.getTime() - now.getTime()) / (24 * 60 * 60 * 1000);
+
+  if (daysUntilReview >= 4) return 14;
+  return null;
+}
+
+export function calculateWeightedReadinessIndex(
+  masteryScores: Record<string, number>,
+  taxonomyDomains: string[],
+  weights?: Record<string, number>,
+): number {
+  let weightedSum = 0;
+  let weightSum = 0;
+
+  for (const domain of taxonomyDomains) {
+    const weight =
+      weights?.[domain] ??
+      PREREQUISITE_WEIGHTS[domain] ??
+      1.0;
+    const score = masteryScores[domain] ?? 0;
+
+    weightedSum += score * weight;
+    weightSum += weight;
+  }
+
+  if (weightSum === 0) return 0;
+  return (weightedSum / weightSum) * 100;
 }

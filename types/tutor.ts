@@ -6,6 +6,8 @@ export type SelfAssessment = 'weak' | 'okay' | 'strong';
 
 export type SessionStatus = 'active' | 'completed' | 'abandoned';
 
+export type SessionIntent = 'spaced_review' | 'active_target' | 'custom_mock' | 'diagnostic';
+
 export type CardType = 'session' | 'recovery';
 
 export type DifficultyTier = 1 | 2 | 3;
@@ -19,6 +21,7 @@ export interface ExamProfile {
   target_date: string;
   time_mode: TimeMode;
   is_active: boolean;
+  active_targets: string[];
   created_at: string;
   updated_at: string | null;
 }
@@ -60,6 +63,7 @@ export interface TutorSession {
   exam_profile_id: string;
   questions_json: SessionQuestion[];
   target_domains: string[];
+  session_intent: SessionIntent;
   status: SessionStatus;
   created_at: string;
   completed_at: string | null;
@@ -121,12 +125,16 @@ export type ExamTaxonomy = {
 
 export type SessionStartInput = {
   exam_profile_id: string;
+  session_intent?: SessionIntent;
+  focus_domains?: string[];
+  question_count?: number;
 };
 
 export type SessionStartOutput = {
   session_id: string;
   questions: SessionQuestion[];
   target_domains: string[];
+  session_intent: SessionIntent;
 };
 
 export type SessionAnswerInput = {

@@ -30,6 +30,13 @@ export const TUTOR_ERRORS = {
     "We had trouble generating your questions. Check your connection and try again.",
 } as const;
 
+export const SESSION_INTENTS = {
+  SPACED_REVIEW: 'spaced_review',
+  ACTIVE_TARGET: 'active_target',
+  CUSTOM_MOCK: 'custom_mock',
+  DIAGNOSTIC: 'diagnostic',
+} as const;
+
 export const TUTOR_CONFIG = {
   DEFAULT_QUESTION_COUNT: Number(process.env.NEXT_PUBLIC_TUTOR_DEFAULT_QUESTION_COUNT) || 10,
   MAX_QUESTION_COUNT: Number(process.env.NEXT_PUBLIC_TUTOR_MAX_QUESTION_COUNT) || 50,
@@ -48,6 +55,9 @@ export const TUTOR_CONFIG = {
   REVEAL_ANSWER_COOLDOWN_MS:
     Number(process.env.NEXT_PUBLIC_REVEAL_ANSWER_COOLDOWN_MS) || 3000,
   MAX_DAILY_SESSIONS: Number(process.env.MAX_DAILY_SESSIONS) || 10,
+  MAX_CUSTOM_MOCK_PER_DAY: 2,
+  ACTIVE_TARGET_MAX_TOPICS: 3,
+  DIAGNOSTIC_QUESTION_COUNT: 5,
   TEMPORAL_THRESHOLDS: {
     foundation: 90,
     acceleration: 30,
@@ -63,6 +73,22 @@ export const TUTOR_CONFIG = {
     strong: 0.75,
   },
 } as const;
+
+export const PREREQUISITE_WEIGHTS: Record<string, number> = {
+  Calculus: 1.5,
+  Algebra: 1.3,
+  Trigonometry: 1.2,
+  'Laws of Motion': 1.3,
+  Kinematics: 1.2,
+  'Work, Energy and Power': 1.2,
+  Thermodynamics: 1.1,
+  Electrostatics: 1.1,
+  'Modern Physics': 1.0,
+  'Atomic Structure': 1.1,
+  'Chemical Bonding': 1.1,
+  'Coordination Compounds': 0.9,
+  'Complex Numbers': 1.0,
+};
 
 export const TUTOR_AI_CONFIG = {
   MODEL: process.env.TUTOR_AI_MODEL || "deepseek-v4-flash",

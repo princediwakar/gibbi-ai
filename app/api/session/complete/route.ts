@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { SessionCompleteSchema } from "@/lib/validations/tutor";
-import { gradeQuality, updateSM2, calculateReadinessIndex } from "@/lib/sm2";
+import { gradeQuality, updateSM2, calculateReadinessIndex, getManualAttemptsToday, applyLogarithmicDecay, computeEarlyReviewPush } from "@/lib/sm2";
 import { TUTOR_CONFIG } from "@/lib/constants/tutor";
+import { seedDiagnosticPriors } from "@/lib/diagnostic-seed";
 import type { SessionQuestion } from "@/types/tutor";
 import taxonomies from "@/lib/taxonomies.json";
 
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error: sessionError } = await supabase
       .from("sessions")
-      .select("id, user_id, exam_profile_id, questions_json, status")
+      .select("id, user_id, exam_profile_id, questions_json, target_domains, session_intent, status")
       .eq("id", session_id)
       .single();
 
@@ -151,7 +152,73 @@ export async function POST(request: NextRequest) {
     for (const row of existingMastery || []) {
       beforeScores[row.skill_domain] = row.mastery_score;
     }
+    const now = new Date();
+    const nowIso = now.toISOString();
+
     const readinessBefore = calculateReadinessIndex(beforeScores, allDomains);
+
+    const sessionIntent: string = (session as any).session_intent ?? "spaced_review";
+
+    // ----- Diagnostic Path: Seed Priors & Skip SM-2 -----
+    if (sessionIntent === "diagnostic") {
+      const diagnosticResults = (questionResults || []).map((qr) => {
+        const qMeta = questionMap.get(qr.question_id);
+        return {
+          skill_domain: qr.skill_domain,
+          is_correct: qr.is_correct,
+          time_to_answer_ms: qr.time_to_answer_ms ?? 0,
+          time_estimate_seconds: qMeta?.time_estimate_seconds ?? 60,
+        };
+      });
+
+      const { readinessIndex } = await seedDiagnosticPriors({
+        userId: user.id,
+        examProfileId: session.exam_profile_id,
+        sessionId: session.id,
+        examName: examProfile.exam_name,
+        questionResults: diagnosticResults as any,
+      });
+
+      const cardData = {
+        exam_name: examProfile.exam_name,
+        session_date: nowIso,
+        total_questions: (questionResults || []).length,
+        correct_count: (questionResults || []).filter((qr) => qr.is_correct).length,
+        score_pct: (questionResults || []).length > 0
+          ? Math.round(((questionResults || []).filter((qr) => qr.is_correct).length / (questionResults || []).length) * 100)
+          : 0,
+        time_mode: examProfile.time_mode,
+        domains_covered: [...new Set((questionResults || []).map((qr) => qr.skill_domain))],
+        mastery_deltas: [],
+        readiness_before: Math.round(readinessBefore),
+        readiness_after: Math.round(readinessIndex),
+      };
+
+      const { data: cardRows, error: cardError } = await supabaseAdmin
+        .from("result_cards")
+        .insert({ user_id: user.id, card_type: "session", card_data: cardData })
+        .select("share_token")
+        .single();
+
+      const shareToken = cardRows?.share_token ?? "diagnostic";
+
+      await supabase
+        .from("sessions")
+        .update({ status: "completed", completed_at: nowIso })
+        .eq("id", session_id);
+
+      return NextResponse.json({
+        mastery_updates: [],
+        readiness_index: Math.round(readinessIndex),
+        share_token: shareToken,
+      });
+    }
+
+    // ----- Fetch Manual Attempts for Active Target Decay -----
+    let manualAttempts: Map<string, number> = new Map();
+    if (sessionIntent === "active_target") {
+      manualAttempts = await getManualAttemptsToday(user.id, supabase);
+    }
 
     const domainResults = new Map<string, QuestionResultRow[]>();
     for (const qr of questionResults || []) {
@@ -176,6 +243,7 @@ export async function POST(request: NextRequest) {
       exam_profile_id: string;
       skill_domain: string;
       mastery_score: number;
+      recorded_at: string;
     }> = [];
     const conceptMasteryUpserts: Array<{
       user_id: string;
@@ -188,9 +256,6 @@ export async function POST(request: NextRequest) {
       last_seen_at: string;
       next_review_at: string;
     }> = [];
-
-    const now = new Date();
-    const nowIso = now.toISOString();
 
     for (const [domain, results] of domainResults) {
       const existing = masteryMap.get(domain);
@@ -217,15 +282,36 @@ export async function POST(request: NextRequest) {
         };
       }
 
-      const afterScore = currentState.masteryScore;
-      const nextReviewAt = new Date(now.getTime() + currentState.intervalDays * 86400000);
+      let afterScore = currentState.masteryScore;
+      let intervalDays = currentState.intervalDays;
+
+      // Active Target: apply logarithmic decay on mastery gain
+      if (sessionIntent === "active_target") {
+        const manualCount = manualAttempts.get(domain) ?? 1;
+        const delta = afterScore - beforeScore;
+        const decayedDelta = applyLogarithmicDecay(delta, manualCount);
+        afterScore = beforeScore + decayedDelta;
+      }
+
+      // Custom Mock: push review far out on 100% scores for topics not due soon
+      let nextReviewAt = new Date(now.getTime() + intervalDays * 86400000);
+      if (sessionIntent === "custom_mock") {
+        const allCorrect = results.every((qr) => qr.is_correct);
+        if (allCorrect) {
+          const pushDays = computeEarlyReviewPush(1.0, nextReviewAt);
+          if (pushDays !== null) {
+            intervalDays = pushDays;
+            nextReviewAt = new Date(now.getTime() + pushDays * 86400000);
+          }
+        }
+      }
 
       masteryUpdates.push({
         skill_domain: domain,
         mastery_score: Math.round(afterScore * 100) / 100,
         streak: currentState.streak,
         next_review_at: nextReviewAt.toISOString(),
-        interval_days: currentState.intervalDays,
+        interval_days: intervalDays,
         ease_factor: currentState.easeFactor,
       });
 
@@ -240,6 +326,7 @@ export async function POST(request: NextRequest) {
         exam_profile_id: session.exam_profile_id,
         skill_domain: domain,
         mastery_score: afterScore,
+        recorded_at: nowIso,
       });
 
       conceptMasteryUpserts.push({
@@ -247,7 +334,7 @@ export async function POST(request: NextRequest) {
         exam_profile_id: session.exam_profile_id,
         skill_domain: domain,
         mastery_score: afterScore,
-        review_interval_days: currentState.intervalDays,
+        review_interval_days: intervalDays,
         review_ease_factor: currentState.easeFactor,
         streak: currentState.streak,
         last_seen_at: nowIso,
@@ -270,6 +357,7 @@ export async function POST(request: NextRequest) {
           exam_profile_id: session.exam_profile_id,
           skill_domain: domain,
           mastery_score: score,
+          recorded_at: nowIso,
         });
       }
     }

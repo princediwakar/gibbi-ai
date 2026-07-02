@@ -5,15 +5,18 @@ import { SessionStartSchema } from "@/lib/validations/tutor";
 import {
   selectTargetDomains,
   buildTutorUserMessage,
+  buildDiagnosticUserMessage,
   getTutorSystemPrompt,
   computeDifficultyDistribution,
   type ConceptMasteryRow,
+  type TargetDomain,
 } from "@/lib/tutor-prompt";
 import { getTimeMode } from "@/lib/sm2";
 import { TUTOR_CONFIG, TUTOR_ERRORS } from "@/lib/constants/tutor";
 import { normalizeSkillDomain } from "@/lib/services/skill-normalizer";
 import { openai, MODEL } from "@/lib/ai";
-import { safeParseJson } from "@/lib/json-repair";
+import { QuestionSchema, parseWithRecovery } from "@/lib/ai-utils";
+import { getDiagnosticStrata } from "@/lib/diagnostic-seed";
 import taxonomy from "@/lib/taxonomies.json";
 import type { SessionQuestion, DifficultyTier, TimeMode } from "@/types/tutor";
 
@@ -35,6 +38,25 @@ function getTaxonomyDomains(examName: string): string[] {
   return Object.values(examTaxonomy).flat();
 }
 
+function buildTargetDomainsFromFocus(
+  focusDomains: string[],
+  concepts: ConceptMasteryRow[],
+): TargetDomain[] {
+  const conceptByDomain = new Map(concepts.map((c) => [c.skill_domain, c]));
+  const now = new Date().toISOString();
+
+  return focusDomains.map((domain) => {
+    const row = conceptByDomain.get(domain);
+    return {
+      skillDomain: domain,
+      masteryScore: row?.mastery_score ?? 0,
+      recentErrors: [],
+      isOverdue: row ? row.next_review_at <= now : true,
+      lastSeenAt: row?.last_seen_at ?? null,
+    };
+  });
+}
+
 interface SessionGenerationResult {
   session_id: string;
   questions: SessionQuestion[];
@@ -47,8 +69,29 @@ async function generateAndCreateSession(
   examProfileId: string,
   questionCount: number,
   focusDomains: string[] | undefined,
+  sessionIntent: string,
   profile: { exam_name: string; target_date: string; time_mode: string },
 ): Promise<{ result?: SessionGenerationResult; error?: string; details?: string; status?: number }> {
+  // ----- Custom Mock Rate Limiting -----
+  if (sessionIntent === "custom_mock") {
+    const todayStart = new Date().toISOString().slice(0, 10);
+    const { count: customMockCount } = await supabase
+      .from("sessions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("session_intent", "custom_mock")
+      .gte("created_at", todayStart);
+
+    if ((customMockCount ?? 0) >= TUTOR_CONFIG.MAX_CUSTOM_MOCK_PER_DAY) {
+      return {
+        error:
+          "Custom mock limit reached (2/day). Use Algorithmic Review or Active Target to continue improving.",
+        status: 429,
+      };
+    }
+  }
+
+  // ----- Daily Session Rate Limiting -----
   const { count: dailyCount } = await supabase
     .from("sessions")
     .select("*", { count: "exact", head: true })
@@ -59,25 +102,17 @@ async function generateAndCreateSession(
     return { error: TUTOR_ERRORS.RATE_LIMIT_EXCEEDED, status: 429 };
   }
 
+  // ----- Profile & Time Mode -----
   const targetDate = new Date(profile.target_date);
   const now = new Date();
   const daysRemaining = Math.max(
     1,
-    Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
   );
   const timeMode: TimeMode = (profile.time_mode as TimeMode) || getTimeMode(daysRemaining);
   const examYear = targetDate.getFullYear().toString();
 
-  let taxonomyDomains = getTaxonomyDomains(profile.exam_name);
-
-  if (focusDomains && focusDomains.length > 0) {
-    const focusSet = new Set(focusDomains.map((d) => d.toLowerCase().trim()));
-    const filtered = taxonomyDomains.filter((d) => focusSet.has(d.toLowerCase().trim()));
-    if (filtered.length > 0) {
-      taxonomyDomains = filtered;
-    }
-  }
-
+  // ----- Load Concepts -----
   const { data: conceptRows } = await supabase
     .from("concept_mastery")
     .select("*")
@@ -94,8 +129,41 @@ async function generateAndCreateSession(
     total_correct: row.total_correct,
   }));
 
-  const targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
+  // ----- Domain Selection (Intent-Aware) -----
+  let targetDomains: TargetDomain[];
 
+  if (
+    sessionIntent === "active_target" ||
+    sessionIntent === "custom_mock"
+  ) {
+    // Use focus_domains directly — skip algorithmic SM-2 selection
+    if (!focusDomains || focusDomains.length === 0) {
+      return {
+        error: `focus_domains is required for ${sessionIntent} sessions.`,
+        status: 400,
+      };
+    }
+    targetDomains = buildTargetDomainsFromFocus(focusDomains, concepts);
+  } else {
+    // spaced_review or diagnostic — algorithmic domain selection
+    const taxonomyDomains = getTaxonomyDomains(profile.exam_name);
+
+    if (focusDomains && focusDomains.length > 0) {
+      const focusSet = new Set(focusDomains.map((d) => d.toLowerCase().trim()));
+      const filtered = taxonomyDomains.filter((d) =>
+        focusSet.has(d.toLowerCase().trim()),
+      );
+      if (filtered.length > 0) {
+        targetDomains = selectTargetDomains(concepts, filtered, questionCount);
+      } else {
+        targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
+      }
+    } else {
+      targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
+    }
+  }
+
+  // ----- Recent Wrong Answers Enrichment -----
   const { data: recentWrongAnswers } = await supabase
     .from("session_answers")
     .select("question_id, skill_domain, session_id")
@@ -145,31 +213,43 @@ async function generateAndCreateSession(
     }
   }
 
-  const difficultyDistribution = computeDifficultyDistribution(questionCount, timeMode);
+  // ----- Prompt Generation (Intent-Aware) -----
   const systemPrompt = getTutorSystemPrompt();
-  const userMessage = buildTutorUserMessage({
-    examName: profile.exam_name,
-    examYear,
-    timeMode,
-    daysRemaining,
-    targetDomains,
-    questionCount,
-    difficultyDistribution,
-  });
+  const isDiagnostic = sessionIntent === "diagnostic";
+  const difficultyDistribution = isDiagnostic
+    ? { easy: 1, medium: 2, hard: 2 }
+    : computeDifficultyDistribution(questionCount, timeMode);
+
+  let userMessage: string;
+  if (isDiagnostic) {
+    const strata = getDiagnosticStrata();
+    userMessage = buildDiagnosticUserMessage({
+      examName: profile.exam_name,
+      examYear,
+      strata,
+    });
+  } else {
+    userMessage = buildTutorUserMessage({
+      examName: profile.exam_name,
+      examYear,
+      timeMode,
+      daysRemaining,
+      targetDomains,
+      questionCount,
+      difficultyDistribution,
+    });
+  }
 
   const targetDomainNames = targetDomains.map((d) => d.skillDomain);
-
   const maxTokens = questionCount * 600 + 1000;
 
-  console.log(`[SessionStart] model=${MODEL} baseURL=${(openai as any).baseURL || "default"} domains=${targetDomainNames.length} questions=${questionCount}`);
+  console.log(
+    `[SessionStart] model=${MODEL} baseURL=${(openai as any).baseURL || "default"} ` +
+    `domains=${targetDomainNames.length} questions=${questionCount} intent=${sessionIntent}`,
+  );
 
-  const MAX_ATTEMPTS = 2;
-  let rawResponse = "";
-  let parsedResponse: Record<string, unknown> = {};
-  let questionsArray: unknown[] = [];
-  let lastDetails = "";
-
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+  // ----- AI Generation with Retry via parseWithRecovery -----
+  async function callAI(): Promise<string> {
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages: [
@@ -180,32 +260,40 @@ async function generateAndCreateSession(
       max_tokens: maxTokens,
       response_format: { type: "json_object" as const },
     });
-
-    rawResponse = completion.choices[0]?.message?.content || "";
-
-    const parseResult = safeParseJson(rawResponse);
-    if ("error" in parseResult) {
-      lastDetails = `Model returned invalid JSON: ${parseResult.error}`;
-      console.error(`[SessionStart] JSON parse failed (attempt ${attempt + 1}/${MAX_ATTEMPTS}):`, parseResult.error);
-      if (attempt < MAX_ATTEMPTS - 1) continue;
-      return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, details: lastDetails, status: 500 };
-    }
-
-    parsedResponse = parseResult.data as Record<string, unknown>;
-
-    const qArr = parsedResponse?.questions as unknown[] | undefined;
-    if (!Array.isArray(qArr) || qArr.length === 0) {
-      const arrLen = Array.isArray(qArr) ? qArr.length : 0;
-      lastDetails = `Model returned ${arrLen} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`;
-      console.error(`[SessionStart] Empty questions (attempt ${attempt + 1}/${MAX_ATTEMPTS}):`, lastDetails);
-      if (attempt < MAX_ATTEMPTS - 1) continue;
-      return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, details: lastDetails, status: 500 };
-    }
-
-    questionsArray = qArr;
-    break;
+    return completion.choices[0]?.message?.content || "";
   }
 
+  // First attempt
+  const firstResponse = await callAI();
+
+  let questionsArray: unknown[];
+  try {
+    const recoveryResult = await parseWithRecovery(
+      firstResponse,
+      QuestionSchema,
+      questionCount,
+      callAI,
+    );
+    questionsArray = recoveryResult.questions;
+  } catch (err) {
+    const details =
+      err instanceof Error ? err.message : "Unknown parse/recovery error";
+    return {
+      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+      details,
+      status: 500,
+    };
+  }
+
+  if (questionsArray.length === 0) {
+    return {
+      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+      details: `AI generated 0 valid questions. Target domains: ${targetDomainNames.join(", ") || "none"}`,
+      status: 500,
+    };
+  }
+
+  // ----- Validate and Normalize Questions -----
   const validatedQuestions: SessionQuestion[] = [];
   const validDomainNames = new Set(targetDomainNames.map((d) => d.toLowerCase().trim()));
 
@@ -223,7 +311,7 @@ async function generateAndCreateSession(
     const rawDomain: string = (q as any).skill_domain || targetDomainNames[0] || "General";
     const normalizedDomain = validDomainNames.has(rawDomain.toLowerCase().trim())
       ? targetDomainNames.find(
-          (d) => d.toLowerCase().trim() === rawDomain.toLowerCase().trim()
+          (d) => d.toLowerCase().trim() === rawDomain.toLowerCase().trim(),
         ) || normalizeSkillDomain(rawDomain)
       : normalizeSkillDomain(rawDomain);
 
@@ -244,11 +332,12 @@ async function generateAndCreateSession(
   if (validatedQuestions.length === 0) {
     return {
       error: TUTOR_ERRORS.AI_GENERATION_FAILED,
-      details: `All ${(questionsArray as unknown[]).length} generated questions failed validation. Target domains: ${targetDomainNames.join(", ") || "none"}`,
+      details: `All ${questionsArray.length} generated questions failed validation. Target domains: ${targetDomainNames.join(", ") || "none"}`,
       status: 500,
     };
   }
 
+  // ----- Insert Session -----
   const { data: session, error: insertError } = await supabase
     .from("sessions")
     .insert({
@@ -256,6 +345,7 @@ async function generateAndCreateSession(
       exam_profile_id: examProfileId,
       questions_json: validatedQuestions as any,
       target_domains: targetDomainNames,
+      session_intent: sessionIntent,
       status: "active",
     })
     .select("id")
@@ -300,11 +390,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return Response.json(
       { error: "Invalid input.", errors: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const { exam_profile_id, question_count, focus_domains } = parsed.data;
+  const { exam_profile_id, question_count, focus_domains, session_intent } = parsed.data;
 
   const { data: profile, error: profileError } = await supabase
     .from("exam_profiles")
@@ -317,6 +407,12 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: TUTOR_ERRORS.INVALID_EXAM_PROFILE }, { status: 400 });
   }
 
+  // Diagnostic always uses 5 questions
+  const effectiveQuestionCount =
+    session_intent === "diagnostic"
+      ? TUTOR_CONFIG.DIAGNOSTIC_QUESTION_COUNT
+      : question_count;
+
   const shouldStream = req.nextUrl.searchParams.get("stream") !== "false";
 
   if (!shouldStream) {
@@ -325,8 +421,9 @@ export async function POST(req: NextRequest) {
         supabase,
         user.id,
         exam_profile_id,
-        question_count,
+        effectiveQuestionCount,
         focus_domains,
+        session_intent,
         profile,
       );
 
@@ -344,12 +441,12 @@ export async function POST(req: NextRequest) {
       if (error.cause) console.error("Cause:", error.cause);
       return Response.json(
         { error: TUTOR_ERRORS.AI_GENERATION_FAILED, details: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
   }
 
-  const questionCount = question_count;
+  // ----- Streaming SSE -----
   const stream = new ReadableStream({
     async start(controller) {
       let closed = false;
@@ -380,13 +477,17 @@ export async function POST(req: NextRequest) {
           supabase,
           user.id,
           exam_profile_id,
-          questionCount,
+          effectiveQuestionCount,
           focus_domains,
+          session_intent,
           profile,
         );
 
         if (genResult.error || !genResult.result) {
-          safeStreamSSE({ type: "error", message: genResult.error || "Internal server error." });
+          safeStreamSSE({
+            type: "error",
+            message: genResult.error || "Internal server error.",
+          });
           safeClose();
           return;
         }
@@ -394,7 +495,7 @@ export async function POST(req: NextRequest) {
         safeStreamSSE({
           type: "progress",
           done: genResult.result.questions.length,
-          total: questionCount,
+          total: effectiveQuestionCount,
           target_domains: genResult.result.target_domains,
         });
 

@@ -75,7 +75,7 @@ async function SetupPageContent() {
   // Load existing active profile
   const { data: profile } = await supabase
     .from("exam_profiles")
-    .select("profile_id, exam_name, target_date")
+    .select("profile_id, exam_name, target_date, active_targets")
     .eq("user_id", user.id)
     .eq("is_active", true)
     .maybeSingle();
@@ -120,6 +120,7 @@ async function SetupPageContent() {
       targetDate: profile.target_date,
       assessments,
       isExisting: true,
+      activeTargets: (profile as any).active_targets ?? [],
     };
   }
 

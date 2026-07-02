@@ -7,6 +7,7 @@ const taxonomyData = taxonomy as unknown as TaxonomyData;
 const EXAM_NAMES = Object.keys(taxonomyData).filter((k) => k !== "_schema_version");
 const ANSWER_OPTIONS = ["A", "B", "C", "D"] as const;
 const ASSESSMENT_LEVELS = ["weak", "okay", "strong"] as const;
+const SESSION_INTENTS = ["spaced_review", "active_target", "custom_mock", "diagnostic"] as const;
 
 export const SessionStartSchema = z.object({
   exam_profile_id: z.string().uuid("Enter a valid exam profile ID"),
@@ -19,6 +20,9 @@ export const SessionStartSchema = z.object({
   focus_domains: z
     .array(z.string().min(1, "Domain name cannot be empty"))
     .optional(),
+  session_intent: z
+    .enum(SESSION_INTENTS)
+    .default("spaced_review"),
 });
 export type SessionStartInput = z.infer<typeof SessionStartSchema>;
 
@@ -65,6 +69,10 @@ export const ExamProfileSchema = z
         (assessments) => Object.keys(assessments).length > 0,
         "Add at least one self-assessment"
       ),
+    active_targets: z
+      .array(z.string().min(1, "Topic name cannot be empty"))
+      .max(3, "Select at most 3 active targets")
+      .default([]),
   })
   .refine(
     (data) => {

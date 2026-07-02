@@ -33,7 +33,7 @@ export async function createExamProfile(
     return { error: firstError };
   }
 
-  const { exam_name, target_date, self_assessments } = parsed.data;
+  const { exam_name, target_date, self_assessments, active_targets } = parsed.data;
 
   const daysRemaining = Math.ceil(
     (new Date(target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -54,7 +54,7 @@ export async function createExamProfile(
     profileId = existingProfile.profile_id;
     const { error: updateError } = await supabase
       .from("exam_profiles")
-      .update({ target_date, time_mode })
+      .update({ target_date, time_mode, active_targets })
       .eq("profile_id", profileId);
 
     if (updateError) {
@@ -70,6 +70,7 @@ export async function createExamProfile(
         target_date,
         time_mode,
         is_active: true,
+        active_targets,
       })
       .select("profile_id")
       .single();
@@ -104,6 +105,7 @@ export async function createExamProfile(
     mastery_score: prior,
     total_attempted: 0,
     total_correct: 0,
+    streak: 0,
     review_interval_days: TUTOR_CONFIG.SM2_DEFAULTS.initial_interval_days,
     review_ease_factor: TUTOR_CONFIG.SM2_DEFAULTS.initial_ease_factor,
     next_review_at: now,
