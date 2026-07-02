@@ -159,7 +159,7 @@ async function generateAndCreateSession(
 
   const targetDomainNames = targetDomains.map((d) => d.skillDomain);
 
-  const maxTokens = questionCount * 250 + 1000;
+  const maxTokens = questionCount * 600 + 1000;
 
   console.log(`[SessionStart] model=${MODEL} baseURL=${(openai as any).baseURL || "default"} domains=${targetDomainNames.length} questions=${questionCount}`);
 
