@@ -230,22 +230,25 @@ async function generateAndCreateSession(
   );
 
   // ----- AI Generation with Retry via parseWithRecovery -----
-  async function callAI(): Promise<string> {
+  async function callAI(temp: number, promptOverride?: string): Promise<string> {
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages: [
         { role: "system" as const, content: systemPrompt },
-        { role: "user" as const, content: userMessage },
+        { role: "user" as const, content: promptOverride ?? userMessage },
       ],
-      temperature: 0.7,
+      temperature: temp,
       max_tokens: maxTokens,
       response_format: { type: "json_object" as const },
     });
     return completion.choices[0]?.message?.content || "";
   }
 
+  const retryFn1 = () => callAI(0.7);
+  const retryFn2 = () => callAI(0.95);
+
   // First attempt
-  const firstResponse = await callAI();
+  const firstResponse = await callAI(0.7);
 
   let questionsArray: unknown[];
   try {
@@ -253,17 +256,32 @@ async function generateAndCreateSession(
       firstResponse,
       QuestionSchema,
       questionCount,
-      callAI,
+      retryFn1,
+      retryFn2,
     );
     questionsArray = recoveryResult.questions;
   } catch (err) {
-    const details =
-      err instanceof Error ? err.message : "Unknown parse/recovery error";
-    return {
-      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
-      details,
-      status: 500,
-    };
+    // Last resort: emergency fallback with a bare-minimum prompt
+    try {
+      const fallbackPrompt = `Generate ${questionCount} multiple choice questions about ${targetDomainNames.join(", ")} for ${profile.exam_name} exam preparation. Each question must have: question_text (string), options (object with keys A, B, C, D mapping to answer strings), correct_option (the letter key of the correct answer), and explanation (string). Return valid JSON: {"questions": [...]}`;
+
+      const emergencyRaw = await callAI(1.0, fallbackPrompt);
+      const emergencyResult = await parseWithRecovery(
+        emergencyRaw,
+        QuestionSchema,
+        questionCount,
+        () => callAI(1.0, fallbackPrompt),
+      );
+      questionsArray = emergencyResult.questions;
+    } catch {
+      const details =
+        err instanceof Error ? err.message : "Unknown parse/recovery error";
+      return {
+        error: TUTOR_ERRORS.AI_GENERATION_FAILED,
+        details,
+        status: 500,
+      };
+    }
   }
 
   if (questionsArray.length === 0) {

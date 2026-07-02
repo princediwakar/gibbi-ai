@@ -12,13 +12,13 @@ export default function CTA() {
           className="pointer-events-none absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-full max-w-2xl rounded-full bg-primary/20 blur-3xl animate-pulse"
         />
         <h2 className="text-4xl font-heading text-foreground md:text-5xl text-balance">
-          Your diagnostic takes 5 minutes. Better retention lasts a lifetime.
+          Your free assessment takes 5 minutes. Better retention lasts a lifetime.
         </h2>
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
           No credit card required. Zero spam. Just focused practice.
         </p>
         <div className="flex justify-center">
-          <SignInButton buttonText="Start My Free Diagnostic" />
+          <SignInButton buttonText="Start My Free Assessment" />
         </div>
       </MaxWidthWrapper>
     </section>

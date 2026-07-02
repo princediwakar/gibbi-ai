@@ -19,7 +19,7 @@ const FLOW_STEPS: FlowStep[] = [
     icon: Search,
     title: "Spot the Gaps",
     description:
-      "Take a 5-minute diagnostic. We find exactly what you don't know, so you don't waste time on what you do.",
+      "Take a 5-minute assessment. We find exactly what you don't know, so you don't waste time on what you do.",
   },
   {
     icon: Target,

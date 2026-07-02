@@ -37,7 +37,7 @@ export const educationalAppSchema: WithContext<any> = {
   "operatingSystem": "Web",
   "educationalLevel": "High School, Undergraduate, Graduate",
   "teaches": "Physics, Chemistry, Mathematics, Biology, Logical Reasoning, Quantitative Aptitude",
-  "educationalUse": "Personalized adaptive practice, diagnostic assessment, spaced repetition review",
+  "educationalUse": "Personalized adaptive practice, knowledge assessment, spaced repetition review",
   "offers": {
     "@type": "Offer",
     "price": "0",

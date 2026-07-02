@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 		template: "%s | GibbiAI",
 	},
 	description:
-		"Free AI-powered exam preparation for JEE Main, NEET, UPSC, GMAT, CAT, and more. Adaptive spaced repetition, personalized diagnostics, and detailed distractor analysis. Start your free diagnostic in 5 minutes.",
+		"Free AI-powered exam preparation for JEE Main, NEET, UPSC, GMAT, CAT, and more. Adaptive spaced repetition, personalized assessments, and detailed distractor analysis. Start your free assessment in 5 minutes.",
 	keywords: [
 		"exam prep",
 		"JEE Main preparation",
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
 		"spaced repetition",
 		"practice questions",
 		"free test prep",
-		"diagnostic test",
+		"practice test",
 		"competitive exams",
 	],
 	openGraph: {
 		title: "GibbiAI — Free AI-Powered Exam Prep for JEE, NEET, UPSC & More",
 		description:
-			"Free AI-powered exam preparation with adaptive spaced repetition. Personalized diagnostics, distractor analysis, and 10 exam tracks including JEE, NEET, UPSC, and GMAT.",
+			"Free AI-powered exam preparation with adaptive spaced repetition. Personalized assessments, distractor analysis, and 10 exam tracks including JEE, NEET, UPSC, and GMAT.",
 		url: process.env.NEXT_PUBLIC_BASE_URL,
 		siteName: "GibbiAI",
 		images: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 		card: "summary_large_image",
 		title: "GibbiAI — Free AI-Powered Exam Prep",
 		description:
-			"Free AI-powered exam preparation for JEE, NEET, UPSC, GMAT, CAT. Adaptive spaced repetition with personalized diagnostics.",
+			"Free AI-powered exam preparation for JEE, NEET, UPSC, GMAT, CAT. Adaptive spaced repetition with personalized assessments.",
 		images: [
 			`${process.env.NEXT_PUBLIC_BASE_URL}/api/og?type=home`,
 		],

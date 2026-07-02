@@ -410,7 +410,7 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
               <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                 Why This Answer
               </h4>
-              <div className="text-sm text-muted-foreground leading-relaxed">
+              <div className="text-sm text-foreground/90 leading-relaxed">
                 {renderMathContent(current.distractor_analysis[selectedOption])}
               </div>
             </div>
@@ -421,7 +421,7 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
               <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                 Explanation
               </h4>
-              <div className="text-sm text-muted-foreground leading-relaxed">
+              <div className="text-sm text-foreground/90 leading-relaxed">
                 {renderMathContent(current.explanation)}
               </div>
             </div>
@@ -432,7 +432,7 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
               <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-1">
                 Common Trap
               </h4>
-              <div className="text-sm text-muted-foreground leading-relaxed">
+              <div className="text-sm text-foreground/90 leading-relaxed">
                 {current.misconception}
               </div>
             </div>

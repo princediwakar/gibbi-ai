@@ -1,4 +1,3 @@
-// Path: lib/ai-utils.ts
 import { z } from "zod";
 import { safeParseJson } from "./json-repair";
 
@@ -390,7 +389,7 @@ export function cleanResponse(text: string): string {
   return text
     .replace(/```(?:json)?\s*/gi, "")
     .replace(/\s*```/gi, "")
-    .replace(/[\x00-\x1F\x7F]/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
     .trim();
 }
 
@@ -521,8 +520,77 @@ function extractJsonCandidates(raw: string): string[] {
 }
 
 /**
+ * Coerces common AI output quirks into schema-compatible types before validation.
+ * Returns null if the candidate is fundamentally unusable (missing question_text or options).
+ */
+function coerceQuestionCandidate(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+
+  const obj = { ...(raw as Record<string, unknown>) };
+
+  // question_text: must exist and be a non-empty string
+  if (obj.question_text != null && typeof obj.question_text !== "string") {
+    obj.question_text = String(obj.question_text);
+  }
+  if (typeof obj.question_text !== "string" || obj.question_text.trim().length === 0) {
+    return null;
+  }
+  obj.question_text = obj.question_text.trim();
+
+  // options: must exist — coerce array to { A: "...", B: "...", ... }
+  if (obj.options == null) return null;
+
+  if (Array.isArray(obj.options)) {
+    obj.options = Object.fromEntries(
+      (obj.options as unknown[]).map((v, i) => [String.fromCharCode(65 + i), String(v)]),
+    );
+  }
+
+  if (typeof obj.options !== "object" || obj.options === null || Array.isArray(obj.options)) {
+    return null;
+  }
+
+  // correct_option: must exist, coerce to uppercase string
+  if (obj.correct_option != null && typeof obj.correct_option !== "string") {
+    obj.correct_option = String(obj.correct_option);
+  }
+  if (typeof obj.correct_option === "string") {
+    obj.correct_option = obj.correct_option.trim().toUpperCase();
+  }
+
+  // explanation: coerce to string
+  if (obj.explanation != null && typeof obj.explanation !== "string") {
+    obj.explanation = String(obj.explanation);
+  }
+
+  // time_estimate_seconds: coerce string → number
+  if (typeof obj.time_estimate_seconds === "string") {
+    const n = Number(obj.time_estimate_seconds);
+    if (!Number.isNaN(n)) obj.time_estimate_seconds = n;
+  }
+
+  // topics: wrap single string in array
+  if (typeof obj.topics === "string") {
+    obj.topics = [obj.topics];
+  }
+
+  // misconception: coerce to string
+  if (obj.misconception != null && typeof obj.misconception !== "string") {
+    obj.misconception = String(obj.misconception);
+  }
+
+  // skill_domain: ensure string
+  if (obj.skill_domain != null && typeof obj.skill_domain !== "string") {
+    obj.skill_domain = String(obj.skill_domain);
+  }
+
+  return obj;
+}
+
+/**
  * Attempts to extract individual valid questions from a raw LLM response
  * by finding all JSON-like objects and validating each against the schema.
+ * Applies type coercion before validation to handle common AI output quirks.
  */
 function extractAndValidateQuestions(
   raw: string,
@@ -535,13 +603,14 @@ function extractAndValidateQuestions(
 
   for (const candidate of candidates) {
     const parseResult = safeParseJson(candidate);
-    if ('error' in parseResult) continue;
+    if ("error" in parseResult) continue;
 
-    try {
-      const validated = schema.parse(parseResult.data);
-      validQuestions.push(validated);
-    } catch {
-      // This candidate didn't match the schema, skip it
+    const coerced = coerceQuestionCandidate(parseResult.data);
+    if (!coerced) continue;
+
+    const validated = schema.safeParse(coerced);
+    if (validated.success) {
+      validQuestions.push(validated.data);
     }
   }
 
@@ -592,6 +661,7 @@ export async function parseWithRecovery(
   schema: z.ZodTypeAny,
   expectedCount: number,
   retryFn: () => Promise<string>,
+  retryFn2?: () => Promise<string>,
 ): Promise<{ questions: unknown[]; recovered: boolean; retried: boolean }> {
   // Attempt 1: Parse the entire response
   const cleaned = cleanResponse(rawResponse);
@@ -599,9 +669,18 @@ export async function parseWithRecovery(
 
   if (!('error' in parseResult)) {
     try {
-      const parsed = schema.parse(parseResult.data);
-      const questions = collectQuestions(parsed);
-      return { questions, recovered: false, retried: false };
+      const questions = collectQuestions(parseResult.data);
+      if (questions.length > 0) {
+        const valid = questions
+          .map(q => coerceQuestionCandidate(q))
+          .filter(Boolean)
+          .map(q => schema.safeParse(q))
+          .filter(r => r.success)
+          .map(r => r.data);
+        if (valid.length > 0) {
+          return { questions: valid, recovered: false, retried: false };
+        }
+      }
     } catch {
       // Full parse failed, fall through to extraction
     }
@@ -610,7 +689,8 @@ export async function parseWithRecovery(
   // Attempt 1: Extract individual questions from the raw response
   let validQuestions = extractAndValidateQuestions(rawResponse, schema);
 
-  if (validQuestions.length >= expectedCount * 0.5) {
+  // Any valid question is worth keeping — retrying is risky
+  if (validQuestions.length >= 1) {
     return { questions: validQuestions, recovered: true, retried: false };
   }
 
@@ -619,14 +699,11 @@ export async function parseWithRecovery(
   try {
     retriedRaw = await retryFn();
   } catch {
-    // Retry failed — return whatever we have from attempt 1
-    if (validQuestions.length === 0) {
-      throw new Error(
-        `Failed to parse or generate valid questions. Retry also failed. ` +
-        `Expected ${expectedCount}, got 0 valid questions.`,
-      );
-    }
-    return { questions: validQuestions, recovered: true, retried: true };
+    // Retry API call failed — nothing we can do, retryFn2 also won't work
+    throw new Error(
+      `Failed to parse or generate valid questions. Retry API call failed. ` +
+      `Expected ${expectedCount}, got 0 valid questions.`,
+    );
   }
 
   // Attempt 2: Extract from retried response
@@ -635,10 +712,17 @@ export async function parseWithRecovery(
 
   if (!('error' in retryParseResult)) {
     try {
-      const parsed = schema.parse(retryParseResult.data);
-      const questions = collectQuestions(parsed);
+      const questions = collectQuestions(retryParseResult.data);
       if (questions.length > 0) {
-        return { questions, recovered: false, retried: true };
+        const valid = questions
+          .map(q => coerceQuestionCandidate(q))
+          .filter(Boolean)
+          .map(q => schema.safeParse(q))
+          .filter(r => r.success)
+          .map(r => r.data);
+        if (valid.length > 0) {
+          return { questions: valid, recovered: false, retried: true };
+        }
       }
     } catch {
       // Full parse of retry failed, try extraction
@@ -647,17 +731,52 @@ export async function parseWithRecovery(
 
   const retriedQuestions = extractAndValidateQuestions(retriedRaw, schema);
 
-  // Merge: prefer retried questions, but fall back to original if retry yielded nothing
   if (retriedQuestions.length > 0) {
     return { questions: retriedQuestions, recovered: true, retried: true };
   }
 
-  if (validQuestions.length > 0) {
-    return { questions: validQuestions, recovered: true, retried: true };
+  // Attempt 3: Second retry with different parameters (if provided)
+  if (retryFn2) {
+    let retry2Raw: string;
+    try {
+      retry2Raw = await retryFn2();
+    } catch {
+      throw new Error(
+        `Failed to parse or generate valid questions after 2 retries. ` +
+        `Expected ${expectedCount}, got 0 valid questions across all attempts.`,
+      );
+    }
+
+    const retry2Cleaned = cleanResponse(retry2Raw);
+    const retry2ParseResult = safeParseJson(retry2Cleaned);
+
+    if (!('error' in retry2ParseResult)) {
+      try {
+        const questions = collectQuestions(retry2ParseResult.data);
+        if (questions.length > 0) {
+          const valid = questions
+            .map(q => coerceQuestionCandidate(q))
+            .filter(Boolean)
+            .map(q => schema.safeParse(q))
+            .filter(r => r.success)
+            .map(r => r.data);
+          if (valid.length > 0) {
+            return { questions: valid, recovered: false, retried: true };
+          }
+        }
+      } catch {
+        // Fall through to extraction
+      }
+    }
+
+    const retry2Questions = extractAndValidateQuestions(retry2Raw, schema);
+    if (retry2Questions.length > 0) {
+      return { questions: retry2Questions, recovered: true, retried: true };
+    }
   }
 
   throw new Error(
-    `Failed to parse or generate valid questions after retry. ` +
-    `Expected ${expectedCount}, got 0 valid questions across both attempts.`,
+    `Failed to parse or generate valid questions after ${retryFn2 ? "2 retries" : "retry"}. ` +
+    `Expected ${expectedCount}, got 0 valid questions across all attempts.`,
   );
 }

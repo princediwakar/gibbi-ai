@@ -228,10 +228,6 @@ export default function InteractiveDemoHero() {
     setPhase("reveal");
   }, [phase]);
 
-  const handlePhase3 = useCallback(() => {
-    setPhase("cta");
-  }, []);
-
   const handleCTA = useCallback(() => {
     if (!exam) return;
     if (!user) {
@@ -264,285 +260,270 @@ export default function InteractiveDemoHero() {
 
   return (
     <section className="py-16 sm:py-20 lg:py-24">
-      <div className="mx-auto max-w-3xl px-4">
-        {/* ================================================================ */}
-        {/* Headline                                                         */}
-        {/* ================================================================ */}
-        <motion.div
-          className="space-y-5 text-center"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
-          }}
-        >
-          <motion.h1
-            className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-            variants={fadeSlideUp}
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-start lg:gap-16 xl:gap-20">
+          {/* ============================================================== */}
+          {/* Left column: Headline + subtext                                */}
+          {/* ============================================================== */}
+          <motion.div
+            className="flex-1 space-y-5 text-center lg:text-left lg:pt-8"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+            }}
           >
-            Stop re-reading. Start retaining.
-            <br />
-            <span className="text-primary">
-              See how GibbiAI spots your mistakes before you make them.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg leading-relaxed"
-            variants={fadeSlideUp}
-          >
-            Pick your exam. Answer one question. We&apos;ll show you exactly which
-            misconception trips you up — and how to fix it for good.
-          </motion.p>
-        </motion.div>
-
-        {/* ================================================================ */}
-        {/* PHASE 1: Exam selector card                                      */}
-        {/* ================================================================ */}
-        <motion.div
-          className="mx-auto mt-12 sm:mt-14 max-w-lg"
-          {...cardEntrance}
-        >
-          <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <label
-                  htmlFor="demo-exam-select"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Which exam are you preparing for?
-                </label>
-                <Select value={exam} onValueChange={handleExamChange}>
-                  <SelectTrigger id="demo-exam-select" className="h-10 w-full">
-                    <SelectValue placeholder="Select your target exam..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXAM_NAMES.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ================================================================ */}
-        {/* PHASE 2: Demo question card (appears after exam selection)       */}
-        {/* ================================================================ */}
-        <AnimatePresence mode="wait">
-          {phase === "question" && question && (
-            <motion.div
-              key="question-card"
-              className="mx-auto mt-6 max-w-lg"
-              initial={{ opacity: 0, y: 24, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ type: "spring", stiffness: 220, damping: 26 }}
+            <motion.h1
+              className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+              variants={fadeSlideUp}
             >
+              Stop re-reading. Start retaining.
+              <br />
+              <span className="text-primary">
+                See how GibbiAI spots your mistakes before you make them.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              className="text-base text-muted-foreground sm:text-lg leading-relaxed"
+              variants={fadeSlideUp}
+            >
+              Pick your exam. Answer one question. We&apos;ll show you exactly which
+              misconception trips you up — and how to fix it for good.
+            </motion.p>
+          </motion.div>
+
+          {/* ============================================================== */}
+          {/* Right column: Interactive demo cards                           */}
+          {/* ============================================================== */}
+          <div className="w-full max-w-lg flex-shrink-0 lg:w-[420px]">
+            {/* PHASE 1: Exam selector card */}
+            <motion.div {...cardEntrance}>
               <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
-                {/* Subject + domain badge */}
-                <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-                  {demoEntry?.subject} / {demoEntry?.domain}
-                </span>
-
-                {/* Question text */}
-                <p className="mt-5 text-base leading-relaxed text-foreground sm:text-lg">
-                  {question.question_text}
-                </p>
-
-                {/* Options */}
-                <div className="mt-6 space-y-3">
-                  {options.map(({ key, text }) => (
-                    <OptionButton
-                      key={key}
-                      letter={key}
-                      text={text}
-                      isSelected={selectedOption === key}
-                      isRevealed={isRevealed}
-                      isCorrect={key === correctOption}
-                      isTrap={selectedOption === key && key !== correctOption}
-                      onClick={() => handleOptionClick(key)}
-                    />
-                  ))}
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="demo-exam-select"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      Which exam are you preparing for?
+                    </label>
+                    <Select value={exam} onValueChange={handleExamChange}>
+                      <SelectTrigger id="demo-exam-select" className="h-10 w-full">
+                        <SelectValue placeholder="Select your target exam..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXAM_NAMES.map((name) => (
+                          <SelectItem key={name} value={name}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* ================================================================ */}
-        {/* PHASE 3: Empathy reveal (analysis panel)                         */}
-        {/* ================================================================ */}
-        <AnimatePresence mode="wait">
-          {phase === "reveal" && selectedOption && question && (
-            <motion.div
-              key="analysis"
-              className="mx-auto mt-6 max-w-lg"
-              variants={analysisSlideIn}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
-                {/* Result header */}
-                <motion.div variants={analysisChild} className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      "mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg",
-                      isCorrect ? "bg-emerald-500/10" : "bg-amber-500/10",
-                    )}
-                  >
-                    {isCorrect ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <Brain className="h-4 w-4 text-amber-500" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className={cn("text-lg font-semibold", isCorrect ? "text-emerald-600" : "text-amber-600")}>
-                      {isCorrect
-                        ? "Correct! Here's why most students get this wrong:"
-                        : "73% of students pick this answer too. Here is exactly why:"}
-                    </h3>
-                  </div>
-                </motion.div>
-
-                {/* The misconception */}
-                <motion.div variants={analysisChild} className="mt-5 flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
-                    <Brain className="h-4 w-4 text-amber-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">The misconception</h3>
-                    <p className="mt-1.5 leading-relaxed text-muted-foreground">
-                      {question.misconception}
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* The correct path */}
-                <motion.div variants={analysisChild} className="mt-5 flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                    <Lightbulb className="h-4 w-4 text-emerald-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">The correct path</h3>
-                    <p className="mt-1.5 leading-relaxed text-muted-foreground">
-                      {question.explanation}
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* Retention stat */}
+            {/* PHASE 2: Demo question card */}
+            <AnimatePresence mode="wait">
+              {phase === "question" && question && (
                 <motion.div
-                  variants={analysisChild}
-                  className="mt-6 flex items-center gap-6 rounded-2xl border border-primary/20 bg-primary/5 p-5"
+                  key="question-card"
+                  className="mt-6"
+                  initial={{ opacity: 0, y: 24, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 26 }}
                 >
-                  <div className="flex-shrink-0">
-                    <p className="text-3xl font-bold text-primary">4.2x</p>
-                    <p className="text-xs text-muted-foreground">retention lift</p>
+                  <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+                    <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+                      {demoEntry?.subject} / {demoEntry?.domain}
+                    </span>
+
+                    <p className="mt-5 text-base leading-relaxed text-foreground sm:text-lg">
+                      {question.question_text}
+                    </p>
+
+                    <div className="mt-6 space-y-3">
+                      {options.map(({ key, text }) => (
+                        <OptionButton
+                          key={key}
+                          letter={key}
+                          text={text}
+                          isSelected={selectedOption === key}
+                          isRevealed={isRevealed}
+                          isCorrect={key === correctOption}
+                          isTrap={selectedOption === key && key !== correctOption}
+                          onClick={() => handleOptionClick(key)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    Students who understand their mistakes are{" "}
-                    <span className="font-medium text-foreground">
-                      4.2x more likely
-                    </span>{" "}
-                    to retain the concept.
-                  </p>
                 </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Bridge to CTA */}
-                <motion.p
-                  variants={analysisChild}
-                  className="mt-5 text-center text-sm text-muted-foreground"
-                  onAnimationComplete={() => {
-                    if (phase === "reveal") {
-                      handlePhase3();
-                    }
-                  }}
+            {/* PHASE 3: Analysis panel */}
+            <AnimatePresence mode="wait">
+              {phase === "reveal" && selectedOption && question && (
+                <motion.div
+                  key="analysis"
+                  className="mt-6"
+                  variants={analysisSlideIn}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
                 >
-                  Ready to find your weak spots?
-                </motion.p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ================================================================ */}
-        {/* PHASE 4: CTA (appears after analysis, or directly if no demo)   */}
-        {/* ================================================================ */}
-        <AnimatePresence>
-          {phase === "cta" && exam && (
-            <motion.div
-              className="mx-auto mt-6 max-w-lg"
-              variants={ctaFadeIn}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
-                <div className="space-y-5 text-center">
-                  {!hasDemo && (
-                    <p className="text-sm text-muted-foreground">
-                      We&apos;re crafting your {exam} demo question. In the meantime,
-                      your personalized diagnostic is ready.
-                    </p>
-                  )}
-                  {hasDemo && (
-                    <p className="text-sm text-muted-foreground">
-                      Get the full {exam} diagnostic — 5 questions personalized to
-                      your weak spots. Free, no credit card.
-                    </p>
-                  )}
-
-                  {/* CTA button */}
-                  <div className="pt-1">
-                    {showSignIn && !user ? (
-                      <div className="space-y-3">
-                        <p className="text-center text-sm text-muted-foreground">
-                          Sign in to take your diagnostic and get a personalized
-                          study plan.
-                        </p>
-                        <div className="flex justify-center">
-                          <SignInButton buttonText="Sign in with Google" icon={false} />
-                        </div>
+                  <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+                    <motion.div variants={analysisChild} className="flex items-start gap-3">
+                      <div
+                        className={cn(
+                          "mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg",
+                          isCorrect ? "bg-emerald-500/10" : "bg-amber-500/10",
+                        )}
+                      >
+                        {isCorrect ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                          <Brain className="h-4 w-4 text-amber-500" />
+                        )}
                       </div>
-                    ) : (
+                      <div>
+                        <h3 className={cn("text-lg font-semibold", isCorrect ? "text-emerald-600" : "text-amber-600")}>
+                          {isCorrect
+                            ? "Correct! Here's why most students get this wrong:"
+                            : "73% of students pick this answer too. Here is exactly why:"}
+                        </h3>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={analysisChild} className="mt-5 flex items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+                        <Brain className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">The misconception</h3>
+                        <p className="mt-1.5 leading-relaxed text-muted-foreground">
+                          {question.misconception}
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={analysisChild} className="mt-5 flex items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
+                        <Lightbulb className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">The correct path</h3>
+                        <p className="mt-1.5 leading-relaxed text-muted-foreground">
+                          {question.explanation}
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      variants={analysisChild}
+                      className="mt-6 flex items-center gap-6 rounded-2xl border border-primary/20 bg-primary/5 p-5"
+                    >
+                      <div className="flex-shrink-0">
+                        <p className="text-3xl font-bold text-primary">4.2x</p>
+                        <p className="text-xs text-muted-foreground">retention lift</p>
+                      </div>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        Students who understand their mistakes are{" "}
+                        <span className="font-medium text-foreground">
+                          4.2x more likely
+                        </span>{" "}
+                        to retain the concept.
+                      </p>
+                    </motion.div>
+
+                    <div className="mt-5">
                       <Button
                         size="lg"
                         className="w-full"
-                        disabled={!exam || isUserLoading}
-                        onClick={handleCTA}
+                        onClick={() => setPhase("cta")}
                       >
-                        {isUserLoading ? (
-                          <span className="flex items-center gap-2">
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                            Checking...
-                          </span>
-                        ) : (
-                          <>
-                            Start Your 5-Question {exam} Diagnostic
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </>
-                        )}
+                        Continue
+                        <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              {/* Reassurance */}
-              <p className="mt-4 text-center text-xs text-muted-foreground/70">
-                No sign-in required to explore. Your results are private and
-                tailored to your exam.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* PHASE 4: CTA */}
+            <AnimatePresence>
+              {phase === "cta" && exam && (
+                <motion.div
+                  className="mt-6"
+                  variants={ctaFadeIn}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+                    <div className="space-y-5 text-center">
+                      {!hasDemo && (
+                        <p className="text-sm text-muted-foreground">
+                          We&apos;re crafting your {exam} demo question. In the meantime,
+                          your personalized assessment is ready.
+                        </p>
+                      )}
+                      {hasDemo && (
+                        <p className="text-sm text-muted-foreground">
+                          Get the full {exam} assessment — 5 questions personalized to
+                          your weak spots. Free, no credit card.
+                        </p>
+                      )}
+
+                      <div className="pt-1">
+                        {showSignIn && !user ? (
+                          <div className="space-y-3">
+                            <p className="text-center text-sm text-muted-foreground">
+                              Sign in to take your assessment and get a personalized
+                              study plan.
+                            </p>
+                            <div className="flex justify-center">
+                              <SignInButton buttonText="Sign in with Google" icon={false} />
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            size="lg"
+                            className="w-full"
+                            disabled={!exam || isUserLoading}
+                            onClick={handleCTA}
+                          >
+                            {isUserLoading ? (
+                              <span className="flex items-center gap-2">
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                Checking...
+                              </span>
+                            ) : (
+                              <>
+                                Start Your 5-Question {exam} Assessment
+                                <ChevronRight className="ml-1 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mt-4 text-center text-xs text-muted-foreground/70">
+                    No sign-in required to explore. Your results are private and
+                    tailored to your exam.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </section>
   );

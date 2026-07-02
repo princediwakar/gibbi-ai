@@ -74,24 +74,21 @@ const TIME_MODE_META: Record<
 
 const ASSESSMENT_COLORS: Record<
   SelfAssessment,
-  { selected: string; hover: string; ring: string }
+  { selected: string; ring: string }
 > = {
   weak: {
     selected:
       "bg-red-50 border-red-300 text-red-800 dark:bg-red-950/50 dark:border-red-500/40 dark:text-red-400",
-    hover: "hover:bg-red-50/50 dark:hover:bg-red-950/30",
     ring: "ring-red-400/30",
   },
   okay: {
     selected:
       "bg-amber-50 border-amber-300 text-amber-800 dark:bg-amber-950/50 dark:border-amber-500/40 dark:text-amber-400",
-    hover: "hover:bg-amber-50/50 dark:hover:bg-amber-950/30",
     ring: "ring-amber-400/30",
   },
   strong: {
     selected:
       "bg-green-50 border-green-300 text-green-800 dark:bg-green-950/50 dark:border-green-500/40 dark:text-green-400",
-    hover: "hover:bg-green-50/50 dark:hover:bg-green-950/30",
     ring: "ring-green-400/30",
   },
 };
@@ -100,7 +97,7 @@ const STEPS = [
   { id: 1, label: "Reality Anchor" },
   { id: 2, label: "Active Target" },
   { id: 3, label: "The Contract" },
-  { id: 4, label: "Diagnostic" },
+  { id: 4, label: "Assessment" },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -121,16 +118,13 @@ function daysBetween(a: string, b: string): number {
   );
 }
 
-function flattenDomains(examName: string): string[] {
+function getGroupedDomains(examName: string): { subject: string; domains: string[] }[] {
   const subjects = taxonomyData[examName];
   if (!subjects) return [];
-  const domainSet = new Set<string>();
-  for (const domainList of Object.values(subjects)) {
-    for (const domain of domainList) {
-      domainSet.add(domain);
-    }
-  }
-  return [...domainSet].sort();
+  return Object.entries(subjects).map(([subject, domainList]) => ({
+    subject,
+    domains: (domainList as string[]).slice().sort(),
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -145,7 +139,10 @@ function SegmentedControl({
   onChange: (level: SelfAssessment) => void;
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-input p-0.5 gap-0.5" role="radiogroup">
+    <div
+      className="inline-flex rounded-lg border border-input bg-muted/40 dark:bg-white/[0.04] p-0.5 gap-0.5"
+      role="radiogroup"
+    >
       {ASSESSMENT_LEVELS.map((level) => {
         const isSelected = value === level;
         const colors = ASSESSMENT_COLORS[level];
@@ -164,9 +161,9 @@ function SegmentedControl({
               isSelected
                 ? cn(colors.selected, "shadow-sm")
                 : cn(
-                    "text-muted-foreground border-transparent bg-transparent",
-                    colors.hover
-                  )
+                    "text-muted-foreground dark:text-foreground/55 border-transparent bg-transparent",
+                    "hover:bg-muted hover:text-foreground dark:hover:bg-white/[0.12] dark:hover:text-foreground",
+                  ),
             )}
           >
             {ASSESSMENT_LABELS[level]}
@@ -360,17 +357,24 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
   // ---- Step 1 validity ----
   const step1Valid = exam && targetDate && allAssessed;
 
-  // ---- Step 2: domains ----
-  const allDomains = useMemo<string[]>(() => {
+  // ---- Step 2: domains grouped by subject ----
+  const allDomainGroups = useMemo(() => {
     if (!exam) return [];
-    return flattenDomains(exam);
+    return getGroupedDomains(exam);
   }, [exam]);
 
-  const filteredDomains = useMemo<string[]>(() => {
+  const filteredDomainGroups = useMemo(() => {
     const q = domainSearch.trim().toLowerCase();
-    if (!q) return allDomains;
-    return allDomains.filter((d) => d.toLowerCase().includes(q));
-  }, [allDomains, domainSearch]);
+    if (!q) return allDomainGroups;
+    return allDomainGroups
+      .map((group) => ({
+        ...group,
+        domains: group.subject.toLowerCase().includes(q)
+          ? group.domains
+          : group.domains.filter((d) => d.toLowerCase().includes(q)),
+      }))
+      .filter((group) => group.domains.length > 0);
+  }, [allDomainGroups, domainSearch]);
 
   const maxTargetsReached = activeTargets.length >= TUTOR_CONFIG.ACTIVE_TARGET_MAX_TOPICS;
   const step2Valid = activeTargets.length >= 1 && activeTargets.length <= TUTOR_CONFIG.ACTIVE_TARGET_MAX_TOPICS;
@@ -481,7 +485,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
 
       if (!sessionRes.ok) {
         const errBody = await sessionRes.json().catch(() => null);
-        toast.error(errBody?.details ?? errBody?.error ?? "Failed to start your diagnostic session.");
+        toast.error(errBody?.details ?? errBody?.error ?? "Failed to start your assessment.");
         setIsSubmitting(false);
         setStep(3);
         return;
@@ -497,7 +501,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
         return;
       }
 
-      toast.success("Your diagnostic session is ready!", { duration: 2000 });
+      toast.success("Your assessment is ready!", { duration: 2000 });
       router.push(TUTOR_ROUTES.SESSION(sessionId));
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -660,56 +664,65 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
                 </div>
               )}
 
-              {/* Domain list */}
+              {/* Domain list grouped by subject */}
               <div className="rounded-lg border border-border/60 overflow-hidden">
                 <div className="max-h-60 overflow-y-auto">
-                  {filteredDomains.length === 0 ? (
+                  {filteredDomainGroups.length === 0 ? (
                     <p className="px-4 py-6 text-center text-sm text-muted-foreground">
                       No topics match your search.
                     </p>
                   ) : (
-                    filteredDomains.map((domain) => {
-                      const isSelected = activeTargets.includes(domain);
-                      const isDisabled = !isSelected && maxTargetsReached;
+                    filteredDomainGroups.map((group, groupIdx) => (
+                      <div key={group.subject}>
+                        {groupIdx > 0 && (
+                          <div className="mx-4 border-t border-border/20" />
+                        )}
+                        <div className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/20 sticky top-0">
+                          {group.subject}
+                        </div>
+                        {group.domains.map((domain) => {
+                          const isSelected = activeTargets.includes(domain);
+                          const isDisabled = !isSelected && maxTargetsReached;
 
-                      return (
-                        <button
-                          key={domain}
-                          type="button"
-                          disabled={isDisabled}
-                          onClick={() => toggleDomain(domain)}
-                          className={cn(
-                            "flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                            "border-b border-border/30 last:border-b-0",
-                            "hover:bg-muted/50",
-                            isSelected &&
-                              "bg-primary/5 hover:bg-primary/10",
-                            isDisabled &&
-                              "opacity-40 cursor-not-allowed hover:bg-transparent"
-                          )}
-                        >
-                          {/* Checkbox indicator */}
-                          <div
-                            className={cn(
-                              "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-                              isSelected
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-muted-foreground/40"
-                            )}
-                          >
-                            {isSelected && <Check className="h-3 w-3" />}
-                          </div>
-                          <span
-                            className={cn(
-                              "text-left",
-                              isSelected && "font-medium text-foreground"
-                            )}
-                          >
-                            {domain}
-                          </span>
-                        </button>
-                      );
-                    })
+                          return (
+                            <button
+                              key={domain}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => toggleDomain(domain)}
+                              className={cn(
+                                "flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                                "border-b border-border/30 last:border-b-0",
+                                "hover:bg-muted/50",
+                                isSelected &&
+                                  "bg-primary/5 hover:bg-primary/10",
+                                isDisabled &&
+                                  "opacity-40 cursor-not-allowed hover:bg-transparent"
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                                  isSelected
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-muted-foreground/40"
+                                )}
+                              >
+                                {isSelected && <Check className="h-3 w-3" />}
+                              </div>
+                              <span
+                                className={cn(
+                                  "text-left",
+                                  isSelected && "font-medium text-foreground"
+                                )}
+                              >
+                                {domain}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -748,7 +761,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
               {/* Info cards */}
               <div className="grid gap-3">
                 <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
-                  <p className="text-sm font-medium">Why a baseline diagnostic?</p>
+                  <p className="text-sm font-medium">Why an initial assessment?</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     We measure what you know right now across every topic. No studying
                     required — just 5 quick questions to map your strengths and gaps.
@@ -758,7 +771,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
                 <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
                   <p className="text-sm font-medium">What happens next?</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    After the diagnostic, you will get a personalized dashboard with your
+                    After the assessment, you will get a personalized dashboard with your
                     readiness index, weak spots, and a daily review plan tuned to your
                     exam date.
                   </p>
@@ -776,10 +789,10 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating diagnostic...
+                      Creating assessment...
                     </>
                   ) : (
-                    "Start Baseline Diagnostic"
+                    "Start My Assessment"
                   )}
                 </Button>
 
@@ -818,7 +831,7 @@ export function SetupForm({ prefill, examNames, examSubjects }: SetupFormProps) 
               </div>
 
               <div className="text-center space-y-2">
-                <h3 className="text-lg font-semibold">Creating your diagnostic</h3>
+                <h3 className="text-lg font-semibold">Creating your assessment</h3>
                 <p className="text-sm text-muted-foreground max-w-xs">
                   Generating 5 personalized questions based on your exam profile
                   and active targets. This will only take a moment.

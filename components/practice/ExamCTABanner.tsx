@@ -43,7 +43,7 @@ export default function ExamCTABanner({ examName }: ExamCTABannerProps) {
           href="/setup"
           className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-semibold text-indigo-700 shadow-md transition-all hover:bg-indigo-50 hover:shadow-lg active:scale-[0.97]"
         >
-          Start Your Free Diagnostic
+          Start Your Free Assessment
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
