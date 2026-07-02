@@ -1,5 +1,6 @@
 // Path: lib/ai-utils.ts
 import { z } from "zod";
+import { safeParseJson } from "./json-repair";
 
 // ----- Schemas and Types -----
 
@@ -297,127 +298,55 @@ export function buildSystemMessage(
   customInstructions: string = ''
 ): string {
   
-  const ROLE = `You are an elite Test Creation Specialist with expertise in creating high-quality educational assessments. Your questions are used by serious students preparing for important exams and academic challenges.`;
-  
-  const CORE_INTELLIGENCE = `
-FUNDAMENTAL UNDERSTANDING:
-${QUESTION_INTELLIGENCE_PRINCIPLES.map(p => `• ${p}`).join('\n')}
+  return `You are an elite educational assessment architect. Your objective is to generate ${remaining} high-stakes exam questions at the "${difficulty}" difficulty level in ${language}.
 
-UNIVERSAL QUALITY STANDARDS:
-${UNIVERSAL_QUALITY_STANDARDS.map(s => `• ${s}`).join('\n')}
+# CORE DIRECTIVES
+1. AUTHENTICITY: Questions must mirror the cognitive load of actual competitive exams (e.g., GMAT, GRE, SAT). No trivial recall.
+2. DISTRACTOR CRAFTSMANSHIP: Every incorrect option must target a specific, documented pedagogical trap or misconception.
+3. COGNITIVE DEMAND: Require multi-step reasoning, synthesis, or applied analysis.
 
-YOUR MISSION: Create ${remaining} questions that truly challenge and educate learners at the ${difficulty} level.
-  `;
+# VARIABILITY INJECTOR
+${variability}
 
-  const CONTENT_CREATION_MASTERY = `
-CONTENT CREATION EXCELLENCE:
-1. AUTHENTIC SUPPORTING MATERIALS:
-   - Reading passages should be dense, informative, and require careful analysis
-   - Data tables should contain meaningful, realistic information
-   - Graphs should show actual trends or relationships worth interpreting
-   - All supporting content should justify multiple sophisticated questions
+${customInstructions ? `# SPECIFIC CONSTRAINTS\n${customInstructions}` : ''}
 
-2. QUESTION SOPHISTICATION:
-   - Each question should require specific knowledge or skills
-   - Distractors should test genuine understanding, not just guessing
-   - Questions should mirror the complexity students face in real academic/professional contexts
-   - Avoid questions that can be answered without understanding the material
+# OUTPUT SCHEMA (STRICT JSON ONLY)
+You must output a raw JSON object conforming EXACTLY to this TypeScript interface. Do not wrap in markdown or code blocks.
 
-3. COGNITIVE VARIETY:
-   - Include questions that test different thinking skills
-   - Mix recall, application, analysis, and evaluation appropriately
-   - Ensure questions require different approaches to solve
-   - Create questions that build upon each other when grouped
-  `;
-
-  const STRUCTURAL_REQUIREMENTS = `
-QUIZ STRUCTURE REQUIREMENTS:
-• Generate EXACTLY ${remaining} questions total - this is critical
-• Use question_groups when you have substantial supporting content (passages, data, graphs)
-• Put standalone questions in the main "questions" array
-• Each question group should have 2-3 questions maximum
-• Supporting content must be substantial enough to warrant multiple questions
-• Give descriptive group_titles and unique group_ids
-  `;
-
-  const JSON_FORMAT = `
-OUTPUT FORMAT - Return ONLY valid JSON (no markdown, no code fences). Start your response with { and end with }:
-
-CRITICAL: Your entire response must be a single JSON object. Do not wrap it in markdown code blocks.
-
-Return this JSON structure:
-{
-  "title": "Engaging, descriptive title",
-  "description": "Clear description of what this quiz tests", 
-  "topic": "Main subject area",
-  "subject": "Academic field",
-  "language": "${language}",
-  "difficulty": "${difficulty}",
-  "question_groups": [
-    {
-      "group_id": "unique_identifier",
-      "group_title": "Descriptive title",
-      "supporting_content": {
-        "type": "text|table|graph",
-        "content": "substantial_content_here",
-        "caption": "optional_description"
-      },
-      "questions": [
-        {
-          "question_text": "Well-crafted question requiring thought",
-          "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
-          "correct_option": "A|B|C|D",
-          "explanation": "Brief explanation of why the correct answer is right",
-          "topics": ["sub_topic_1", "sub_topic_2"],
-          "difficulty_tier": "foundation|application|advanced|expert",
-          "distractor_analysis": {"A": "Why someone might pick A", "B": "Why someone might pick B", "C": "Why someone might pick C", "D": "Why someone might pick D"},
-          "skill_domain": "Specific skill or concept this tests",
-          "time_estimate_seconds": 60,
-          "misconception": "A common mistake students make on this concept"
-        }
-      ]
-    }
-  ],
-  "questions": [
-    {
-      "question_text": "Well-crafted question requiring thought",
-      "options": {"A": "option1", "B": "option2", "C": "option3", "D": "option4"},
-      "correct_option": "A|B|C|D",
-      "explanation": "Brief explanation of why the correct answer is right",
-      "topics": ["sub_topic_1", "sub_topic_2"],
-      "difficulty_tier": "foundation|application|advanced|expert",
-      "distractor_analysis": {"A": "Why someone might pick A", "B": "Why someone might pick B", "C": "Why someone might pick C", "D": "Why someone might pick D"},
-      "skill_domain": "Specific skill or concept this tests",
-      "time_estimate_seconds": 60,
-      "misconception": "A common mistake students make on this concept"
-    }
-  ]
+interface QuizResponse {
+  title: string;
+  description: string;
+  topic: string;
+  subject: string;
+  language: "${language}";
+  difficulty: "${difficulty}";
+  question_groups?: Array<{
+    group_id: string;
+    group_title: string;
+    supporting_content: {
+      type: "text" | "table" | "graph";
+      content: any; // Raw text, or structured table/graph data
+      caption?: string;
+    };
+    questions: Question[];
+  }>;
+  questions: Question[]; // Standalone questions
 }
 
-IMPORTANT: Each question MUST include:
-- "topics": An array of 1-2 specific sub-topic tags that this question tests (e.g., ["Mitosis", "Cell Division"] or ["Algebra", "Linear Equations"]).
-- "explanation": A brief explanation of why the correct answer is correct.
-- "difficulty_tier": Per-question difficulty independent of quiz-level: "foundation" (basic recall), "application" (applying concepts), "advanced" (multi-step reasoning), or "expert" (synthesis across topics).
-- "distractor_analysis": Map each wrong option letter to a one-sentence explanation of the trap/fallacy.
-- "skill_domain": A short, consistent label for the specific skill or concept tested (e.g., "Thermodynamics", "Cell Division", "Quadratic Equations"). Use consistent naming.
-- "time_estimate_seconds": How long a prepared student would take to answer (typically 30-180 seconds).
-- "misconception": A common mistake students make on this concept.
+interface Question {
+  question_text: string;
+  options: { A: string; B: string; C: string; D: string };
+  correct_option: "A" | "B" | "C" | "D";
+  explanation: string; // Step-by-step logic proving the answer
+  topics: string[]; // 1-2 specific sub-topics
+  difficulty_tier: "foundation" | "application" | "advanced" | "expert";
+  distractor_analysis: { A: string; B: string; C: string; D: string }; // Specifically why a student would wrongly pick this
+  skill_domain: string;
+  time_estimate_seconds: number; // 30-180
+  misconception: string; // The primary fallacy tested
+}
 
-For tables: {"type": "table", "content": {"headers": [...], "rows": [...]}}
-For graphs: {"type": "graph", "content": {"type": "bar|line|pie", "title": "", "labels": [...], "datasets": [...]}}
-
-End with: END_OF_JSON
-  `;
-
-  return [
-    ROLE,
-    CORE_INTELLIGENCE,
-    variability,
-    CONTENT_CREATION_MASTERY,
-    STRUCTURAL_REQUIREMENTS,
-    customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}` : '',
-    JSON_FORMAT
-  ].filter(Boolean).join('\n\n');
+Execute immediately. Return only the JSON object.`;
 }
 
 // Simplified but powerful user message
@@ -468,15 +397,13 @@ export function cleanResponse(text: string): string {
 // ----- Parsing & Validation -----
 export function parseQuiz(raw: string, expectedQuestionCount?: number): GeneratedQuiz {
   const cleaned = cleanResponse(raw);
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch (err) {
-    throw new Error(`Invalid JSON: ${err instanceof Error ? err.message : err}`);
+  const parseResult = safeParseJson(cleaned);
+  if ("error" in parseResult) {
+    throw new Error(`Invalid JSON: ${parseResult.error}`);
   }
-  
-  // Validate the parsed quiz
-  const quiz = GeneratedQuizSchema.parse(parsed);
+
+  // Validate the parsed quiz against the Zod schema
+  const quiz = GeneratedQuizSchema.parse(parseResult.data);
 
   // Count total questions (standalone + grouped)
   const standaloneCount = quiz.questions?.length || 0;
