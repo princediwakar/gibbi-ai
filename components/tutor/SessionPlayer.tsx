@@ -56,13 +56,17 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
   const current = questions[currentIndex];
 
   useEffect(() => {
+    if (sessionComplete) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
     intervalRef.current = setInterval(() => {
       setTotalTimeElapsed(Math.floor((Date.now() - timerStartRef.current) / 1000));
     }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [sessionComplete]);
 
   useEffect(() => {
     return () => {
