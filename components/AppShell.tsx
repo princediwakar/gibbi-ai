@@ -18,7 +18,6 @@ import {
   PanelLeftClose,
   PlusCircle,
   Target,
-  Zap,
   Settings,
   MoreVertical,
 } from "lucide-react";
@@ -33,7 +32,6 @@ import {
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: Target },
-  { title: "Practice", url: "/session/start", icon: Zap },
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
   { title: "History", url: "/history", icon: History },
 ];
