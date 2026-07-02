@@ -72,25 +72,6 @@ async function generateAndCreateSession(
   sessionIntent: string,
   profile: { exam_name: string; target_date: string; time_mode: string },
 ): Promise<{ result?: SessionGenerationResult; error?: string; details?: string; status?: number }> {
-  // ----- Custom Mock Rate Limiting -----
-  if (sessionIntent === "custom_mock") {
-    const todayStart = new Date().toISOString().slice(0, 10);
-    const { count: customMockCount } = await supabase
-      .from("sessions")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("session_intent", "custom_mock")
-      .gte("created_at", todayStart);
-
-    if ((customMockCount ?? 0) >= TUTOR_CONFIG.MAX_CUSTOM_MOCK_PER_DAY) {
-      return {
-        error:
-          "Custom mock limit reached (2/day). Use Algorithmic Review or Active Target to continue improving.",
-        status: 429,
-      };
-    }
-  }
-
   // ----- Daily Session Rate Limiting -----
   const { count: dailyCount } = await supabase
     .from("sessions")

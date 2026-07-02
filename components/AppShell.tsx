@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ThemeToggle } from "./ThemeToggleButton";
 import { SignInButton } from "./SignInButton";
 import { Header } from "./Header";
+import type { SidebarData } from "@/app/layout";
 import {
   TrendingUp,
   History,
@@ -20,6 +21,8 @@ import {
   Target,
   Settings,
   MoreVertical,
+  Calendar,
+  Flame,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,7 +39,7 @@ const mainItems = [
   { title: "History", url: "/history", icon: History },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, sidebarData }: { children: React.ReactNode; sidebarData?: SidebarData | null }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const [isSignOutLoading, setIsSignOutLoading] = useState(false);
@@ -112,6 +115,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="text-xl font-bold text-primary">
               GibbiAI
             </Link>
+            {sidebarData && (
+              <div className="mt-2">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Calendar className="w-3 h-3 shrink-0" />
+                  <span className="truncate">
+                    {sidebarData.examName} &middot; {sidebarData.daysRemaining} day{sidebarData.daysRemaining !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <nav className="flex-1 overflow-auto flex flex-col">
@@ -167,6 +180,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   Public Quizzes
                 </Link>
               </div>
+
+              {sidebarData && sidebarData.streak > 0 && (
+                <div className="flex items-center gap-1.5 px-2 py-1 text-xs">
+                  <Flame className="w-3.5 h-3.5 text-orange-500" />
+                  <span className="text-muted-foreground">
+                    {sidebarData.streak} day streak
+                  </span>
+                </div>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors w-full outline-none">
