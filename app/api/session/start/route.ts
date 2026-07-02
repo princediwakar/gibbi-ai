@@ -13,6 +13,7 @@ import { getTimeMode } from "@/lib/sm2";
 import { TUTOR_CONFIG, TUTOR_ERRORS } from "@/lib/constants/tutor";
 import { normalizeSkillDomain } from "@/lib/services/skill-normalizer";
 import { openai, MODEL } from "@/lib/ai";
+import { safeParseJson } from "@/lib/json-repair";
 import taxonomy from "@/lib/taxonomies.json";
 import type { SessionQuestion, DifficultyTier, TimeMode } from "@/types/tutor";
 
@@ -162,40 +163,47 @@ async function generateAndCreateSession(
 
   console.log(`[SessionStart] model=${MODEL} baseURL=${(openai as any).baseURL || "default"} domains=${targetDomainNames.length} questions=${questionCount}`);
 
-  const completion = await openai.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: userMessage },
-    ],
-    temperature: 0.7,
-    max_tokens: maxTokens,
-    response_format: { type: "json_object" as const },
-  });
+  const MAX_ATTEMPTS = 2;
+  let rawResponse = "";
+  let parsedResponse: Record<string, unknown> = {};
+  let questionsArray: unknown[] = [];
+  let lastDetails = "";
 
-  const rawResponse = completion.choices[0]?.message?.content || "";
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const completion = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: "system" as const, content: systemPrompt },
+        { role: "user" as const, content: userMessage },
+      ],
+      temperature: 0.7,
+      max_tokens: maxTokens,
+      response_format: { type: "json_object" as const },
+    });
 
-  let parsedResponse: Record<string, unknown>;
-  try {
-    parsedResponse = JSON.parse(rawResponse);
-  } catch (parseErr) {
-    console.error("JSON parse failed. Raw response prefix:", rawResponse.slice(0, 500));
-    return {
-      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
-      details: `Model returned invalid JSON: ${(parseErr as Error).message}`,
-      status: 500,
-    };
-  }
+    rawResponse = completion.choices[0]?.message?.content || "";
 
-  const questionsArray = parsedResponse?.questions as unknown[] | undefined;
-  if (!Array.isArray(questionsArray) || questionsArray.length === 0) {
-    const arrLen = Array.isArray(questionsArray) ? questionsArray.length : 0;
-    console.error("No questions in response. Keys:", Object.keys(parsedResponse));
-    return {
-      error: TUTOR_ERRORS.AI_GENERATION_FAILED,
-      details: `Model returned ${arrLen} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`,
-      status: 500,
-    };
+    const parseResult = safeParseJson(rawResponse);
+    if ("error" in parseResult) {
+      lastDetails = `Model returned invalid JSON: ${parseResult.error}`;
+      console.error(`[SessionStart] JSON parse failed (attempt ${attempt + 1}/${MAX_ATTEMPTS}):`, parseResult.error);
+      if (attempt < MAX_ATTEMPTS - 1) continue;
+      return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, details: lastDetails, status: 500 };
+    }
+
+    parsedResponse = parseResult.data as Record<string, unknown>;
+
+    const qArr = parsedResponse?.questions as unknown[] | undefined;
+    if (!Array.isArray(qArr) || qArr.length === 0) {
+      const arrLen = Array.isArray(qArr) ? qArr.length : 0;
+      lastDetails = `Model returned ${arrLen} questions (expected ${questionCount}). Response keys: ${Object.keys(parsedResponse).join(", ") || "none"}`;
+      console.error(`[SessionStart] Empty questions (attempt ${attempt + 1}/${MAX_ATTEMPTS}):`, lastDetails);
+      if (attempt < MAX_ATTEMPTS - 1) continue;
+      return { error: TUTOR_ERRORS.AI_GENERATION_FAILED, details: lastDetails, status: 500 };
+    }
+
+    questionsArray = qArr;
+    break;
   }
 
   const validatedQuestions: SessionQuestion[] = [];
