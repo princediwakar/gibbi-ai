@@ -174,9 +174,11 @@ export async function POST(request: NextRequest) {
         readiness_after: Math.round(readinessIndex),
       };
 
+      const sevenDays = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
       const { data: cardRows, error: cardError } = await supabaseAdmin
         .from("result_cards")
-        .insert({ user_id: user.id, card_type: "session", card_data: cardData })
+        .insert({ user_id: user.id, card_type: "session", card_data: cardData, expires_at: sevenDays })
         .select("share_token")
         .single();
 
@@ -390,9 +392,46 @@ export async function POST(request: NextRequest) {
 
     // Identify mastered domains: mastery went from <0.7 to >=0.7
     const masteredDomains: string[] = [];
+    const completionTimeLogs: Array<{
+      user_id: string;
+      session_id: string;
+      skill_domain: string;
+      difficulty_tier: string;
+      questions_attempted: number;
+      questions_correct: number;
+      time_to_mastery_minutes: number | null;
+    }> = [];
+
     for (const delta of masteryDeltas) {
       if (delta.before < 0.7 && delta.after >= 0.7) {
         masteredDomains.push(delta.domain);
+        
+        // Log completion time for this domain (for C_tier derivation)
+        const domainResultsArr = domainResults.get(delta.domain) || [];
+        const questionsAttempted = domainResultsArr.length;
+        const questionsCorrect = domainResultsArr.filter(r => r.is_correct).length;
+        
+        // Get difficulty tier from first question in this domain, map number to string for DB
+        const firstQ = questions.find(q => q.skill_domain === delta.domain);
+        const tierNum = firstQ?.difficulty_tier ?? 2;
+        const tierMap: Record<number, string> = { 1: 'foundation', 2: 'application', 3: 'advanced' };
+        const difficultyTier = tierMap[tierNum] ?? 'application';
+        
+        // Estimate time to mastery: delta from first seen to now
+        const existingRow = masteryMap.get(delta.domain);
+        const timeToMastery = existingRow?.last_seen_at
+          ? Math.round((now.getTime() - new Date(existingRow.last_seen_at).getTime()) / 60000)
+          : null;
+
+        completionTimeLogs.push({
+          user_id: user.id,
+          session_id: session.id as string,
+          skill_domain: delta.domain,
+          difficulty_tier: difficultyTier,
+          questions_attempted: questionsAttempted,
+          questions_correct: questionsCorrect,
+          time_to_mastery_minutes: timeToMastery,
+        });
       }
     }
 
@@ -451,12 +490,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const sevenDays = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
     const { data: cardRows, error: cardError } = await supabaseAdmin
       .from("result_cards")
       .insert({
         user_id: user.id,
         card_type: "session",
         card_data: cardData,
+        expires_at: sevenDays,
       })
       .select("share_token")
       .single();
@@ -485,6 +527,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log completion times for C_tier derivation (Priority Engine)
+    if (completionTimeLogs.length > 0) {
+      const { error: completionLogError } = await supabaseAdmin
+        .from("completion_time_logs")
+        .insert(completionTimeLogs);
+      if (completionLogError) {
+        console.warn("[SessionComplete] completion_time_logs insert warning:", completionLogError);
+        // Non-fatal
+      }
+    }
+
+    const isQuiet = sessionIntent === "quiet";
+
     return NextResponse.json({
       mastery_updates: masteryUpdates.map((u) => ({
         skill_domain: u.skill_domain,
@@ -494,6 +549,8 @@ export async function POST(request: NextRequest) {
       })),
       readiness_index: Math.round(readinessAfter),
       share_token: cardRows.share_token,
+      visible_projection_updated: !isQuiet,
+      session_intent: sessionIntent,
     });
   } catch (error) {
     console.error("[SessionComplete] Error:", error);

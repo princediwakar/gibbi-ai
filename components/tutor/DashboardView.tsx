@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import type { DashboardPageData } from "@/app/dashboard/page";
+import { ProjectionHero } from "@/components/tutor/ProjectionHero";
 import { TUTOR_ROUTES, TUTOR_CONFIG } from "@/lib/constants/tutor";
 import { toast } from "sonner";
 import {
@@ -229,6 +230,9 @@ export function DashboardView({ data }: { data: DashboardPageData }) {
           </span>
         </div>
       </div>
+
+      {/* Focus Hub: Confidence Interval Hero */}
+      <ProjectionHero prediction={data.prediction} />
 
       {/* Section 2: Directive Hero */}
       <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">

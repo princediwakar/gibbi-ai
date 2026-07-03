@@ -7,7 +7,7 @@ const taxonomyData = taxonomy as unknown as TaxonomyData;
 const EXAM_NAMES = Object.keys(taxonomyData).filter((k) => k !== "_schema_version");
 const ANSWER_OPTIONS = ["A", "B", "C", "D"] as const;
 const ASSESSMENT_LEVELS = ["weak", "okay", "strong"] as const;
-const SESSION_INTENTS = ["spaced_review", "active_target", "custom_mock", "diagnostic"] as const;
+const SESSION_INTENTS = ["spaced_review", "active_target", "custom_mock", "diagnostic", "tracked", "quiet"] as const;
 
 export const SessionStartSchema = z.object({
   exam_profile_id: z.string().uuid("Enter a valid exam profile ID"),

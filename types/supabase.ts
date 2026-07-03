@@ -14,6 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
+      actual_results: {
+        Row: {
+          actual_marks: number | null
+          actual_percentile: number | null
+          created_at: string | null
+          exam_name: string
+          id: string
+          opted_in: boolean | null
+          prediction_id: string | null
+          session_label: string
+          subject_breakdown: Json | null
+          user_id: string
+        }
+        Insert: {
+          actual_marks?: number | null
+          actual_percentile?: number | null
+          created_at?: string | null
+          exam_name: string
+          id?: string
+          opted_in?: boolean | null
+          prediction_id?: string | null
+          session_label: string
+          subject_breakdown?: Json | null
+          user_id: string
+        }
+        Update: {
+          actual_marks?: number | null
+          actual_percentile?: number | null
+          created_at?: string | null
+          exam_name?: string
+          id?: string
+          opted_in?: boolean | null
+          prediction_id?: string | null
+          session_label?: string
+          subject_breakdown?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actual_results_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calibration_snapshots: {
+        Row: {
+          active_users_eligible: number | null
+          coverage: number | null
+          coverage_segmented: Json | null
+          created_at: string | null
+          exam_date: string
+          exam_name: string
+          freeze_date: string
+          id: string
+          report_json: Json | null
+          results_date: string | null
+          session_label: string
+          sharpness_median_width: number | null
+          total_users_frozen: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_users_eligible?: number | null
+          coverage?: number | null
+          coverage_segmented?: Json | null
+          created_at?: string | null
+          exam_date: string
+          exam_name: string
+          freeze_date: string
+          id?: string
+          report_json?: Json | null
+          results_date?: string | null
+          session_label: string
+          sharpness_median_width?: number | null
+          total_users_frozen?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_users_eligible?: number | null
+          coverage?: number | null
+          coverage_segmented?: Json | null
+          created_at?: string | null
+          exam_date?: string
+          exam_name?: string
+          freeze_date?: string
+          id?: string
+          report_json?: Json | null
+          results_date?: string | null
+          session_label?: string
+          sharpness_median_width?: number | null
+          total_users_frozen?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      comeback_queue_items: {
+        Row: {
+          cleared: boolean | null
+          created_at: string | null
+          delayed_passed: boolean | null
+          difficulty_tier: string
+          exam_profile_id: string
+          explanation_shown: boolean | null
+          id: string
+          immediate_passed: boolean | null
+          lost_projected_points: number | null
+          original_session_id: string | null
+          question_id: number
+          skill_domain: string
+          stage: string
+          stage_deadline: string | null
+          transfer_passed: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cleared?: boolean | null
+          created_at?: string | null
+          delayed_passed?: boolean | null
+          difficulty_tier: string
+          exam_profile_id: string
+          explanation_shown?: boolean | null
+          id?: string
+          immediate_passed?: boolean | null
+          lost_projected_points?: number | null
+          original_session_id?: string | null
+          question_id: number
+          skill_domain: string
+          stage?: string
+          stage_deadline?: string | null
+          transfer_passed?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cleared?: boolean | null
+          created_at?: string | null
+          delayed_passed?: boolean | null
+          difficulty_tier?: string
+          exam_profile_id?: string
+          explanation_shown?: boolean | null
+          id?: string
+          immediate_passed?: boolean | null
+          lost_projected_points?: number | null
+          original_session_id?: string | null
+          question_id?: number
+          skill_domain?: string
+          stage?: string
+          stage_deadline?: string | null
+          transfer_passed?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comeback_queue_items_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "comeback_queue_items_original_session_id_fkey"
+            columns: ["original_session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      completion_time_logs: {
+        Row: {
+          created_at: string | null
+          difficulty_tier: string
+          id: string
+          questions_attempted: number | null
+          questions_correct: number | null
+          session_id: string | null
+          skill_domain: string
+          time_to_mastery_minutes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty_tier: string
+          id?: string
+          questions_attempted?: number | null
+          questions_correct?: number | null
+          session_id?: string | null
+          skill_domain: string
+          time_to_mastery_minutes?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          difficulty_tier?: string
+          id?: string
+          questions_attempted?: number | null
+          questions_correct?: number | null
+          session_id?: string | null
+          skill_domain?: string
+          time_to_mastery_minutes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "completion_time_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       concept_mastery: {
         Row: {
           created_at: string | null
@@ -106,6 +323,48 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_topic_weights: {
+        Row: {
+          c_tier_cap: number | null
+          created_at: string | null
+          difficulty_tier: string
+          estimated_minutes_to_mastery: number | null
+          exam_name: string
+          exam_weight: number
+          id: string
+          question_frequency_10yr: number | null
+          skill_domain: string
+          subject: string
+          topic: string
+        }
+        Insert: {
+          c_tier_cap?: number | null
+          created_at?: string | null
+          difficulty_tier?: string
+          estimated_minutes_to_mastery?: number | null
+          exam_name: string
+          exam_weight: number
+          id?: string
+          question_frequency_10yr?: number | null
+          skill_domain: string
+          subject: string
+          topic: string
+        }
+        Update: {
+          c_tier_cap?: number | null
+          created_at?: string | null
+          difficulty_tier?: string
+          estimated_minutes_to_mastery?: number | null
+          exam_name?: string
+          exam_weight?: number
+          id?: string
+          question_frequency_10yr?: number | null
+          skill_domain?: string
+          subject?: string
+          topic?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           created_at: string | null
@@ -194,6 +453,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mastery_history_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
+      predictions: {
+        Row: {
+          band_lower: number
+          band_upper: number
+          calibration_source: string | null
+          created_at: string | null
+          exam_profile_id: string
+          frozen_at: string | null
+          id: string
+          is_frozen: boolean | null
+          predicted_percentile: number | null
+          sessions_used: number | null
+          subject_breakdown: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          band_lower: number
+          band_upper: number
+          calibration_source?: string | null
+          created_at?: string | null
+          exam_profile_id: string
+          frozen_at?: string | null
+          id?: string
+          is_frozen?: boolean | null
+          predicted_percentile?: number | null
+          sessions_used?: number | null
+          subject_breakdown?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          band_lower?: number
+          band_upper?: number
+          calibration_source?: string | null
+          created_at?: string | null
+          exam_profile_id?: string
+          frozen_at?: string | null
+          id?: string
+          is_frozen?: boolean | null
+          predicted_percentile?: number | null
+          sessions_used?: number | null
+          subject_breakdown?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictions_exam_profile_id_fkey"
             columns: ["exam_profile_id"]
             isOneToOne: false
             referencedRelation: "exam_profiles"

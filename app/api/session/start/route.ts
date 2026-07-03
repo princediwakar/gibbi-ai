@@ -20,6 +20,7 @@ import { parseWithRecovery } from "@/lib/parse/quiz";
 import { getDiagnosticStrata } from "@/lib/diagnostic-seed";
 import { getDomainsForExam } from "@/lib/services/taxonomy";
 import type { SessionQuestion, DifficultyTier, TimeMode } from "@/types/tutor";
+import { computePriorityScores } from "@/lib/priority-engine";
 
 const DIFFICULTY_TIER_MAP: Record<string, DifficultyTier> = {
   foundation: 1,
@@ -107,11 +108,15 @@ async function generateAndCreateSession(
   // ----- Domain Selection (Intent-Aware) -----
   let targetDomains: TargetDomain[];
 
-  if (
-    sessionIntent === "active_target" ||
-    sessionIntent === "custom_mock"
-  ) {
-    // Use focus_domains directly — skip algorithmic SM-2 selection
+  const isTracked = sessionIntent === "tracked";
+  const isQuiet = sessionIntent === "quiet";
+  const isActiveTarget = sessionIntent === "active_target";
+  const isCustomMock = sessionIntent === "custom_mock";
+  const isDiagnostic = sessionIntent === "diagnostic";
+  const isSpacedReview = sessionIntent === "spaced_review";
+
+  // For active_target/custom_mock — use focus_domains directly
+  if (isActiveTarget || isCustomMock) {
     if (!focusDomains || focusDomains.length === 0) {
       return {
         error: `focus_domains is required for ${sessionIntent} sessions.`,
@@ -119,23 +124,56 @@ async function generateAndCreateSession(
       };
     }
     targetDomains = buildTargetDomainsFromFocus(focusDomains, concepts);
-  } else {
-    // spaced_review or diagnostic — algorithmic domain selection
+  } else if (isDiagnostic) {
+    // Diagnostic uses fixed strata
     const taxonomyDomains = getDomainsForExam(profile.exam_name);
+    targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
+  } else {
+    // tracked, quiet, spaced_review — use Priority Engine
+    const masteryScores: Record<string, number> = {};
+    const nextReviewDates: Record<string, Date> = {};
+    const lastSeenDates: Record<string, Date | null> = {};
+    const totalAttempted: Record<string, number> = {};
 
-    if (focusDomains && focusDomains.length > 0) {
-      const focusSet = new Set(focusDomains.map((d) => d.toLowerCase().trim()));
-      const filtered = taxonomyDomains.filter((d) =>
-        focusSet.has(d.toLowerCase().trim()),
-      );
-      if (filtered.length > 0) {
-        targetDomains = selectTargetDomains(concepts, filtered, questionCount);
-      } else {
-        targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
-      }
-    } else {
-      targetDomains = selectTargetDomains(concepts, taxonomyDomains, questionCount);
+    for (const c of concepts) {
+      masteryScores[c.skill_domain] = c.mastery_score;
+      nextReviewDates[c.skill_domain] = new Date(c.next_review_at);
+      lastSeenDates[c.skill_domain] = c.last_seen_at ? new Date(c.last_seen_at) : null;
+      totalAttempted[c.skill_domain] = c.total_attempted;
     }
+
+    const priorities = await computePriorityScores({
+      userId,
+      examProfileId,
+      examName: profile.exam_name,
+      masteryScores,
+      nextReviewDates,
+      lastSeenDates,
+      totalAttempted,
+      timeMode,
+      daysRemaining,
+    });
+
+    // Take top N domains
+    const topDomains = priorities.slice(0, questionCount).map((p) => p.skillDomain);
+
+    // Build TargetDomain objects with priority info
+    const conceptByDomain = new Map(concepts.map((c) => [c.skill_domain, c]));
+    const now = new Date().toISOString();
+
+    targetDomains = topDomains.map((domain) => {
+      const row = conceptByDomain.get(domain);
+      const priority = priorities.find((p) => p.skillDomain === domain);
+      return {
+        skillDomain: domain,
+        masteryScore: row?.mastery_score ?? 0,
+        recentErrors: [],
+        isOverdue: row ? row.next_review_at <= now : true,
+        lastSeenAt: row?.last_seen_at ?? null,
+        priorityScore: priority?.priorityScore ?? 0,
+        difficultyTier: priority?.difficultyTier,
+      };
+    });
   }
 
   // ----- Recent Wrong Answers Enrichment -----
@@ -190,7 +228,6 @@ async function generateAndCreateSession(
 
   // ----- Prompt Generation (Intent-Aware) -----
   const systemPrompt = getTutorSystemPrompt();
-  const isDiagnostic = sessionIntent === "diagnostic";
   const difficultyDistribution = isDiagnostic
     ? { easy: 1, medium: 2, hard: 2 }
     : computeDifficultyDistribution(questionCount, timeMode);

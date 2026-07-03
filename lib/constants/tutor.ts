@@ -9,6 +9,10 @@ export const TUTOR_ROUTES = {
   API_SESSION_ANSWER: "/api/session/answer",
   API_SESSION_COMPLETE: "/api/session/complete",
   PUBLIC_SHARE: (token: string) => `/s/${token}`,
+  PREDICTOR: "/predictor",
+  API_PREDICTOR_START: "/api/predictor/start",
+  API_PREDICTOR_VERIFY: "/api/predictor/verify",
+  API_PREDICTOR_RESULT: "/api/predictor/result",
 } as const;
 
 export const TUTOR_ERRORS = {

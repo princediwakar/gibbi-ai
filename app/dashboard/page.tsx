@@ -7,6 +7,7 @@ import { calculateWeightedReadinessIndex, getTimeMode } from "@/lib/sm2";
 import { computeStreak } from "@/lib/utils";
 import { DashboardView, DashboardViewLoading } from "@/components/tutor/DashboardView";
 import type { ExamProfile, ConceptMastery, TimeMode } from "@/types/tutor";
+import type { ProjectionHeroProps } from "@/components/tutor/ProjectionHero";
 import taxonomy from "@/lib/taxonomies.json";
 
 interface ConceptRow {
@@ -33,6 +34,7 @@ export interface DashboardPageData {
   activeTargets: string[];
   overdueDomainCount: number;
   weakestOverdueDomain: string | null;
+  prediction: ProjectionHeroProps["prediction"];
 }
 
 export default function DashboardPage() {
@@ -86,6 +88,7 @@ async function DashboardPageContent() {
     questionResultsRes,
     completedSessionsRes,
     overdueCountRes,
+    predictionRes,
   ] = await Promise.all([
     supabase
       .from("exam_profiles")
@@ -113,6 +116,14 @@ async function DashboardPageContent() {
       .select("id")
       .eq("user_id", user.id)
       .lt("next_review_at", new Date().toISOString()),
+    supabase
+      .from("predictions")
+      .select("overall_percentile, band_lower, band_upper, band_width, calibration_source, sessions_used, is_frozen, disclaimer")
+      .eq("user_id", user.id)
+      .eq("is_frozen", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   if (profileRes.error || !profileRes.data) {
@@ -182,6 +193,18 @@ async function DashboardPageContent() {
     activeTargets: profile.active_targets ?? [],
     overdueDomainCount,
     weakestOverdueDomain,
+    prediction: predictionRes.data
+      ? {
+          overallPercentile: predictionRes.data.overall_percentile,
+          overallBandLower: predictionRes.data.band_lower,
+          overallBandUpper: predictionRes.data.band_upper,
+          overallBandWidth: predictionRes.data.band_width,
+          calibrationSource: predictionRes.data.calibration_source ?? "public_nta",
+          disclaimer: predictionRes.data.disclaimer ?? "",
+          isFrozen: predictionRes.data.is_frozen ?? false,
+          totalTrackedSessions: predictionRes.data.sessions_used ?? 0,
+        }
+      : null,
   };
 
   return <DashboardView data={data} />;

@@ -19,6 +19,8 @@ export interface TargetDomain {
   recentErrors: string[];
   isOverdue: boolean;
   lastSeenAt: string | null;
+  priorityScore?: number;
+  difficultyTier?: "foundation" | "application" | "advanced" | "expert";
 }
 
 export interface ConceptMasteryRow {

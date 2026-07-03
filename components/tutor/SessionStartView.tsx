@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { TUTOR_ROUTES } from "@/lib/constants/tutor";
 import { toast } from "sonner";
-import { Play, BookOpen, Clock, AlertCircle } from "lucide-react";
+import { Play, BookOpen, Clock, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 
 interface SessionStartViewProps {
   profileId: string;
@@ -27,8 +27,9 @@ export function SessionStartView({
   const router = useRouter();
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [sessionIntent, setSessionIntent] = useState<"tracked" | "quiet">("tracked");
 
-  async function handleStartSession() {
+  async function handleStartSession(intent: "tracked" | "quiet") {
     if (hasActiveSession && activeSessionId) {
       router.push(TUTOR_ROUTES.SESSION(activeSessionId));
       return;
@@ -41,7 +42,7 @@ export function SessionStartView({
       const res = await fetch(`${TUTOR_ROUTES.API_SESSION_START}?stream=false`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exam_profile_id: profileId }),
+        body: JSON.stringify({ exam_profile_id: profileId, session_intent: intent }),
       });
 
       if (!res.ok) {
@@ -86,7 +87,7 @@ export function SessionStartView({
           <CardDescription>
             {hasActiveSession
               ? "You have an active session in progress"
-              : "Practice with questions targeting your knowledge gaps"}
+              : "Choose session type — both feed your model"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,6 +100,50 @@ export function SessionStartView({
             </div>
           </div>
 
+          {!hasActiveSession && (
+            <div className="space-y-3 p-4 rounded-lg border border-white/10 bg-white/5">
+              <p className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                <Info className="w-4 h-4 text-slate-400" />
+                Session Type
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant={sessionIntent === "tracked" ? "default" : "outline"}
+                  className="h-20 flex-col gap-2 text-left"
+                  onClick={() => setSessionIntent("tracked")}
+                  disabled={isStarting}
+                >
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    <span className="font-medium">Tracked</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-tight">
+                    Updates your visible projection
+                  </p>
+                </Button>
+                <Button
+                  variant={sessionIntent === "quiet" ? "default" : "outline"}
+                  className="h-20 flex-col gap-2 text-left"
+                  onClick={() => setSessionIntent("quiet")}
+                  disabled={isStarting}
+                >
+                  <div className="flex items-center gap-2">
+                    <EyeOff className="w-5 h-5" />
+                    <span className="font-medium">Quiet</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-tight">
+                    Model learns, projection hidden
+                  </p>
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500 text-center">
+                {sessionIntent === "tracked"
+                  ? "Your projected percentile band will update after this session."
+                  : "This drill won't move your visible projection today, but it still helps Gibbi understand your baseline."}
+              </p>
+            </div>
+          )}
+
           {startError && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -109,7 +154,7 @@ export function SessionStartView({
           <Button
             size="lg"
             className="w-full h-14 text-base font-semibold"
-            onClick={handleStartSession}
+            onClick={() => handleStartSession(sessionIntent)}
             disabled={isStarting}
           >
             {isStarting ? (
@@ -125,7 +170,7 @@ export function SessionStartView({
             ) : (
               <span className="flex items-center gap-2">
                 <Play className="w-5 h-5" />
-                Start Practice
+                Start {sessionIntent === "tracked" ? "Tracked" : "Quiet"} Practice
               </span>
             )}
           </Button>
