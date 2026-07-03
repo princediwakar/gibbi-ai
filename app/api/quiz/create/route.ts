@@ -5,7 +5,7 @@ import { createQuizChunked } from '@/lib/ai';
 import { insertQuestions, insertQuestionGroup } from '@/lib/services/quiz-service';
 import { checkGenerationLimit, recordGeneration } from '@/lib/services/usage-service';
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 function streamSSE(controller: ReadableStreamDefaultController, data: Record<string, unknown>) {
