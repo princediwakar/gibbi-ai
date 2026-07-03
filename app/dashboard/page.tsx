@@ -8,6 +8,7 @@ import { computeStreak } from "@/lib/utils";
 import { DashboardView, DashboardViewLoading } from "@/components/tutor/DashboardView";
 import type { ExamProfile, ConceptMastery, TimeMode } from "@/types/tutor";
 import type { ProjectionHeroProps } from "@/components/tutor/ProjectionHero";
+import { marksToPercentile, getColdStartBand, computeCompositePercentile } from "@/lib/predictor/nta-priors";
 import taxonomy from "@/lib/taxonomies.json";
 
 interface ConceptRow {
@@ -204,7 +205,24 @@ async function DashboardPageContent() {
           isFrozen: predictionRes.data.is_frozen ?? false,
           totalTrackedSessions: predictionRes.data.sessions_used ?? 0,
         }
-      : null,
+      : (() => {
+          // Cold-start: generate band from public NTA priors (zero tracked sessions)
+          const p = marksToPercentile("Physics", 50);
+          const c = marksToPercentile("Chemistry", 50);
+          const m = marksToPercentile("Mathematics", 50);
+          const overall = computeCompositePercentile({ Physics: p, Chemistry: c, Mathematics: m });
+          const band = getColdStartBand("Physics", overall);
+          return {
+            overallPercentile: overall,
+            overallBandLower: band.lower,
+            overallBandUpper: band.upper,
+            overallBandWidth: band.width,
+            calibrationSource: "public_nta",
+            disclaimer: "Based on public NTA normalization tables (2025–2026 cycles). Your band sharpens with every tracked session.",
+            isFrozen: false,
+            totalTrackedSessions: 0,
+          };
+        })(),
   };
 
   return <DashboardView data={data} />;
