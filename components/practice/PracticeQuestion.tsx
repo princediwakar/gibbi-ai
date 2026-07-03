@@ -122,27 +122,18 @@ export default function PracticeQuestion({ question, index }: PracticeQuestionPr
       </div>
 
       {/* Explanation (blurred until revealed) */}
-      <div
-        className={`mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50 transition-all duration-500 ${
-          revealed
-            ? "opacity-100 blur-0"
-            : "opacity-50 select-none"
-        }`}
-        style={revealed ? { filter: "blur(0px)" } : { filter: "blur(6px)" }}
-      >
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Explanation
-        </p>
-        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-          {renderMathContent(question.explanation)}
-        </p>
-
-        {question.misconception && (
-          <p className="mt-2 text-xs italic text-amber-600 dark:text-amber-400">
+      {question.misconception && (
+        <div
+          className={`mt-4 rounded-lg border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-800 dark:bg-amber-950/10 transition-all duration-500 ${
+            revealed ? "opacity-100 blur-0" : "opacity-50 select-none"
+          }`}
+          style={revealed ? { filter: "blur(0px)" } : { filter: "blur(6px)" }}
+        >
+          <p className="text-xs italic text-amber-600 dark:text-amber-400">
             Common trap: {question.misconception}
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Distractor analysis (visible only after reveal) */}
       {revealed && question.distractor_analysis && (

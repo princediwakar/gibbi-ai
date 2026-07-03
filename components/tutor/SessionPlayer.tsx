@@ -402,24 +402,13 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
             )}
           </div>
 
-          {!isRevealed && selectedOption && current.distractor_analysis?.[selectedOption] && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                Why This Answer
-              </h4>
-              <div className="text-sm text-foreground/90 leading-relaxed">
-                {renderMathContent(current.distractor_analysis[selectedOption])}
-              </div>
-            </div>
-          )}
-
-          {current.explanation && (
+          {selectedOption && current.distractor_analysis?.[selectedOption] && (
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                 Explanation
               </h4>
               <div className="text-sm text-foreground/90 leading-relaxed">
-                {renderMathContent(current.explanation)}
+                {renderMathContent(current.distractor_analysis[selectedOption])}
               </div>
             </div>
           )}

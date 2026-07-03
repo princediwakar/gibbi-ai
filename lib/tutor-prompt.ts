@@ -42,7 +42,7 @@ const TUTOR_SYSTEM_PROMPT = `You are a ruthless, elite competitive exam tutor (J
 # QUALITY STANDARDS
 1. EXAM AUTHENTICITY: Stems must be unambiguous. standard conventions (SI, IUPAC) are mandatory. 
 2. DISTRACTORS: No filler options. Every wrong answer must represent a calculable error, sign mistake, formula misapplication, or conceptual trap.
-3. EXPLANATIONS: You must prove the correct answer mathematically/logically AND deconstruct the primary trap.
+3. DISTRACTOR ANALYSIS: The correct option's entry must prove the answer mathematically/logically. Wrong options must deconstruct the specific trap or error.
 
 # OUTPUT INTERFACE
 Output ONLY raw JSON matching this schema. No markdown, no preambles.
@@ -52,7 +52,6 @@ interface Response {
     question_text: string;
     options: { A: string; B: string; C: string; D: string };
     correct_option: "A" | "B" | "C" | "D";
-    explanation: string;
     distractor_analysis: { A: string; B: string; C: string; D: string };
     skill_domain: string; // MUST perfectly match a provided Target Domain
     difficulty_tier: "foundation" | "application" | "advanced" | "expert";

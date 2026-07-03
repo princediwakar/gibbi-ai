@@ -163,10 +163,9 @@ interface Question {
   question_text: string;
   options: { A: string; B: string; C: string; D: string };
   correct_option: "A" | "B" | "C" | "D";
-  explanation: string; // Concise final explanation proving why the correct answer is right and why each distractor is wrong. Written for a student to read — polished, confident, no internal monologue.
   topics: string[]; // 1-2 specific sub-topics
   difficulty_tier: "foundation" | "application" | "advanced" | "expert";
-  distractor_analysis: { A: string; B: string; C: string; D: string }; // Specifically why a student would wrongly pick this
+  distractor_analysis: { A: string; B: string; C: string; D: string }; // Per-option explanation: why each is correct/wrong. The correct option's entry proves the answer; wrong options explain the trap.
   skill_domain: string;
   time_estimate_seconds: number; // 30-180
   misconception: string; // The primary fallacy tested

@@ -413,6 +413,7 @@ export async function POST(request: NextRequest) {
             options: hardestQuestion.question.options,
             correct_option: hardestQuestion.question.correct_option,
             explanation: hardestQuestion.question.explanation,
+            distractor_analysis: hardestQuestion.question.distractor_analysis,
             skill_domain: hardestQuestion.question.skill_domain,
             difficulty_tier: hardestQuestion.question.difficulty_tier,
           }

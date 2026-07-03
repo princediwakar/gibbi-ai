@@ -31,6 +31,7 @@ interface HardestQuestion {
   options: Record<string, string>;
   correct_option: string;
   explanation: string;
+  distractor_analysis?: Record<string, string>;
   skill_domain: string;
   difficulty_tier: number;
 }
@@ -349,7 +350,7 @@ export default async function ShareCardPage({ params }: PageProps) {
                       See explanation
                     </summary>
                     <div className="mt-3 text-sm text-slate-300 leading-relaxed">
-                      {hardestQuestion.explanation}
+                      {hardestQuestion.distractor_analysis?.[hardestQuestion.correct_option] ?? ""}
                     </div>
                   </details>
 

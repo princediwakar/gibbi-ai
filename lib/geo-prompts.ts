@@ -20,7 +20,6 @@ interface Response {
     question_text: string;
     options: { A: string; B: string; C: string; D: string };
     correct_option: "A" | "B" | "C" | "D";
-    explanation: string;
     distractor_analysis: { A: string; B: string; C: string; D: string };
     skill_domain: string; // MUST exactly match the domain specified in the prompt
     difficulty_tier: "foundation" | "application" | "advanced" | "expert";

@@ -418,7 +418,7 @@ export default function InteractiveDemoHero() {
                       <div>
                         <h3 className="text-lg font-semibold text-foreground">The correct path</h3>
                         <p className="mt-1.5 leading-relaxed text-muted-foreground">
-                          {question.explanation}
+                          {question.distractor_analysis?.[question.correct_option] ?? ""}
                         </p>
                       </div>
                     </motion.div>
