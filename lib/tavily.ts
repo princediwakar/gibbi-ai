@@ -1,3 +1,4 @@
+// lib/tavily.ts
 import { tavily } from "@tavily/core";
 
 const getTavilyClient = () => {
@@ -22,16 +23,25 @@ export interface TavilySearchResponse {
 
 export async function searchCurrentAffairs(
   query: string,
-  maxResults: number = 5
+  maxResults: number = 5,
+  signal?: AbortSignal
 ): Promise<TavilySearchResponse | null> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let onAbort: (() => void) | undefined;
+
   try {
     const client = getTavilyClient();
-    
-    const response = await client.search(query, {
-      max_results: maxResults,
-      search_depth: "basic",
-      topic: "general",
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Tavily search timeout")), 10_000);
+      onAbort = () => { clearTimeout(timeoutId); reject(new Error("Aborted")); };
+      signal?.addEventListener("abort", onAbort, { once: true });
     });
+
+    const response = await Promise.race([
+      client.search(query, { max_results: maxResults, search_depth: "basic", topic: "general" }),
+      timeoutPromise,
+    ]);
 
     return {
       results: response.results.map((r: { title: string; url: string; content: string; score: number }) => ({
@@ -45,6 +55,9 @@ export async function searchCurrentAffairs(
   } catch (error) {
     console.error("Tavily search error:", error);
     return null;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (onAbort && signal) signal.removeEventListener("abort", onAbort);
   }
 }
 

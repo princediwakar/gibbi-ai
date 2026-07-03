@@ -7,31 +7,20 @@ import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/supabase/auth";
 import { toast } from "sonner";
 import { ThemeToggle } from "./ThemeToggleButton";
-import { SignInButton } from "./SignInButton";
 import { Header } from "./Header";
+import { UserMenu } from "./UserMenu";
 import type { SidebarData } from "@/app/layout";
 import {
   TrendingUp,
   History,
   Compass,
-  LogOut,
   Menu,
   PanelLeftClose,
   PlusCircle,
   Target,
-  Settings,
-  MoreVertical,
   Calendar,
   Flame,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: Target },
@@ -42,8 +31,8 @@ const mainItems = [
 export function AppShell({ children, sidebarData }: { children: React.ReactNode; sidebarData?: SidebarData | null }) {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
-  const [isSignOutLoading, setIsSignOutLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -57,14 +46,11 @@ export function AppShell({ children, sidebarData }: { children: React.ReactNode;
 
   const handleSignOut = async () => {
     try {
-      setIsSignOutLoading(true);
       await signOut();
       toast.success("Signed out successfully.");
     } catch (error) {
       console.error("Sign-out failed:", error);
       toast.error("Failed to sign out. Please try again.");
-    } finally {
-      setIsSignOutLoading(false);
     }
   };
 
@@ -190,40 +176,6 @@ export function AppShell({ children, sidebarData }: { children: React.ReactNode;
                 </div>
               )}
 
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors w-full outline-none">
-                  <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-foreground font-bold text-xs shrink-0">
-                    {user.email?.[0]?.toUpperCase() || "U"}
-                  </div>
-                  <span className="text-sm text-muted-foreground truncate flex-1 text-left">
-                    {user.email || "User"}
-                  </span>
-                  <MoreVertical className="w-4 h-4 text-muted-foreground shrink-0" />
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/setup">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Exam Profile
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    onClick={handleSignOut}
-                    disabled={isSignOutLoading}
-                    className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    {isSignOutLoading ? "Signing out..." : "Sign Out"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           )}
         </div>
@@ -240,8 +192,16 @@ export function AppShell({ children, sidebarData }: { children: React.ReactNode;
           <span className="font-medium">
             {headerTitle}
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
+            {user && (
+              <UserMenu
+                user={user}
+                isOpen={isDropdownOpen}
+                onOpenChange={setIsDropdownOpen}
+                onSignOut={handleSignOut}
+              />
+            )}
           </div>
         </header>
 

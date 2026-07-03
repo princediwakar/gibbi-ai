@@ -89,6 +89,7 @@ export const QuizCreator = memo(({ onQuizCreated }: QuizCreatorProps) => {
           language,
         }),
         signal: controller.signal,
+        openWhenHidden: true,
         onmessage(event) {
           const data = JSON.parse(event.data);
           switch (data.type) {

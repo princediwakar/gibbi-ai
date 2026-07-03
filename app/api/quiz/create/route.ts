@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import { createQuizChunked } from '@/lib/ai';
 import { insertQuestions, insertQuestionGroup } from '@/lib/services/quiz-service';
 import { checkGenerationLimit, recordGeneration } from '@/lib/services/usage-service';
-import type { SupabaseClient } from '@supabase/supabase-js';
+
+export const maxDuration = 300;
+export const dynamic = 'force-dynamic';
 
 function streamSSE(controller: ReadableStreamDefaultController, data: Record<string, unknown>) {
   controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`));
@@ -15,9 +17,18 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       let closed = false;
 
+      const keepAlive = setInterval(() => {
+        if (!closed) {
+          try {
+            controller.enqueue(new TextEncoder().encode(`data: {"type":"keepalive"}\n\n`));
+          } catch {}
+        }
+      }, 5000);
+
       function safeClose() {
         if (closed) return;
         closed = true;
+        clearInterval(keepAlive);
         try { controller.close(); } catch { /* controller may already be closed by the runtime */ }
       }
 
@@ -116,61 +127,55 @@ export async function POST(req: NextRequest) {
               safeStreamSSE({ type: "progress", done: progress.done, total: progress.total });
             }
           },
-          undefined,
+          req.signal,
           focusTopics
         );
 
-        if (req.signal.aborted || closed) {
-          await supabase.from('quizzes').update({ status: 'failed' }).eq('quiz_id', quizId);
-          safeClose();
-          return;
-        }
+        const clientDropped = req.signal.aborted || closed;
 
-        // Total failure
+        // Total failure — only mark failed if nothing was generated
         if (!result.quiz && result.totalGenerated === 0) {
           await supabase.from('quizzes').update({ status: 'failed' }).eq('quiz_id', quizId);
-          safeStreamSSE({ type: "error", message: "Quiz generation failed. Please try again." });
+          if (!clientDropped) {
+            safeStreamSSE({ type: "error", message: "Quiz generation failed. Please try again." });
+          }
           safeClose();
           return;
         }
 
         const quizData = result.quiz!;
 
-        // Update quiz metadata
-        if (!req.signal.aborted) {
-          await supabase
-            .from('quizzes')
-            .update({
-              title: quizData.title,
-              description: quizData.description,
-              topic: quizData.topic,
-              subject: quizData.subject,
-              status: 'ready',
-            })
-            .eq('quiz_id', quizId);
-        }
+        // Always persist successful results, even if client disconnected
+        await supabase
+          .from('quizzes')
+          .update({
+            title: quizData.title,
+            description: quizData.description,
+            topic: quizData.topic,
+            subject: quizData.subject,
+            status: 'ready',
+          })
+          .eq('quiz_id', quizId);
 
-        // Insert questions incrementally, checking abort before each write
-        if (quizData.questions?.length && !req.signal.aborted) {
+        if (quizData.questions?.length) {
           await insertQuestions(supabase, quizId, quizData.questions);
         }
 
-        if (quizData.question_groups?.length && !req.signal.aborted) {
+        if (quizData.question_groups?.length) {
           for (const group of quizData.question_groups) {
-            if (req.signal.aborted) break;
             await insertQuestionGroup(supabase, quizId, group);
           }
-        }
-
-        if (req.signal.aborted) {
-          safeClose();
-          return;
         }
 
         // Record usage only after successful generation
         recordGeneration(user.id, quizId, questionCount, questionCount * 250);
 
-        // Emit result event
+        if (clientDropped) {
+          safeClose();
+          return;
+        }
+
+        // Emit result event to connected client
         if (result.partial) {
           safeStreamSSE({
             type: "partial",
@@ -203,8 +208,9 @@ export async function POST(req: NextRequest) {
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
+      "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
     },
   });
 }

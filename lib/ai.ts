@@ -31,7 +31,7 @@ const PROVIDER_CONFIGS: Record<AIProvider, ProviderConfig> = {
   deepseek: {
     apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY!,
     baseURL: process.env.AI_BASE_URL || "https://api.deepseek.com/v1",
-    model: process.env.OPENAI_MODEL || "deepseek-v4-pro",
+    model: process.env.OPENAI_MODEL || "deepseek-chat",
   },
 };
 
@@ -81,7 +81,7 @@ function needsCurrentAffairsSearch(content: string): boolean {
   return hasTimeKeyword || hasQuestionPattern;
 }
 
-async function getSearchContext(content: string): Promise<string | null> {
+async function getSearchContext(content: string, signal?: AbortSignal): Promise<string | null> {
   if (!process.env.TAVILY_API_KEY) {
     console.log('[Tavily] API key not configured, skipping search');
     return null;
@@ -91,7 +91,7 @@ async function getSearchContext(content: string): Promise<string | null> {
     return null;
   }
   console.log('[Tavily] Detected current affairs topic, searching...');
-  const searchResults = await searchCurrentAffairs(content, 5);
+  const searchResults = await searchCurrentAffairs(content, 5, signal);
   if (!searchResults) {
     console.log('[Tavily] Search failed, continuing without current info');
     return null;
@@ -100,7 +100,7 @@ async function getSearchContext(content: string): Promise<string | null> {
   return formatSearchContext(searchResults);
 }
 
-const CHUNK_SIZE = 12;
+const CHUNK_SIZE = 15;
 
 export interface GenerationProgress {
   done: number;
@@ -142,6 +142,65 @@ function buildResponseFormat() {
   return { type: "json_object" as const };
 }
 
+const CHUNK_TIMEOUT_MS = 120_000;
+const PROGRESS_PATTERN = /"correct_option"\s*:/g;
+
+async function generateWithProgress(
+  content: string,
+  questionCount: number,
+  difficulty: string,
+  language: string,
+  sessionFingerprint: string,
+  searchContext: string | null,
+  onProgress?: (progress: GenerationProgress) => void,
+  focusTopics?: string[]
+): Promise<GeneratedQuiz> {
+  const maxTokens = Math.max(Math.min(questionCount * 1200 + 2000, 16384), 4096);
+  const variabilityInstructions = await getVariabilityInstructions(sessionFingerprint, difficulty);
+  const systemMessage = buildSystemMessage(
+    variabilityInstructions, language, difficulty, questionCount, maxTokens,
+    focusTopics?.length ? `Focus topics: ${focusTopics.join(", ")}` : undefined
+  );
+  const messages = [
+    { role: "system" as const, content: systemMessage },
+    { role: "user" as const, content: buildUserMessage(content, questionCount, crypto.randomUUID(), searchContext) },
+  ];
+
+  const stream = await openai.chat.completions.create(
+    {
+      model: MODEL,
+      messages,
+      temperature: 0.95,
+      max_tokens: maxTokens,
+      response_format: buildResponseFormat(),
+      stream: true,
+    },
+    { signal: AbortSignal.timeout(CHUNK_TIMEOUT_MS) }
+  );
+
+  let raw = "";
+  let lastReported = 0;
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content;
+    if (delta) {
+      raw += delta;
+      const matchCount = (raw.match(PROGRESS_PATTERN) || []).length;
+      if (matchCount > lastReported) {
+        lastReported = matchCount;
+        onProgress?.({ done: Math.min(matchCount, questionCount), total: questionCount });
+      }
+    }
+  }
+
+  if (!raw || raw.length < 20) {
+    throw new Error("AI returned empty or too-short streamed response");
+  }
+
+  const quiz = parseQuiz(raw, questionCount);
+  onProgress?.({ done: questionCount, total: questionCount });
+  return quiz;
+}
+
 async function generateSingleChunk(
   content: string,
   questionCount: number,
@@ -151,7 +210,7 @@ async function generateSingleChunk(
   searchContext: string | null,
   focusTopics?: string[]
 ): Promise<GeneratedQuiz> {
-  const maxTokens = Math.min(questionCount * 250 + 1000, 8192);
+  const maxTokens = Math.max(Math.min(questionCount * 1200 + 2000, 16384), 4096);
   const variabilityInstructions = await getVariabilityInstructions(sessionFingerprint, difficulty);
   const systemMessage = buildSystemMessage(
     variabilityInstructions, language, difficulty, questionCount, maxTokens,
@@ -170,10 +229,19 @@ async function generateSingleChunk(
       max_tokens: maxTokens,
       response_format: buildResponseFormat(),
     },
-    { signal: undefined }
+    { signal: AbortSignal.timeout(CHUNK_TIMEOUT_MS) }
   );
 
   const rawResponse = response.choices[0]?.message?.content || "";
+
+  if (!rawResponse || rawResponse.length < 20) {
+    const finishReason = response.choices[0]?.finish_reason;
+    throw new Error(
+      `AI returned empty or too-short response (finish_reason: ${finishReason}, ` +
+      `completion_tokens: ${response.usage?.completion_tokens ?? '?'})`
+    );
+  }
+
   return parseQuiz(rawResponse, questionCount);
 }
 
@@ -191,27 +259,18 @@ export async function createQuizWithAI(
   const sessionFingerprint = await generateSessionFingerprint(content, userId);
   console.log(`[AI] Session Fingerprint: ${sessionFingerprint}`);
 
-  const searchContext = await getSearchContext(content);
-
-  if (signal?.aborted) throw new Error("Aborted");
+  const searchContext = await getSearchContext(content, signal);
 
   if (questionCount <= CHUNK_SIZE) {
     let lastError: Error | null = null;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (signal?.aborted) {
-        lastError = new Error("Aborted");
-        break;
-      }
       try {
-        const quiz = await generateSingleChunk(
+        return await generateWithProgress(
           content, questionCount, difficulty, language,
-          sessionFingerprint, searchContext, focusTopics
+          sessionFingerprint, searchContext, onProgress, focusTopics
         );
-        onProgress?.({ done: questionCount, total: questionCount });
-        return quiz;
       } catch (error) {
         lastError = error as Error;
-        if (signal?.aborted) break;
         if (attempt < maxAttempts - 1) {
           const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
           console.log(`[AI] Retry ${attempt + 1}/${maxAttempts} after ${delay}ms`);
@@ -227,11 +286,13 @@ export async function createQuizWithAI(
   let failedChunks = 0;
 
   for (let i = 0; i < chunkSizes.length; i++) {
-    if (signal?.aborted) break;
-
     let chunkResult: GeneratedQuiz | null = null;
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      if (signal?.aborted) break;
+      if (signal?.aborted && attempt === 0) {
+        console.log(`[AI] Client dropped, continuing chunk generation in background.`);
+      }
+
       try {
         chunkResult = await generateSingleChunk(
           content, chunkSizes[i], difficulty, language,
@@ -240,10 +301,11 @@ export async function createQuizWithAI(
         break;
       } catch (error) {
         if (attempt === maxAttempts - 1) {
-          console.error(`[AI] Chunk ${i + 1} failed after ${maxAttempts} attempts`);
+          console.error(`[AI] Chunk ${i + 1} failed completely.`);
           failedChunks++;
         } else {
           const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+          console.log(`[AI] Retry ${attempt + 1}/${maxAttempts} after ${delay}ms`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -253,8 +315,12 @@ export async function createQuizWithAI(
       chunks.push(chunkResult);
     }
 
-    const totalDone = chunks.reduce((sum, c) => sum + (c.questions?.length ?? 0) + (c.question_groups?.reduce((s, g) => s + (g.questions?.length ?? 0), 0) ?? 0), 0);
-    onProgress?.({ done: totalDone, total: questionCount });
+    const totalDone = chunks.reduce((sum, c) =>
+      sum + (c.questions?.length ?? 0) +
+      (c.question_groups?.reduce((s, g) => s + (g.questions?.length ?? 0), 0) ?? 0),
+    0);
+
+    onProgress?.({ done: Math.min(totalDone, questionCount), total: questionCount });
   }
 
   if (chunks.length === 0) {
