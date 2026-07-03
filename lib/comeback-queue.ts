@@ -10,7 +10,7 @@ export interface ComebackItem {
   userId: string
   examProfileId: string
   skillDomain: string
-  questionId: number
+  questionId: string
   difficultyTier: string
   stage: ComebackStage
   stageDeadline: Date | null
@@ -74,7 +74,7 @@ function mapRow(row: Record<string, unknown>): ComebackItem {
     userId: row.user_id as string,
     examProfileId: row.exam_profile_id as string,
     skillDomain: row.skill_domain as string,
-    questionId: row.question_id as number,
+    questionId: row.question_id as string,
     difficultyTier: row.difficulty_tier as string,
     stage: row.stage as ComebackStage,
     stageDeadline: row.stage_deadline ? new Date(row.stage_deadline as string) : null,
@@ -96,7 +96,7 @@ export async function enqueueComeback(
     userId: string
     examProfileId: string
     skillDomain: string
-    questionId: number
+    questionId: string
     difficultyTier: string
     originalSessionId: string
     examWeight?: number

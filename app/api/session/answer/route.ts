@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { SessionAnswerSchema } from "@/lib/validations/tutor";
+import { enqueueComeback } from "@/lib/comeback-queue";
 import type { SessionQuestion } from "@/types/tutor";
 
 export async function POST(req: NextRequest) {
@@ -93,6 +94,20 @@ export async function POST(req: NextRequest) {
 
     const rows = rpcData as { inserted: boolean }[] | null;
     const inserted = rows?.[0]?.inserted ?? false;
+
+    // Enqueue incorrect answers into Comeback Queue (Sprint 4)
+    if (!is_correct && !was_revealed) {
+      enqueueComeback(supabase, {
+        userId: user.id,
+        examProfileId: session.exam_profile_id,
+        skillDomain: question.skill_domain,
+        questionId: question_id,
+        difficultyTier: String(question.difficulty_tier),
+        originalSessionId: session_id,
+      }).catch((err) => {
+        console.warn("[SessionAnswer] Comeback enqueue failed:", err);
+      });
+    }
 
     return NextResponse.json({
       inserted,

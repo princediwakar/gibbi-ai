@@ -124,7 +124,7 @@ export type Database = {
           immediate_passed: boolean | null
           lost_projected_points: number | null
           original_session_id: string | null
-          question_id: number
+          question_id: string
           skill_domain: string
           stage: string
           stage_deadline: string | null
@@ -143,7 +143,7 @@ export type Database = {
           immediate_passed?: boolean | null
           lost_projected_points?: number | null
           original_session_id?: string | null
-          question_id: number
+          question_id: string
           skill_domain: string
           stage?: string
           stage_deadline?: string | null
@@ -162,7 +162,7 @@ export type Database = {
           immediate_passed?: boolean | null
           lost_projected_points?: number | null
           original_session_id?: string | null
-          question_id?: number
+          question_id?: string
           skill_domain?: string
           stage?: string
           stage_deadline?: string | null
@@ -459,6 +459,48 @@ export type Database = {
             referencedColumns: ["profile_id"]
           },
         ]
+      }
+      predictor_sessions: {
+        Row: {
+          id: string
+          phone: string
+          otp_hash: string
+          otp_expires_at: string
+          verified_at: string | null
+          exam_name: string
+          target_date: string
+          user_id: string | null
+          exam_profile_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          phone: string
+          otp_hash: string
+          otp_expires_at: string
+          verified_at?: string | null
+          exam_name?: string
+          target_date: string
+          user_id?: string | null
+          exam_profile_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          phone?: string
+          otp_hash?: string
+          otp_expires_at?: string
+          verified_at?: string | null
+          exam_name?: string
+          target_date?: string
+          user_id?: string | null
+          exam_profile_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       predictions: {
         Row: {
