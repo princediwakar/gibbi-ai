@@ -49,11 +49,12 @@ export interface PriorityOutput {
 }
 
 // Default C_tier caps (minutes) - will be overridden by empirical data
+// Values synced with seed-exam-weights.ts
 const DEFAULT_C_TIER: Record<DifficultyTier, number> = {
-  foundation: 15,
-  application: 25,
-  advanced: 45,
-  expert: 60,
+  foundation: 30,
+  application: 45,
+  advanced: 60,
+  expert: 75,
 };
 
 // Subject mapping for JEE Main domains
@@ -183,11 +184,33 @@ async function getEmpiricalCTierCaps(examName: string): Promise<Record<Difficult
   const caps = { ...DEFAULT_C_TIER };
 
   try {
-    const { data: logs } = await supabaseAdmin
+    // Get profiles for this exam, then sessions for those profiles, then filter logs
+    const { data: profiles } = await supabaseAdmin
+      .from("exam_profiles")
+      .select("profile_id")
+      .eq("exam_name", examName);
+
+    const profileIds = (profiles ?? []).map((p: { profile_id: string }) => p.profile_id);
+
+    let query = supabaseAdmin
       .from("completion_time_logs")
       .select("difficulty_tier, time_to_mastery_minutes")
       .not("time_to_mastery_minutes", "is", null)
       .gt("time_to_mastery_minutes", 0);
+
+    if (profileIds.length > 0) {
+      const { data: examSessions } = await supabaseAdmin
+        .from("sessions")
+        .select("id")
+        .in("exam_profile_id", profileIds);
+
+      const sessionIds = (examSessions ?? []).map((s: { id: string }) => s.id);
+      if (sessionIds.length > 0) {
+        query = query.in("session_id", sessionIds);
+      }
+    }
+
+    const { data: logs } = await query;
 
     if (logs && logs.length > 10) {
       // Group by difficulty tier

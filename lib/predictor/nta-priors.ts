@@ -178,15 +178,19 @@ export function getBlendingWeight(sessionsCompleted: number): number {
   return Math.sqrt(sessionsCompleted / 20);
 }
 
-export function getColdStartDisclaimer(sessionsCompleted: number): string {
+export function getColdStartDisclaimer(sessionsCompleted: number, quietSessionsCompleted?: number): string {
+  const quietNote = quietSessionsCompleted && quietSessionsCompleted > 0
+    ? ` (${quietSessionsCompleted} quiet session${quietSessionsCompleted > 1 ? "s" : ""} also contributed to the model)`
+    : "";
+
   if (sessionsCompleted === 0) {
-    return "Your first prediction uses public NTA normalization data — it gets sharper the more you practice with Gibbi.";
+    return "Your first prediction uses public NTA normalization data — it gets sharper the more you practice with Gibbi." + quietNote;
   }
   if (sessionsCompleted < 5) {
-    return `Prediction blends public NTA data with your ${sessionsCompleted} practice session${sessionsCompleted > 1 ? "s" : ""}. Band sharpens with each session.`;
+    return `Prediction blends public NTA data with your ${sessionsCompleted} tracked session${sessionsCompleted > 1 ? "s" : ""}. Band sharpens with each session.` + quietNote;
   }
   if (sessionsCompleted < 20) {
-    return `Primarily based on your ${sessionsCompleted} tracked sessions, blended with public NTA baseline.`;
+    return `Primarily based on your ${sessionsCompleted} tracked sessions, blended with public NTA baseline.` + quietNote;
   }
-  return "Fully calibrated to your personal practice history.";
+  return "Fully calibrated to your personal practice history." + quietNote;
 }

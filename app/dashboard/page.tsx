@@ -119,7 +119,7 @@ async function DashboardPageContent() {
       .lt("next_review_at", new Date().toISOString()),
     supabase
       .from("predictions")
-      .select("overall_percentile, band_lower, band_upper, band_width, calibration_source, sessions_used, is_frozen, disclaimer")
+      .select("predicted_percentile, band_lower, band_upper, calibration_source, sessions_used, is_frozen")
       .eq("user_id", user.id)
       .eq("is_frozen", false)
       .order("created_at", { ascending: false })
@@ -195,16 +195,25 @@ async function DashboardPageContent() {
     overdueDomainCount,
     weakestOverdueDomain,
     prediction: predictionRes.data
-      ? {
-          overallPercentile: predictionRes.data.overall_percentile,
-          overallBandLower: predictionRes.data.band_lower,
-          overallBandUpper: predictionRes.data.band_upper,
-          overallBandWidth: predictionRes.data.band_width,
-          calibrationSource: predictionRes.data.calibration_source ?? "public_nta",
-          disclaimer: predictionRes.data.disclaimer ?? "",
-          isFrozen: predictionRes.data.is_frozen ?? false,
-          totalTrackedSessions: predictionRes.data.sessions_used ?? 0,
-        }
+      ? (() => {
+          const lower = predictionRes.data.band_lower;
+          const upper = predictionRes.data.band_upper;
+          const sessions = predictionRes.data.sessions_used ?? 0;
+          return {
+            overallPercentile: predictionRes.data.predicted_percentile ?? 0,
+            overallBandLower: lower,
+            overallBandUpper: upper,
+            overallBandWidth: Math.round((upper - lower) * 100) / 100,
+            calibrationSource: predictionRes.data.calibration_source ?? "public_nta",
+            disclaimer: sessions >= 20
+              ? "Fully calibrated to your personal practice history."
+              : sessions > 0
+                ? `Prediction blends public NTA data with your ${sessions} tracked session${sessions > 1 ? "s" : ""}. Band sharpens with each session.`
+                : "Based on public NTA normalization tables (2025–2026 cycles). Your band sharpens with every tracked session.",
+            isFrozen: predictionRes.data.is_frozen ?? false,
+            totalTrackedSessions: sessions,
+          };
+        })()
       : (() => {
           // Cold-start: generate band from public NTA priors (zero tracked sessions)
           const p = marksToPercentile("Physics", 50);

@@ -15,6 +15,7 @@ interface SubjectBand {
   bandUpper: number
   bandWidth: number
   sessionsUsed: number
+  quietSessionsUsed: number
   calibrationSource: string
   disclaimer: string
 }
@@ -26,6 +27,7 @@ interface PredictionResult {
   overallBandWidth: number
   subjects: SubjectBand[]
   totalTrackedSessions: number
+  totalQuietSessions: number
   calibrationSource: string
   disclaimer: string
   frozenAt: string | null
@@ -76,7 +78,15 @@ export async function generatePrediction(
     .eq('exam_profile_id', examProfileId)
     .eq('session_intent', 'tracked')
 
+  const { count: quietCount } = await supabase
+    .from('sessions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('exam_profile_id', examProfileId)
+    .eq('session_intent', 'quiet')
+
   const sessionsUsed = trackedCount ?? 0
+  const quietSessionsUsed = quietCount ?? 0
   const blendWeight = getBlendingWeight(sessionsUsed)
 
   const subjectPercentiles: Record<string, number> = {}
@@ -110,8 +120,9 @@ export async function generatePrediction(
       bandUpper: blended.upper,
       bandWidth: blended.width,
       sessionsUsed,
+      quietSessionsUsed,
       calibrationSource: calibrationLabel(blendWeight),
-      disclaimer: getColdStartDisclaimer(sessionsUsed),
+      disclaimer: getColdStartDisclaimer(sessionsUsed, quietSessionsUsed),
     })
   }
 
@@ -136,8 +147,9 @@ export async function generatePrediction(
     overallBandWidth: Math.round(avgWidth * 100) / 100,
     subjects,
     totalTrackedSessions: sessionsUsed,
+    totalQuietSessions: quietSessionsUsed,
     calibrationSource: calibrationLabel(blendWeight),
-    disclaimer: getColdStartDisclaimer(sessionsUsed),
+    disclaimer: getColdStartDisclaimer(sessionsUsed, quietSessionsUsed),
     frozenAt: frozen?.frozen_at ?? null,
     isFrozen: frozen?.is_frozen ?? false,
   }

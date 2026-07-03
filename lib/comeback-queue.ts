@@ -150,10 +150,11 @@ export async function recordRetryResult(
   cleared: boolean
   newStage: ComebackStage
   newDeadline: Date
+  blockedByExplanation?: boolean
 }> {
   const { data: current, error: fetchErr } = await supabase
     .from('comeback_queue_items')
-    .select('stage')
+    .select('stage, explanation_shown')
     .eq('id', queueItemId)
     .single()
 
@@ -161,17 +162,29 @@ export async function recordRetryResult(
 
   const currentStage = current.stage as ComebackStage
 
+  // Enforce explanation gating: immediate stage requires explanation before retry
+  if (currentStage === 'immediate' && !current.explanation_shown) {
+    return {
+      advanced: false,
+      cleared: false,
+      newStage: currentStage,
+      newDeadline: new Date(Date.now() + STAGE_RETRY_DELAYS.immediate),
+      blockedByExplanation: true,
+    }
+  }
+
   if (passed) {
     const nextStage = STAGE_ADVANCE[currentStage]
 
     if (!nextStage) {
-      // Transfer stage passed — fully clear the item
+      // Transfer stage passed — fully clear the item and recover points
       const newDeadline = new Date()
       const { error } = await supabase
         .from('comeback_queue_items')
         .update({
           transfer_passed: true,
           cleared: true,
+          lost_projected_points: 0,
           stage_deadline: newDeadline.toISOString(),
         })
         .eq('id', queueItemId)
