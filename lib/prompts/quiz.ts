@@ -129,6 +129,7 @@ export function buildSystemMessage(
 1. AUTHENTICITY: Questions must mirror the cognitive load of actual competitive exams (e.g., GMAT, GRE, SAT). No trivial recall.
 2. DISTRACTOR CRAFTSMANSHIP: Every incorrect option must target a specific, documented pedagogical trap or misconception.
 3. COGNITIVE DEMAND: Require multi-step reasoning, synthesis, or applied analysis.
+4. FINAL OUTPUT ONLY: Do your reasoning internally, then write the JSON. Every string field must be polished, final, student-facing text. The JSON is the finished product — never include self-correction, second-guessing, or stream-of-consciousness in any field. If you change your mind while writing, revise silently and emit only the final version.
 
 # VARIABILITY INJECTOR
 ${variability}
@@ -162,7 +163,7 @@ interface Question {
   question_text: string;
   options: { A: string; B: string; C: string; D: string };
   correct_option: "A" | "B" | "C" | "D";
-  explanation: string; // Step-by-step logic proving the answer
+  explanation: string; // Concise final explanation proving why the correct answer is right and why each distractor is wrong. Written for a student to read — polished, confident, no internal monologue.
   topics: string[]; // 1-2 specific sub-topics
   difficulty_tier: "foundation" | "application" | "advanced" | "expert";
   distractor_analysis: { A: string; B: string; C: string; D: string }; // Specifically why a student would wrongly pick this
@@ -170,6 +171,8 @@ interface Question {
   time_estimate_seconds: number; // 30-180
   misconception: string; // The primary fallacy tested
 }
+
+Remember: the JSON you emit IS the final product. There is no editing pass after you. Every field must read as if it was written by a confident expert, never by someone thinking out loud.
 
 Execute immediately. Return only the JSON object.`;
 }
