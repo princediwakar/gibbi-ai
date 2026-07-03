@@ -293,6 +293,7 @@ export type Database = {
           created_at: string | null
           exam_name: string
           is_active: boolean | null
+          phone: string | null
           profile_id: string
           target_date: string
           time_mode: string
@@ -304,6 +305,7 @@ export type Database = {
           created_at?: string | null
           exam_name: string
           is_active?: boolean | null
+          phone?: string | null
           profile_id?: string
           target_date: string
           time_mode?: string
@@ -315,6 +317,7 @@ export type Database = {
           created_at?: string | null
           exam_name?: string
           is_active?: boolean | null
+          phone?: string | null
           profile_id?: string
           target_date?: string
           time_mode?: string
@@ -460,45 +463,30 @@ export type Database = {
           },
         ]
       }
-      predictor_sessions: {
+      practice_questions: {
         Row: {
-          id: string
-          phone: string
-          otp_hash: string
-          otp_expires_at: string
-          verified_at: string | null
+          domain: string
           exam_name: string
-          target_date: string
-          user_id: string | null
-          exam_profile_id: string | null
-          created_at: string | null
-          updated_at: string | null
+          generated_at: string | null
+          id: string
+          questions_json: Json
+          subject: string
         }
         Insert: {
+          domain: string
+          exam_name: string
+          generated_at?: string | null
           id?: string
-          phone: string
-          otp_hash: string
-          otp_expires_at: string
-          verified_at?: string | null
-          exam_name?: string
-          target_date: string
-          user_id?: string | null
-          exam_profile_id?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          questions_json: Json
+          subject: string
         }
         Update: {
-          id?: string
-          phone?: string
-          otp_hash?: string
-          otp_expires_at?: string
-          verified_at?: string | null
+          domain?: string
           exam_name?: string
-          target_date?: string
-          user_id?: string | null
-          exam_profile_id?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          generated_at?: string | null
+          id?: string
+          questions_json?: Json
+          subject?: string
         }
         Relationships: []
       }
@@ -551,6 +539,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "predictions_exam_profile_id_fkey"
+            columns: ["exam_profile_id"]
+            isOneToOne: false
+            referencedRelation: "exam_profiles"
+            referencedColumns: ["profile_id"]
+          },
+        ]
+      }
+      predictor_sessions: {
+        Row: {
+          created_at: string | null
+          exam_name: string
+          exam_profile_id: string | null
+          id: string
+          otp_attempts: number | null
+          otp_expires_at: string
+          otp_hash: string
+          phone: string
+          target_date: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exam_name: string
+          exam_profile_id?: string | null
+          id?: string
+          otp_attempts?: number | null
+          otp_expires_at: string
+          otp_hash: string
+          phone: string
+          target_date: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exam_name?: string
+          exam_profile_id?: string | null
+          id?: string
+          otp_attempts?: number | null
+          otp_expires_at?: string
+          otp_hash?: string
+          phone?: string
+          target_date?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictor_sessions_exam_profile_id_fkey"
             columns: ["exam_profile_id"]
             isOneToOne: false
             referencedRelation: "exam_profiles"
@@ -810,6 +848,7 @@ export type Database = {
           card_data: Json
           card_type: string
           created_at: string | null
+          expires_at: string
           id: string
           share_token: string
           user_id: string
@@ -819,6 +858,7 @@ export type Database = {
           card_data: Json
           card_type: string
           created_at?: string | null
+          expires_at: string
           id?: string
           share_token?: string
           user_id: string
@@ -828,6 +868,7 @@ export type Database = {
           card_data?: Json
           card_type?: string
           created_at?: string | null
+          expires_at?: string
           id?: string
           share_token?: string
           user_id?: string
