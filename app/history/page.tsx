@@ -18,10 +18,17 @@ export default async function HistoryPage() {
   if (authError || !user) {
     redirect("/");
   }
+
+  const { data: profile } = await supabase
+    .from("exam_profiles")
+    .select("exam_name")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .single();
   
   return (
     <div className="w-full max-w-6xl py-6 px-4">
-      <QuizHistory />
+      <QuizHistory activeExamName={profile?.exam_name || null} />
     </div>
   );
 } 

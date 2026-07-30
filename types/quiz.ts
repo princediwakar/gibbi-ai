@@ -91,6 +91,7 @@ export interface QuizResult {
     title: string;
     description: string;
     slug?: string;
+    subject?: string;
   };
 }
 

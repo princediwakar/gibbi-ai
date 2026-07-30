@@ -60,43 +60,48 @@ async function AnalyticsPageContent() {
 
   if (authError || !user) redirect("/");
 
+  const profileRes = await supabase
+    .from("exam_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .single();
+
+  if (profileRes.error || !profileRes.data) redirect("/setup");
+  const profileId = profileRes.data.profile_id;
+
   const [
-    profileRes,
     conceptsRes,
     recentSessionsRes,
     questionResultsRes,
     completedSessionsRes,
   ] = await Promise.all([
     supabase
-      .from("exam_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .single(),
-    supabase
       .from("concept_mastery")
       .select("id, skill_domain, mastery_score, total_attempted, total_correct, next_review_at")
-      .eq("user_id", user.id),
+      .eq("user_id", user.id)
+      .eq("exam_profile_id", profileId),
     supabase
       .from("sessions")
       .select("id, status, created_at, completed_at, target_domains")
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profileId)
       .order("created_at", { ascending: false })
       .limit(10),
     supabase
       .from("session_answers")
       .select("answered_at")
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profileId)
       .order("answered_at", { ascending: false })
       .limit(500),
     supabase
       .from("sessions")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profileId)
       .eq("status", "completed"),
   ]);
-
-  if (profileRes.error || !profileRes.data) redirect("/setup");
 
   const concepts = (conceptsRes.data || []) as ConceptRow[];
   const recentSessions = (recentSessionsRes.data || []) as SessionRow[];
@@ -115,8 +120,15 @@ async function AnalyticsPageContent() {
     domainAttempted[c.skill_domain] = c.total_attempted;
   }
 
+  const readinessMasteryMap: Record<string, number> = {};
+  for (const domain of allDomains) {
+    const score = masteryMap[domain] ?? 0;
+    const attempted = domainAttempted[domain] ?? 0;
+    readinessMasteryMap[domain] = attempted === 0 ? 0 : score;
+  }
+
   const readinessIndex = Math.round(
-    allDomains.length > 0 ? calculateReadinessIndex(masteryMap, allDomains) : 0
+    allDomains.length > 0 ? calculateReadinessIndex(readinessMasteryMap, allDomains) : 0
   );
 
   const domainBreakdown = allDomains.map((domain) => ({

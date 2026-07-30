@@ -95,9 +95,22 @@ async function DashboardPageContent() {
     redirect(TUTOR_ROUTES.SETUP);
   }
 
-  // --- Fetch all dashboard data in parallel ---
+  // --- Fetch active profile first ---
+  const profileRes = await supabase
+    .from("exam_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .single();
+
+  if (profileRes.error || !profileRes.data) {
+    redirect(TUTOR_ROUTES.SETUP);
+  }
+
+  const profile = profileRes.data as ExamProfile;
+
+  // --- Fetch profile-specific dashboard data in parallel ---
   const [
-    profileRes,
     conceptsRes,
     questionResultsRes,
     completedSessionsRes,
@@ -105,46 +118,39 @@ async function DashboardPageContent() {
     predictionRes,
   ] = await Promise.all([
     supabase
-      .from("exam_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .single(),
-    supabase
       .from("concept_mastery")
       .select("id, skill_domain, mastery_score, total_attempted, total_correct, next_review_at")
-      .eq("user_id", user.id),
+      .eq("user_id", user.id)
+      .eq("exam_profile_id", profile.profile_id),
     supabase
       .from("session_answers")
       .select("answered_at")
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profile.profile_id)
       .order("answered_at", { ascending: false })
       .limit(500),
     supabase
       .from("sessions")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profile.profile_id)
       .eq("status", "completed"),
     supabase
       .from("concept_mastery")
       .select("id")
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profile.profile_id)
       .lt("next_review_at", new Date().toISOString()),
     supabase
       .from("predictions")
       .select("predicted_percentile, band_lower, band_upper, calibration_source, sessions_used, is_frozen")
       .eq("user_id", user.id)
+      .eq("exam_profile_id", profile.profile_id)
       .eq("is_frozen", false)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
   ]);
-
-  if (profileRes.error || !profileRes.data) {
-    redirect(TUTOR_ROUTES.SETUP);
-  }
-
-  const profile = profileRes.data as ExamProfile;
   const concepts = (conceptsRes.data || []) as ConceptRow[];
   const questionResults = (questionResultsRes.data || []) as { answered_at: string }[];
 
@@ -169,9 +175,17 @@ async function DashboardPageContent() {
   const targetDate = new Date(profile.target_date);
   const daysRemaining = Math.max(0, Math.ceil((targetDate.getTime() - now.getTime()) / 86400000));
 
+  // For readiness calculation, unattempted domains should be treated as 0 instead of the 0.5 prior
+  const readinessMasteryMap: Record<string, number> = {};
+  for (const domain of allDomains) {
+    const score = masteryMap[domain] ?? 0;
+    const attempted = domainAttempted[domain] ?? 0;
+    readinessMasteryMap[domain] = attempted === 0 ? 0 : score;
+  }
+
   const readinessIndex = Math.round(
     allDomains.length > 0
-      ? calculateWeightedReadinessIndex(masteryMap, allDomains)
+      ? calculateWeightedReadinessIndex(readinessMasteryMap, allDomains)
       : 0
   );
 
