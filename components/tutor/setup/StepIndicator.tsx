@@ -4,10 +4,8 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { id: 1, label: "Reality Anchor" },
-  { id: 2, label: "Active Target" },
-  { id: 3, label: "The Contract" },
-  { id: 4, label: "Assessment" },
+  { id: 1, label: "Baseline" },
+  { id: 2, label: "Commit" },
 ] as const;
 
 export { STEPS };

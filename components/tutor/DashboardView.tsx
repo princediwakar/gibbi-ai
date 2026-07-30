@@ -1,87 +1,28 @@
 // Path: components/tutor/DashboardView.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import type { DashboardPageData } from "@/app/dashboard/page";
-import { ProjectionHero } from "@/components/tutor/ProjectionHero";
+import { Label } from "@/components/ui/label";
+import type { DashboardPageData, SyllabusSubject, SyllabusDomain } from "@/app/dashboard/page";
 import { TUTOR_ROUTES, TUTOR_CONFIG } from "@/lib/constants/tutor";
 import { toast } from "sonner";
 import {
   Zap,
-  Target,
-  TrendingUp,
   CheckCircle2,
   AlertCircle,
-  BrainCircuit,
-  Crosshair,
-  Settings2,
   Loader2,
   CalendarDays,
-  Flame,
-  PlusCircle,
-  MessagesSquare,
-  ChevronDown,
-  ChevronUp,
+  Play,
+  ArrowRight,
+  Clock,
+  Lock,
+  BookOpen
 } from "lucide-react";
-
-function DomainBar({ domain, score }: { domain: string; score: number }) {
-  const pct = Math.round(score * 100);
-
-  const barColor =
-    score < 0.4
-      ? "bg-red-500"
-      : score < 0.7
-        ? "bg-yellow-500"
-        : "bg-green-500";
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium truncate max-w-[70%]">{domain}</span>
-        <span className="text-xs text-muted-foreground tabular-nums">{pct}%</span>
-      </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${Math.max(pct, 2)}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function getDirectiveText(data: DashboardPageData): {
-  heading: string;
-  subtext: string;
-} {
-  if (data.overdueDomainCount > 0 && data.weakestOverdueDomain) {
-    const label =
-      data.overdueDomainCount === 1 ? "domain" : "domains";
-    return {
-      heading: `${data.overdueDomainCount} ${label} overdue — ${data.weakestOverdueDomain} needs you most.`,
-      subtext: "Spaced repetition targets your weakest overdue topics first.",
-    };
-  }
-  if (data.activeTargets.length > 0) {
-    const label = data.activeTargets.slice(0, 3).join(", ");
-    const verb = data.activeTargets.length === 1 ? "is" : "are";
-    return {
-      heading: `Pinned: ${label} ${verb} ready when you are.`,
-      subtext: "Start a session focused on your active targets.",
-    };
-  }
-  return {
-    heading: "Stay sharp — keep your review streak alive.",
-    subtext:
-      "Consistent spaced repetition is the most effective path to mastery.",
-  };
-}
 
 export function DashboardViewLoading() {
   return (
@@ -91,19 +32,9 @@ export function DashboardViewLoading() {
         <Skeleton className="h-5 w-24" />
       </div>
       <Skeleton className="h-36 w-full rounded-xl" />
-      <div className="flex gap-3">
-        <Skeleton className="h-9 w-36" />
-        <Skeleton className="h-9 w-44" />
-      </div>
-      <div className="flex gap-6">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-5 w-28" />
-        <Skeleton className="h-5 w-24" />
-      </div>
       <div className="space-y-3">
-        <Skeleton className="h-5 w-28" />
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-6 w-full" />
+          <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
     </div>
@@ -126,21 +57,20 @@ export function DashboardView({ data }: { data: DashboardPageData }) {
   const router = useRouter();
 
   const [algoReviewLoading, setAlgoReviewLoading] = useState(false);
-  const [activeTargetLoading, setActiveTargetLoading] = useState(false);
-  const [customMockLoading, setCustomMockLoading] = useState(false);
-  const [customOpen, setCustomOpen] = useState(false);
-  const [selectedDomains, setSelectedDomains] = useState<Set<string>>(new Set());
+  const [linearNextLoading, setLinearNextLoading] = useState(false);
+  const [domainLoading, setDomainLoading] = useState<string | null>(null);
+  const [isLinearMode, setIsLinearMode] = useState(false);
 
-  const toggleDomain = useCallback((domain: string) => {
-    setSelectedDomains((prev) => {
-      const next = new Set(prev);
-      if (next.has(domain)) {
-        next.delete(domain);
-      } else {
-        next.add(domain);
-      }
-      return next;
-    });
+  useEffect(() => {
+    const saved = localStorage.getItem("gibbi_linear_mode");
+    if (saved) {
+      setIsLinearMode(saved === "true");
+    }
+  }, []);
+
+  const handleToggleLinear = useCallback((checked: boolean) => {
+    setIsLinearMode(checked);
+    localStorage.setItem("gibbi_linear_mode", String(checked));
   }, []);
 
   async function startSession(intent: string, focusDomains?: string[]) {
@@ -179,234 +109,237 @@ export function DashboardView({ data }: { data: DashboardPageData }) {
     }
   }
 
-  async function handleActiveTarget() {
-    setActiveTargetLoading(true);
+  async function handleDomainPractice(domain: string) {
+    setDomainLoading(domain);
     try {
-      const sessionId = await startSession("active_target", data.activeTargets);
-      router.push(TUTOR_ROUTES.SESSION(sessionId));
-    } catch (err: any) {
-      toast.error(err.message || "Failed to start active target session");
-    } finally {
-      setActiveTargetLoading(false);
-    }
-  }
-
-  async function handleCustomMock() {
-    const domains = Array.from(selectedDomains);
-    if (domains.length === 0) {
-      toast.error("Select at least one domain to build a custom session.");
-      return;
-    }
-
-    setCustomMockLoading(true);
-    try {
-      const sessionId = await startSession("custom_mock", domains);
+      const sessionId = await startSession("custom_mock", [domain]);
       router.push(TUTOR_ROUTES.SESSION(sessionId));
     } catch (err: any) {
       toast.error(err.message || "Failed to start custom session");
     } finally {
-      setCustomMockLoading(false);
+      setDomainLoading(null);
     }
   }
 
-  const directive = getDirectiveText(data);
-  const selectedCount = selectedDomains.size;
+  // Find next topic in linear sequence
+  let nextLinearDomain: SyllabusDomain | null = null;
+  for (const subject of data.syllabus) {
+    for (const domain of subject.domains) {
+      if (domain.masteryScore < 0.7) { // Define "not mastered" as < 70%
+        nextLinearDomain = domain;
+        break;
+      }
+    }
+    if (nextLinearDomain) break;
+  }
+
+  async function handleLinearNext() {
+    if (!nextLinearDomain) {
+      toast.success("You have mastered all topics!");
+      return;
+    }
+    setLinearNextLoading(true);
+    try {
+      const sessionId = await startSession("custom_mock", [nextLinearDomain.name]);
+      router.push(TUTOR_ROUTES.SESSION(sessionId));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start session");
+    } finally {
+      setLinearNextLoading(false);
+    }
+  }
+
+  const now = new Date();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 py-6">
+    <div className="max-w-5xl mx-auto space-y-8 px-4 py-6">
       {/* Section 1: Status Strip */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="w-4 h-4 text-muted-foreground" />
-          <span className="font-medium">{data.examName}</span>
-          <span className="text-muted-foreground">
-            &middot; {data.daysRemaining} day{data.daysRemaining !== 1 ? "s" : ""} left
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Readiness:</span>
-          <span className="font-bold text-lg tabular-nums">
-            {data.readinessIndex}/100
-          </span>
-        </div>
-      </div>
-
-      {/* Focus Hub: Confidence Interval Hero */}
-      <ProjectionHero prediction={data.prediction} />
-
-      {/* Section 2: Directive Hero */}
-      <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
-        <CardContent className="pt-6">
-          <p className="text-base font-semibold leading-snug">
-            {directive.heading}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {directive.subtext}
-          </p>
-          <Button
-            size="lg"
-            className="mt-4 w-full sm:w-auto min-w-[220px]"
-            onClick={handleAlgorithmicReview}
-            disabled={algoReviewLoading}
-          >
-            {algoReviewLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Starting...
-              </>
-            ) : (
-              <>
-                <Zap className="mr-2 h-4 w-4" />
-                Start Session
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Section 3: Active Target */}
-      {data.activeTargets.length > 0 && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-foreground">Pinned:</span>
-          <div className="flex flex-wrap gap-1.5">
-            {data.activeTargets.map((target) => (
-              <Badge key={target} variant="secondary" className="text-xs">
-                {target}
-              </Badge>
-            ))}
+      <div className="flex items-center justify-between text-sm bg-card p-4 rounded-xl border shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <CalendarDays className="w-5 h-5 text-primary" />
           </div>
-          <button
-            type="button"
-            onClick={handleActiveTarget}
-            disabled={activeTargetLoading}
-            className="text-primary hover:underline text-xs ml-auto shrink-0 disabled:opacity-50"
-          >
-            {activeTargetLoading ? "Starting..." : "Practice targets →"}
-          </button>
-        </div>
-      )}
-
-      {/* Section 4: Secondary Row */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/create">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create a Quiz
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCustomOpen((prev) => !prev)}
-          >
-            <Settings2 className="mr-2 h-4 w-4" />
-            Build Custom Session
-            {customOpen ? (
-              <ChevronUp className="ml-1 h-3.5 w-3.5" />
-            ) : (
-              <ChevronDown className="ml-1 h-3.5 w-3.5" />
-            )}
-          </Button>
-        </div>
-
-        {customOpen && (
-          <div className="rounded-lg border p-4 space-y-3">
-            {data.domainBreakdown.length > 0 ? (
-              <>
-                <div className="space-y-1 max-h-[240px] overflow-y-auto">
-                  {data.domainBreakdown
-                    .sort((a, b) => a.domain.localeCompare(b.domain))
-                    .map((d) => (
-                      <label
-                        key={d.domain}
-                        className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedDomains.has(d.domain)}
-                          onChange={() => toggleDomain(d.domain)}
-                          className="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm flex-1">{d.domain}</span>
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          {Math.round(d.score * 100)}%
-                        </span>
-                      </label>
-                    ))}
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-xs text-muted-foreground">
-                    {selectedCount > 0
-                      ? `${selectedCount} domain${selectedCount !== 1 ? "s" : ""} selected`
-                      : "Select domains to build your session"}
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={handleCustomMock}
-                    disabled={customMockLoading || selectedCount === 0}
-                  >
-                    {customMockLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Building...
-                      </>
-                    ) : (
-                      `Start (${TUTOR_CONFIG.DEFAULT_QUESTION_COUNT} Qs)`
-                    )}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Complete your first session to unlock the custom mock builder.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Section 5: Momentum Strip */}
-      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Flame className="w-4 h-4 text-orange-500" />
-          <span>{data.quickStats.streak} day streak</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <MessagesSquare className="w-4 h-4" />
-          <span>{data.quickStats.totalQuestions.toLocaleString()} answered</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{data.quickStats.sessionsCompleted} completed</span>
-        </div>
-      </div>
-
-      {/* Section 6: Weakest Spots */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">Weakest spots</h3>
-        {data.domainBreakdown.length > 0 ? (
-          <>
-            <div className="space-y-3">
-              {data.domainBreakdown
-                .sort((a, b) => a.score - b.score)
-                .slice(0, 5)
-                .map((d) => (
-                  <DomainBar key={d.domain} domain={d.domain} score={d.score} />
-                ))}
+          <div>
+            <div className="font-bold text-base">{data.examName}</div>
+            <div className="text-muted-foreground text-xs">
+              {data.daysRemaining} day{data.daysRemaining !== 1 ? "s" : ""} left
             </div>
-            <Link
-              href="/analytics"
-              className="text-xs text-primary hover:underline mt-3 inline-block"
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-0.5">Readiness</div>
+          <div className="font-black text-2xl tabular-nums leading-none">
+            {data.readinessIndex}<span className="text-muted-foreground text-base font-medium">/100</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: Smart Start Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5 hover:border-primary/40 transition-colors">
+          <CardContent className="p-5 flex flex-col h-full justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="w-5 h-5 text-yellow-500" />
+                <h3 className="font-semibold text-lg">AI Pick</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Spaced repetition algorithm. Targets your weakest and overdue topics across all subjects.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={handleAlgorithmicReview}
+              disabled={algoReviewLoading || linearNextLoading}
             >
-              View full breakdown &rarr;
-            </Link>
-          </>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Complete your first session to see domain mastery scores.
-          </p>
-        )}
+              {algoReviewLoading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Starting...</>
+              ) : (
+                <><Play className="mr-2 h-4 w-4" /> Start Spaced Review</>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-card hover:border-border/80 transition-colors">
+          <CardContent className="p-5 flex flex-col h-full justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <ArrowRight className="w-5 h-5 text-blue-500" />
+                <h3 className="font-semibold text-lg">Linear: Next Topic</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {nextLinearDomain 
+                  ? `Next up in curriculum sequence: ${nextLinearDomain.name}.`
+                  : "You've mastered all topics! Keep up the spaced reviews."}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              variant="secondary"
+              className="w-full"
+              onClick={handleLinearNext}
+              disabled={!nextLinearDomain || algoReviewLoading || linearNextLoading}
+            >
+              {linearNextLoading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Starting...</>
+              ) : (
+                <><Play className="mr-2 h-4 w-4" /> Practice {nextLinearDomain?.name || "Next"}</>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Section 3: Syllabus Grid */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Syllabus Map</h2>
+            <p className="text-muted-foreground text-sm">Practice topics individually based on mastery.</p>
+          </div>
+          <div className="flex items-center space-x-2 bg-muted/50 p-2 rounded-lg">
+            <Label htmlFor="linear-mode" className="text-sm font-medium cursor-pointer">
+              Linear Mode
+            </Label>
+            <input
+              type="checkbox"
+              id="linear-mode"
+              checked={isLinearMode}
+              onChange={(e) => handleToggleLinear(e.target.checked)}
+              className="h-4 w-4 rounded border-primary text-primary focus:ring-primary accent-primary cursor-pointer"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {data.syllabus.map((subject) => {
+            let hasWeakPrerequisite = false;
+
+            return (
+              <Card key={subject.name} className="flex flex-col border shadow-sm h-fit">
+                <CardHeader className="py-4 px-5 border-b bg-muted/20">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    {subject.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {subject.domains.map((domain) => {
+                      const pct = Math.round(domain.masteryScore * 100);
+                      const notStarted = domain.totalAttempted === 0;
+                      const isOverdue = !notStarted && domain.nextReviewAt ? new Date(domain.nextReviewAt) < now : false;
+                      const isWeak = domain.masteryScore < 0.3 && !notStarted;
+                      const isStrong = domain.masteryScore >= 0.7 && !notStarted;
+
+                      // Linear Mode Logic
+                      let isFutureTopic = false;
+                      if (isLinearMode) {
+                        if (hasWeakPrerequisite) {
+                          isFutureTopic = true;
+                        }
+                        if (isWeak || notStarted) {
+                          hasWeakPrerequisite = true;
+                        }
+                      }
+
+                      const barColor = isWeak ? "bg-red-500" : isStrong ? "bg-green-500" : "bg-yellow-500";
+
+                      return (
+                        <div key={domain.name} className={`p-4 hover:bg-muted/30 transition-all flex flex-col gap-3 group ${isFutureTopic ? "opacity-50 hover:opacity-100 grayscale hover:grayscale-0" : ""}`}>
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                <span className="font-medium text-sm leading-snug mr-1">{domain.name}</span>
+                                {isOverdue && (
+                                  <Badge variant="outline" className="text-[10px] whitespace-nowrap uppercase px-1.5 h-4 border-orange-500/30 text-orange-600 bg-orange-500/10 shrink-0">
+                                    <Clock className="w-3 h-3 mr-1" /> Due
+                                  </Badge>
+                                )}
+                                {isStrong && !isOverdue && (
+                                  <Badge variant="outline" className="text-[10px] whitespace-nowrap uppercase px-1.5 h-4 border-green-500/30 text-green-600 bg-green-500/10 shrink-0">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" /> Strong
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[120px]">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${notStarted ? "bg-transparent" : barColor}`}
+                                    style={{ width: `${Math.max(pct, 2)}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs tabular-nums text-muted-foreground w-8">
+                                  {notStarted ? "0%" : `${pct}%`}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={isOverdue ? "default" : "outline"}
+                              className={`shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity ${domainLoading === domain.name ? "opacity-100" : ""}`}
+                              onClick={() => handleDomainPractice(domain.name)}
+                              disabled={domainLoading === domain.name}
+                            >
+                              {domainLoading === domain.name ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                "Practice"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

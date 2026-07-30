@@ -1,7 +1,7 @@
 // Path: components/tutor/SessionPlayer.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { renderMathContent } from "@/lib/quiz-utils";
@@ -15,6 +15,8 @@ interface SessionPlayerProps {
   sessionId: string;
   questions: SessionQuestion[];
   examProfileId: string;
+  taxonomyDomains?: string[];
+  initialMastery?: Record<string, number>;
 }
 
 const OPTION_LETTERS = ["A", "B", "C", "D"] as const;
@@ -26,7 +28,7 @@ const optionBadgeStyles: Record<string, string> = {
   D: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
 };
 
-export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPlayerProps) {
+export function SessionPlayer({ sessionId, questions, examProfileId, taxonomyDomains, initialMastery }: SessionPlayerProps) {
   const router = useRouter();
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,6 +40,7 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
   const [nextEnabled, setNextEnabled] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [startingNext, setStartingNext] = useState(false);
   const [completeResult, setCompleteResult] = useState<{
     readiness_index?: number;
     mastery_updates?: { skill_domain: string; mastery_score: number }[];
@@ -53,6 +56,25 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
 
   const total = questions.length;
   const current = questions[currentIndex];
+
+  const nextDomain = useMemo(() => {
+    if (!completeResult || !taxonomyDomains || !initialMastery) return null;
+    
+    const currentMastery = { ...initialMastery };
+    if (completeResult.mastery_updates) {
+      for (const update of completeResult.mastery_updates) {
+        currentMastery[update.skill_domain] = update.mastery_score;
+      }
+    }
+    
+    for (const domain of taxonomyDomains) {
+      if ((currentMastery[domain] ?? 0) < 0.7) {
+        return domain;
+      }
+    }
+    
+    return null;
+  }, [completeResult, taxonomyDomains, initialMastery]);
 
   useEffect(() => {
     if (sessionComplete) {
@@ -172,6 +194,33 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
     router.push(TUTOR_ROUTES.DASHBOARD);
   }, [router]);
 
+  const handleStartNextTopic = useCallback(async () => {
+    if (!nextDomain) return;
+    setStartingNext(true);
+    try {
+      const res = await fetch(`${TUTOR_ROUTES.API_SESSION_START}?stream=false`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exam_profile_id: examProfileId,
+          session_intent: "custom_mock",
+          focus_domains: [nextDomain],
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: "Failed to start session" }));
+        throw new Error(errBody.error || "Failed to start session");
+      }
+
+      const json = await res.json();
+      router.push(TUTOR_ROUTES.SESSION(json.session_id));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start next topic");
+      setStartingNext(false);
+    }
+  }, [nextDomain, examProfileId, router]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (answerState === "answered") {
@@ -272,14 +321,28 @@ export function SessionPlayer({ sessionId, questions, examProfileId }: SessionPl
             <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         ) : (
-          <Button
-            className="w-full text-lg py-6"
-            size="lg"
-            onClick={handleBackToDashboard}
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back to Dashboard
-          </Button>
+          <div className="grid gap-3">
+            {nextDomain && (
+              <Button
+                className="w-full text-lg py-6"
+                size="lg"
+                onClick={handleStartNextTopic}
+                disabled={startingNext}
+              >
+                {startingNext ? "Starting..." : `Practice Next Topic: ${nextDomain}`}
+                <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+            <Button
+              className="w-full text-lg py-6"
+              size="lg"
+              variant={nextDomain ? "outline" : "default"}
+              onClick={handleBackToDashboard}
+            >
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Back to Dashboard
+            </Button>
+          </div>
         )}
       </div>
     );

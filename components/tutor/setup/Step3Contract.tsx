@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 interface Step3ContractProps {
   isSubmitting: boolean;
   isExisting: boolean;
-  onStartDiagnostic: () => void;
+  onCompleteSetup: () => void;
   onSaveOnly: () => void;
 }
 
 export function Step3Contract({
   isSubmitting,
   isExisting,
-  onStartDiagnostic,
+  onCompleteSetup,
   onSaveOnly,
 }: Step3ContractProps) {
   return (
@@ -37,19 +37,16 @@ export function Step3Contract({
         {/* Info cards */}
         <div className="grid gap-3">
           <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
-            <p className="text-sm font-medium">Why an initial assessment?</p>
+            <p className="text-sm font-medium">Your personalized syllabus</p>
             <p className="text-sm text-muted-foreground mt-1">
-              We measure what you know right now across every topic. No studying
-              required — just 5 quick questions to map your strengths and gaps.
+              We use your baseline ratings and historical exam data to generate a smart syllabus map of your strengths and gaps.
             </p>
           </div>
 
           <div className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
             <p className="text-sm font-medium">What happens next?</p>
             <p className="text-sm text-muted-foreground mt-1">
-              After the assessment, you will get a personalized dashboard with your
-              readiness index, weak spots, and a daily review plan tuned to your
-              exam date.
+              Your dashboard will guide you topic by topic in Linear Mode, ensuring you master prerequisites before advancing.
             </p>
           </div>
         </div>
@@ -60,15 +57,15 @@ export function Step3Contract({
             size="lg"
             className="w-full"
             disabled={isSubmitting}
-            onClick={onStartDiagnostic}
+            onClick={onCompleteSetup}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating assessment...
+                Generating Syllabus...
               </>
             ) : (
-              "Start My Assessment"
+              "Generate Syllabus & Start"
             )}
           </Button>
 

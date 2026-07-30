@@ -20,11 +20,24 @@ interface ConceptRow {
   next_review_at: string;
 }
 
+export interface SyllabusDomain {
+  name: string;
+  masteryScore: number;
+  nextReviewAt: string | null;
+  totalAttempted: number;
+}
+
+export interface SyllabusSubject {
+  name: string;
+  domains: SyllabusDomain[];
+}
+
 export interface DashboardPageData {
   readinessIndex: number;
   daysRemaining: number;
   timeMode: TimeMode;
   domainBreakdown: { domain: string; score: number; totalAttempted: number }[];
+  syllabus: SyllabusSubject[];
   quickStats: {
     totalQuestions: number;
     streak: number;
@@ -145,9 +158,11 @@ async function DashboardPageContent() {
 
   const masteryMap: Record<string, number> = {};
   const domainAttempted: Record<string, number> = {};
+  const domainNextReview: Record<string, string | null> = {};
   for (const c of concepts) {
     masteryMap[c.skill_domain] = c.mastery_score;
     domainAttempted[c.skill_domain] = c.total_attempted;
+    domainNextReview[c.skill_domain] = c.next_review_at;
   }
 
   const now = new Date();
@@ -168,6 +183,18 @@ async function DashboardPageContent() {
     totalAttempted: domainAttempted[domain] ?? 0,
   }));
 
+  const syllabus: SyllabusSubject[] = examSubjects
+    ? Object.entries(examSubjects).map(([subjectName, domainNames]) => ({
+        name: subjectName,
+        domains: domainNames.map((domain) => ({
+          name: domain,
+          masteryScore: masteryMap[domain] ?? 0,
+          nextReviewAt: domainNextReview[domain] ?? null,
+          totalAttempted: domainAttempted[domain] ?? 0,
+        })),
+      }))
+    : [];
+
   const overdueConcepts = concepts.filter(
     (c) => new Date(c.next_review_at) < now
   );
@@ -184,6 +211,7 @@ async function DashboardPageContent() {
     daysRemaining,
     timeMode,
     domainBreakdown,
+    syllabus,
     quickStats: {
       totalQuestions: questionResults.length,
       streak,

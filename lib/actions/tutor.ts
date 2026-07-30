@@ -83,6 +83,14 @@ export async function createExamProfile(
     profileId = profile.profile_id;
   }
 
+  // Deactivate any other active profiles
+  await supabase
+    .from("exam_profiles")
+    .update({ is_active: false })
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .neq("profile_id", profileId);
+
   const now = new Date().toISOString();
   const masteryMap = new Map<string, number>();
   const examSubjects = taxonomyData[exam_name] ?? {};

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SessionPlayer } from "@/components/tutor/SessionPlayer";
 import { TUTOR_ERRORS } from "@/lib/constants/tutor";
 import type { SessionQuestion } from "@/types/tutor";
+import taxonomy from "@/lib/taxonomies.json";
 
 interface SessionRow {
   id: string;
@@ -79,11 +80,41 @@ export default async function SessionPage({ params }: PageProps) {
     );
   }
 
+  const { data: profile } = await supabase
+    .from("exam_profiles")
+    .select("exam_name")
+    .eq("id", sessionData.exam_profile_id)
+    .single();
+
+  let taxonomyDomains: string[] = [];
+  let initialMastery: Record<string, number> = {};
+
+  if (profile) {
+    const examTaxonomy = taxonomy as unknown as Record<string, Record<string, string[]>>;
+    const examSubjects = examTaxonomy[profile.exam_name];
+    if (examSubjects) {
+      taxonomyDomains = [...new Set(Object.values(examSubjects).flat())];
+    }
+    
+    const { data: concepts } = await supabase
+      .from("concept_mastery")
+      .select("skill_domain, mastery_score")
+      .eq("user_id", user.id);
+      
+    if (concepts) {
+      for (const c of concepts) {
+        initialMastery[c.skill_domain] = c.mastery_score;
+      }
+    }
+  }
+
   return (
     <SessionPlayer
       sessionId={sessionData.id}
       questions={questions}
       examProfileId={sessionData.exam_profile_id}
+      taxonomyDomains={taxonomyDomains}
+      initialMastery={initialMastery}
     />
   );
 }
