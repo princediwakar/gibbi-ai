@@ -135,47 +135,47 @@ export function AppShell({ children, sidebarData }: { children: React.ReactNode;
               })}
             </div>
 
-          </nav>
-
-          {user && (
-            <div className="border-t pt-4 mt-4 flex flex-col gap-1">
-              <div className="mb-3 px-2">
+            {user && (
+              <div className="mt-6 px-2">
                 <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1.5">
                   Explore
                 </p>
-                <Link
-                  href="/create"
-                  className={`flex items-center gap-3 py-1.5 text-sm rounded-md px-2 transition-colors ${
-                    pathname === "/create"
-                      ? "text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  Create a Quiz
-                </Link>
-                <Link
-                  href="/quizzes"
-                  className={`flex items-center gap-3 py-1.5 text-sm rounded-md px-2 transition-colors ${
-                    pathname === "/quizzes"
-                      ? "text-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                  Public Quizzes
-                </Link>
-              </div>
-
-              {sidebarData && sidebarData.streak > 0 && (
-                <div className="flex items-center gap-1.5 px-2 py-1 text-xs">
-                  <Flame className="w-3.5 h-3.5 text-orange-500" />
-                  <span className="text-muted-foreground">
-                    {sidebarData.streak} day streak
-                  </span>
+                <div className="space-y-1">
+                  <Link
+                    href="/create"
+                    className={`flex items-center gap-3 py-1.5 text-sm rounded-md px-2 transition-colors ${
+                      pathname === "/create"
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Create a Quiz
+                  </Link>
+                  <Link
+                    href="/quizzes"
+                    className={`flex items-center gap-3 py-1.5 text-sm rounded-md px-2 transition-colors ${
+                      pathname === "/quizzes"
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Compass className="w-4 h-4" />
+                    Public Quizzes
+                  </Link>
                 </div>
-              )}
+              </div>
+            )}
+          </nav>
 
+          {user && sidebarData && sidebarData.streak > 0 && (
+            <div className="border-t pt-4 mt-4 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 px-2 py-1 text-xs">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-muted-foreground">
+                  {sidebarData.streak} day streak
+                </span>
+              </div>
             </div>
           )}
         </div>
